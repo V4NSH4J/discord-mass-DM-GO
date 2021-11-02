@@ -20,8 +20,12 @@
   - Single and Multi Spam modes
   - Free & Open source
   - Compatible with all Major OS and Architecture
+
 ![Mass DM in action](https://i.imgur.com/oCAz1GB.gif)
-Mass DM in Action 
+
+
+[Single DM in action](https://imgur.com/uXKKGyB.gif)
+
 
 ## Usage 💻
  - Build from Source or Download from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
