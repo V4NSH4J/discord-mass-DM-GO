@@ -6,7 +6,9 @@
 
  ![Feature preview - Discord Mass DM GO](https://i.imgur.com/DH9qMsl.png)
  
- 
+## Star the Repo ⭐
+Please star the repo, it really helps me out and allows me to contribute more.
+
 ## Disclaimer ⚠️
  The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Please do not use my programs for raiding/ Spamming/ Harassment/ Unsolicited Advertisement . This program was solely written to check a discord server's security measures and to document the relative ease with which bad actors function on Discord.
 
