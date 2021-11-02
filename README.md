@@ -9,7 +9,10 @@
  
 ## Disclaimer ⚠️
  The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Please do not use my programs for raiding/ Spamming/ Harassment/ Unsolicited Advertisement . This program was solely written to check a discord server's security measures and to document the relative ease with which bad actors function on Discord.
- 
+
+## How is this abused?
+If you've been part of big discord servers, I'm sure you've at some point recieved a DM from one of such bots. Discord is a very large market of gamers with 150 million+ Monthly active users which is why this is such a big issue. People send Crypto exchange scams where they claim you won a fortune in a crypto currency and have to make an account on their website and make a deposit. Second type is Nitro Scams, where they either sent you a token logger binary or link you to a phishing website where they steal your credentials from either QR codes or login. After access of a user's account, their account is also used in a similar spam and their payment method is abused. Third people use to advertise their servers or their NFTs or their crypto to either Pump & dump or just make it popular 
+
 ## Features ✅
   - Proxyless
   - Only working and Free Discord DM Spammer as of November 2021
