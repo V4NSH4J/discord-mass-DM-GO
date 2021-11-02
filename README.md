@@ -38,6 +38,11 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
  - Decide the delay and the message by setting your config file "config.json"
  - Run the binary
  - Follow the instructions on the Binary
+
+
+## How to get Help?
+You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
+
 ## Token Quality & Functionality (Updated: 2nd Nov)
 The number of DMs each token of your's gets depends on it's quality. Here I will break down everything related to this. 
 - Unverified Token : 5 DMs
