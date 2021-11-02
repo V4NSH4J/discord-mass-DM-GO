@@ -48,6 +48,8 @@ The number of DMs each token of your's gets depends on it's quality. Here I will
 - Unverified Token : 5 DMs
 - Email verified Token: 5 DMs
 - Phone verified Tokens: ~20 DMs [Can be more or less depending on quality]
+
+
 What happens when this limit is crossed? Unverified and Email verified tokens get phone locked (Meaning it requires a phone number to unlock them) And Phone verified tokens get disabled by discord for "Suspicious activity" and you need to reset their password to access them again. But for commerical purposes, tokens are one time use. 
 
 About functionality, servers have a minimum verification level which server administrators can set. If the minimum server verification is set to none, then you can easily use Unverified tokens to DM it's members. But if it's set to email verified, your unverified tokens won't be able to DM anyone. Same goes with email verified tokens in Phone verification required servers. 
