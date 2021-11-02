@@ -50,6 +50,12 @@ Name | Type | Description
 `message` | string | The message to be sent to the Discord User
 `delay` | int | Duration in seconds between 2 consecutive messages from a single discord token
 
+## Other interesting stuff by me
+(Discord Invite Joiner)[https://github.com/V4NSH4J/discord-inviter-GO] - Joins given tokens to a server
+(Discord Token Checker)[https://github.com/V4NSH4J/FAST-discord-token-checker] - Checks given tokens and records their information
+(Discord Mass DM)[https://github.com/V4NSH4J/discord-mass-DM-GO] - DMs all users of a server or DM's a discord user from multiple accounts
+(Dankgrinder)[https://github.com/V4NSH4J/dankgrinder] - An Advanced automation tool for Dankmemer
+
 ## Donations 🪙
 I spend quite a lot of time in making High Quality & Open Source discord tools because hundreds of people get ripped-off everyday searching for this stuff. If this helped you out even in the slightest, Buy me a coffee and make my day! 
 BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
