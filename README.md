@@ -38,6 +38,16 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
  - Decide the delay and the message by setting your config file "config.json"
  - Run the binary
  - Follow the instructions on the Binary
+## Token Quality & Functionality (Updated: 2nd Nov)
+The number of DMs each token of your's gets depends on it's quality. Here I will break down everything related to this. 
+- Unverified Token : 5 DMs
+- Email verified Token: 5 DMs
+- Phone verified Tokens: ~20 DMs [Can be more or less depending on quality]
+What happens when this limit is crossed? Unverified and Email verified tokens get phone locked (Meaning it requires a phone number to unlock them) And Phone verified tokens get disabled by discord for "Suspicious activity" and you need to reset their password to access them again. But for commerical purposes, tokens are one time use. 
+
+About functionality, servers have a minimum verification level which server administrators can set. If the minimum server verification is set to none, then you can easily use Unverified tokens to DM it's members. But if it's set to email verified, your unverified tokens won't be able to DM anyone. Same goes with email verified tokens in Phone verification required servers. 
+
+You do not need to do any of those crappy verifications (Click the check mark to continue, etc) to DM members. You don't even need to do verifications by bots like Alt Identifier, although they will kick your accounts in 10 minutes and you won't be able to DM anyone after that. Keep this in mind while using the program.
  
 ## Building from Source 🚧
  - [Install Golang](https://golang.org) and verify your installation
