@@ -70,7 +70,8 @@ Name | Type | Description
 ---- | ---- | ----
 `mode` | int | Mode 0 for spamming a Single account. Mode 1 for Mass spamming Discord accounts
 `message` | string | The message to be sent to the Discord User
-`delay` | int | Duration in seconds between 2 consecutive messages from a single discord token
+`individual_delay` | int | Duration in seconds between 2 consecutive messages from a single discord token
+`rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 
 ## Other interesting stuff by me
 [Discord Invite Joiner](https://github.com/V4NSH4J/discord-inviter-GO) - Joins given tokens to a server
