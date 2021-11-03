@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"log"
 	"os"
 	"path"
@@ -35,6 +36,7 @@ func main() {
 		Message string `json:"message"`
 		Delay   int    `json:"individual_delay"`
 		LongDelay int `json:"rate_limit_delay"`
+		Offset int `json:"offset"`
 	}
 	var config Config
 	ex, err := os.Executable()
@@ -112,7 +114,7 @@ func main() {
 
 					for j := x; j < y; j++ {
 
-						time.Sleep(time.Duration(config.Delay) * time.Second)
+						time.Sleep(time.Duration(rand.Intn(config.Offset)) * time.Millisecond)
 						a := directmessage.OpenChannel(tokens[i], memberids[j])
 						b := directmessage.SendMessage(tokens[i], a, config.Message)
 						defer b.Body.Close()
