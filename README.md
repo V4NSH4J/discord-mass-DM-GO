@@ -48,7 +48,7 @@ You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or
 ## Token Quality & Functionality (Updated: 2nd Nov)
 The number of DMs each token of your's gets depends on it's quality. Here I will break down everything related to this. 
 - Unverified Token : 5 DMs
-- Email verified Token: 5 DMs
+- Email verified Token: 5-25 DMs (Can be more or less depending on quality)
 - Phone verified Tokens: ~20 DMs [Can be more or less depending on quality]
 
 
