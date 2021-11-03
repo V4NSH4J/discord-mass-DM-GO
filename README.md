@@ -72,6 +72,7 @@ Name | Type | Description
 `message` | string | The message to be sent to the Discord User
 `individual_delay` | int | Duration in seconds between 2 consecutive messages from a single discord token
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
+`offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
 
 ## Other interesting stuff by me
 [Discord Invite Joiner](https://github.com/V4NSH4J/discord-inviter-GO) - Joins given tokens to a server
