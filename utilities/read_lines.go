@@ -28,7 +28,7 @@ func ReadLines(filename string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-func WriteLines(filename string, failed []string) error {
+func WriteLines(filename string, line string) error {
 	ex, err := os.Executable()
 	if err != nil {
 		return err
@@ -41,12 +41,9 @@ func WriteLines(filename string, failed []string) error {
 	}
 
 	defer f.Close()
-	for i := 0; i < len(failed); i++ {
-		_, err2 := f.WriteString(failed[i] + "\n")
-		if err2 != nil {
-			log.Fatal(err2)
-		}
-
+	_, err2 := f.WriteString(line + "\n")
+	if err2 != nil {
+		log.Fatal(err2)
 	}
 	return nil
 

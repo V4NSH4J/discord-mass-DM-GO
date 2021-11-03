@@ -1,5 +1,7 @@
 {
-    "message": "Message goes here!",
-    "individual_delay": 5
+    "message": "Made by github.com/V4NSH4J",
+    "individual_delay": 5,
+    "rate_limit_delay": 600,
+    "offset": 15000
 
 }

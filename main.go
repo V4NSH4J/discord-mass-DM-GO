@@ -33,7 +33,8 @@ func main() {
 
 	type Config struct {
 		Message string `json:"message"`
-		Delay   int    `json:"delay"`
+		Delay   int    `json:"individual_delay"`
+		LongDelay int `json:"rate_limit_delay"`
 	}
 	var config Config
 	ex, err := os.Executable()
@@ -125,15 +126,25 @@ func main() {
 						if b.StatusCode == 200 {
 							completed = append(completed, memberids[j])
 							color.Green("[%v]Succesfully sent DM to %v", time.Now().Format("15:05:04"), memberids[i])
+							w := utilities.WriteLines("completed.txt", memberids[j])
+							if w != nil {
+								fmt.Println(w)
+							}
 
 						} else if b.StatusCode == 403 && JsonB.Code == 40003 {
 							time.Sleep(10 * time.Minute)
 							color.Cyan("[%v] Token sleeping for 10 minutes!", tokens[i])
+							time.Sleep(time.Duration(config.LongDelay) * time.Second)
 
 						} else {
 							failed = append(failed, memberids[j])
 							color.Red("[%v]Failed to send DM to %v (Error %v)", time.Now().Format("15:05:04"), memberids[i], b)
+							q := utilities.WriteLines("failed.txt", memberids[j])
+							if q != nil {
+								fmt.Println(q)
+							}
 						}
+						time.Sleep(time.Duration(config.Delay) * time.Second)
 					}
 				}(i)
 
@@ -165,14 +176,8 @@ func main() {
 		color.Blue("[%v]DM advertisement took %s. DM'd %v users and failed to DM %v users", time.Now().Format("15:05:04"), elapsed, len(completed), len(failed))
 		fmt.Println("Writing to file, please wait!")
 
-		q := utilities.WriteLines("failed.txt", failed)
-		if q != nil {
-			fmt.Println(q)
-		}
-		w := utilities.WriteLines("completed.txt", completed)
-		if w != nil {
-			fmt.Println(w)
-		}
+
+
 	}
 	if option == 0 {
 		color.Blue("Please make sure the tokens are in a mutual server as the victim and enter the victim's discord UID here: ")
