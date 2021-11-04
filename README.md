@@ -1,4 +1,5 @@
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
+
 [Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
 # discord-mass-DM-GO
  A tool written in GO to demonstrate how bad actors utilize requests to spam Discord Users and launch large unsolicited DM Advertisement Campaigns
