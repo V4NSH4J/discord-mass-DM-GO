@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"math/rand"
 	"log"
+	"math/rand"
 	"os"
 	"path"
 	"path/filepath"
@@ -31,12 +31,12 @@ func main() {
 		return
 	}
 
-
 	type Config struct {
-		Message string `json:"message"`
-		Delay   int    `json:"individual_delay"`
-		LongDelay int `json:"rate_limit_delay"`
-		Offset int `json:"offset"`
+		Message   string `json:"message"`
+		Delay     int    `json:"individual_delay"`
+		LongDelay int    `json:"rate_limit_delay"`
+		Offset    int    `json:"offset"`
+		Skip      bool   `json:"skip_completed"`
 	}
 	var config Config
 	ex, err := os.Executable()
@@ -109,12 +109,15 @@ func main() {
 			for i := 0; i < len(tokens); i++ {
 				go func(i int) {
 					defer wg.Done()
+					time.Sleep(time.Duration(rand.Intn(config.Offset)) * time.Millisecond)
 					x := ChannelPerToken * i
 					y := x + ChannelPerToken
 
 					for j := x; j < y; j++ {
-
-						time.Sleep(time.Duration(rand.Intn(config.Offset)) * time.Millisecond)
+						if len(completed) > 0 && config.Skip && utilities.Contains(completed, memberids[j]) {
+							color.Green("[%v] Skipping Member %v [Already DM'd]", time.Now().Format("15:05:04"), memberids[j])
+							continue
+						}
 						a := directmessage.OpenChannel(tokens[i], memberids[j])
 						b := directmessage.SendMessage(tokens[i], a, config.Message)
 						defer b.Body.Close()
@@ -127,20 +130,19 @@ func main() {
 						json.Unmarshal(body, &JsonB)
 						if b.StatusCode == 200 {
 							completed = append(completed, memberids[j])
-							color.Green("[%v]Succesfully sent DM to %v", time.Now().Format("15:05:04"), memberids[i])
+							color.Green("[%v]Succesfully sent DM to %v", time.Now().Format("15:05:04"), memberids[j])
 							w := utilities.WriteLines("completed.txt", memberids[j])
 							if w != nil {
 								fmt.Println(w)
 							}
 
 						} else if b.StatusCode == 403 && JsonB.Code == 40003 {
-							time.Sleep(10 * time.Minute)
-							color.Cyan("[%v] Token sleeping for 10 minutes!", tokens[i])
+							color.Cyan("[%v] Token sleeping for %v minutes! Consider setting this delay to an appropriate amount (10-20 Minutes) to ensure your tokens last long!", tokens[i], int(config.LongDelay/60))
 							time.Sleep(time.Duration(config.LongDelay) * time.Second)
 
 						} else {
 							failed = append(failed, memberids[j])
-							color.Red("[%v]Failed to send DM to %v (Error %v)", time.Now().Format("15:05:04"), memberids[i], b)
+							color.Red("[%v]Failed to send DM to %v (Error %v)", time.Now().Format("15:05:04"), memberids[j], b)
 							q := utilities.WriteLines("failed.txt", memberids[j])
 							if q != nil {
 								fmt.Println(q)
@@ -158,14 +160,23 @@ func main() {
 		if mode == 2 {
 			wg.Add(len(memberids))
 			for i := 0; i < len(memberids); i++ {
+				if len(completed) > 0 && config.Skip && utilities.Contains(completed, memberids[i]) {
+					color.Green("[%v] Skipping Member %v [Already DM'd]", time.Now().Format("15:05:04"), memberids[i])
+					continue
+				}
 				go func(i int) {
 					defer wg.Done()
 					a := directmessage.OpenChannel(tokens[i], memberids[i])
 					b := directmessage.SendMessage(tokens[i], a, config.Message)
+					var JsonB jsonResponse
 					if b.StatusCode == 200 {
 						completed = append(completed, memberids[i])
 						color.Green("[%v]Succesfully sent DM to %v", time.Now().Format("15:05:04"), memberids[i])
 
+					} else if b.StatusCode == 403 && JsonB.Code == 40003 {
+						time.Sleep(10 * time.Minute)
+						color.Cyan("[%v] Token sleeping for 10 minutes!", tokens[i])
+						time.Sleep(time.Duration(config.LongDelay) * time.Second)
 					} else {
 						failed = append(failed, memberids[i])
 						color.Red("[%v]Failed to send DM to %v", time.Now().Format("15:05:04"), memberids[i])
@@ -177,8 +188,6 @@ func main() {
 		elapsed := time.Since(start)
 		color.Blue("[%v]DM advertisement took %s. DM'd %v users and failed to DM %v users", time.Now().Format("15:05:04"), elapsed, len(completed), len(failed))
 		fmt.Println("Writing to file, please wait!")
-
-
 
 	}
 	if option == 0 {
