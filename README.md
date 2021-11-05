@@ -1,3 +1,8 @@
+Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
+
+[Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
+
+Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
 # discord-mass-DM-GO
  A tool written in GO to demonstrate how bad actors utilize requests to spam Discord Users and launch large unsolicited DM Advertisement Campaigns
  
@@ -48,8 +53,8 @@ You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or
 ## Token Quality & Functionality (Updated: 2nd Nov)
 The number of DMs each token of your's gets depends on it's quality. Here I will break down everything related to this. 
 - Unverified Token : 5 DMs
-- Email verified Token: 5-25 DMs (Can be more or less depending on quality)
-- Phone verified Tokens: ~20 DMs [Can be more or less depending on quality]
+- Email verified Token: 20+ DMs (Can be more or less depending on quality)
+- Phone verified Tokens: 20+ DMs [Can be more or less depending on quality]
 
 
 What happens when this limit is crossed? Unverified and Email verified tokens get phone locked (Meaning it requires a phone number to unlock them) And Phone verified tokens get disabled by discord for "Suspicious activity" and you need to reset their password to access them again. But for commerical purposes, tokens are one time use. 
@@ -73,6 +78,7 @@ Name | Type | Description
 `individual_delay` | int | Duration in seconds between 2 consecutive messages from a single discord token
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 `offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
+`skip_completed` | bool | Set to true to skip members who were already DM'd from completed.txt
 
 ## Other interesting stuff by me
 [Discord Invite Joiner](https://github.com/V4NSH4J/discord-inviter-GO) - Joins given tokens to a server
