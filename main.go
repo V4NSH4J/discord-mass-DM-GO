@@ -130,16 +130,22 @@ func main() {
 						json.Unmarshal(body, &JsonB)
 						if b.StatusCode == 200 {
 							completed = append(completed, memberids[j])
-							color.Green("[%v]Succesfully sent DM to %v", time.Now().Format("15:05:04"), memberids[j])
+							color.Green("[%v]Succesfully sent DM to %v [%v]", time.Now().Format("15:05:04"), memberids[j], len(completed))
 							w := utilities.WriteLines("completed.txt", memberids[j])
 							if w != nil {
 								fmt.Println(w)
 							}
 
 						} else if b.StatusCode == 403 && JsonB.Code == 40003 {
-							color.Cyan("[%v] Token sleeping for %v minutes! Consider setting this delay to an appropriate amount (10-20 Minutes) to ensure your tokens last long!", tokens[i], int(config.LongDelay/60))
+							color.Cyan("[%v]Token %v sleeping for %v minutes! Consider setting this delay to an appropriate amount (10-20 Minutes) to ensure your tokens last long!", time.Now().Format("15:05:04"), tokens[i], int(config.LongDelay/60))
 							time.Sleep(time.Duration(config.LongDelay) * time.Second)
+							color.Cyan("[%v]Token %v waking up, starting DMs again", time.Now().Format("15:05:04"), tokens[i])
 
+						} else if b.StatusCode == 403 && JsonB.Code == 50007 {
+							color.Red("[%v] User %v has either closed DMs or is not in a mutual server or has blocked the sender",time.Now().Format("15:05:04"), memberids[j])
+
+						} else if b.StatusCode == 403 && JsonB.Code == 50009 {
+							color.Red("[%v] Token %v can't DM %v - It might not have completed discord's community server member screening or the User is only accepting DMs from friends", time.Now().Format("15:05:04"), tokens[i], memberids[j])
 						} else {
 							failed = append(failed, memberids[j])
 							color.Red("[%v]Failed to send DM to %v (Error %v)", time.Now().Format("15:05:04"), memberids[j], b)

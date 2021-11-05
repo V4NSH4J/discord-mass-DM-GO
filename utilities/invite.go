@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"path"
@@ -16,6 +17,7 @@ import (
 
 	"github.com/fatih/color"
 )
+
 // Discord tracks accounts on their website using a fingerprint, adding this is essential otherwise accounts would get phone locked
 func GetFingerprint() string {
 	log.SetOutput(ioutil.Discard)
@@ -45,12 +47,14 @@ type cookie struct {
 	Dcfduid  string
 	Sdcfduid string
 }
+
 // Getting cookies for legit looking requests
 func GetCookie() cookie {
 	log.SetOutput(ioutil.Discard)
+	time.Sleep(time.Duration(rand.Intn(5000)) * time.Millisecond)
 	resp, err := http.Get("https://discord.com")
 	if err != nil {
-		fmt.Printf("[%v]Error while getting cookies %v",time.Now().Format("15:05:04"), err)
+		fmt.Printf("[%v]Error while getting cookies %v", time.Now().Format("15:05:04"), err)
 		CookieNil := cookie{}
 		return CookieNil
 	}
@@ -76,7 +80,7 @@ func JoinGuild(inviteCode string, token string) {
 	fmt.Println(url)
 	Cookie := GetCookie()
 	if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-		fmt.Printf("[%v]Empty cookie",time.Now().Format("15:05:04"))
+		fmt.Printf("[%v]Empty cookie", time.Now().Format("15:05:04"))
 		return
 	}
 
@@ -180,4 +184,3 @@ func LaunchInviteJoiner() {
 	fmt.Printf("Joining took only %s", elapsed)
 
 }
-
