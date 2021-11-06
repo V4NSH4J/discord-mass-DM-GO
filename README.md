@@ -40,7 +40,7 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
 ## Usage 💻
  - Build from Source or Download from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
  - Input your tokens in "input/tokens.txt"
- - [Scrape the UIDs](https://github.com/Merubokkusu/Discord-S.C.U.M/blob/master/examples/gettingGuildMembers.py) of a server for Multi DM mode. 
+ - [Scrape the UIDs](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) of a server for Multi DM mode. Make a file users.txt in the same directory for it to output. This code is from Discum library
  - Add UID's of discord Users who you want to message in "input/memberids.txt"
  - Decide the delay and the message by setting your config file "config.json"
  - Run the binary
