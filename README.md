@@ -58,8 +58,8 @@ You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or
 ## Token Quality & Functionality (Updated: 2nd Nov)
 The number of DMs each token of your's gets depends on it's quality. Here I will break down everything related to this. 
 - Unverified Token : 5 DMs
-- Email verified Token: 20+ DMs (Can be more or less depending on quality)
-- Phone verified Tokens: 20+ DMs [Can be more or less depending on quality]
+- Email verified Token: 5-59 DMs (Can be more or less depending on quality)
+- Phone verified Tokens: 50+ DMs [Can be more or less depending on quality]
 
 
 What happens when this limit is crossed? Unverified and Email verified tokens get phone locked (Meaning it requires a phone number to unlock them) And Phone verified tokens get disabled by discord for "Suspicious activity" and you need to reset their password to access them again. But for commerical purposes, tokens are one time use. 
