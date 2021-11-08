@@ -1,8 +1,6 @@
 {
-    "message": "Made by github.com/V4NSH4J",
     "individual_delay": 7,
     "rate_limit_delay": 650,
     "offset": 30000,
     "skip_completed": true
-
 }

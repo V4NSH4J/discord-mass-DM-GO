@@ -22,7 +22,16 @@ import (
 func main() {
 	color.Blue("\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2551\u2591\u2591\u255A\u2550\u255D\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u2591\u255A\u2550\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u2591\u255A\u2550\u2550\u2550\u2550\u255D\u2591\u2591\u255A\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2557\u2591\u2591\u2591\u2588\u2588\u2588\u2557\r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2551\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u255A\u2550\u255D\u2591\u2588\u2588\u2551\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\r\n\r\n\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2557\u2591\u2591\u2591\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2557\u2591\u2591\u2591\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\r\n\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\r\n\u255A\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u2591\u255A\u2550\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u255D\u2591\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u255D\u2591\u2591\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u2591\u2591\u2591\u2591\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u2591\u255A\u2550\u255D\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u2591\u255A\u2550\u255D\u2591\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u255D\u2591\u2591\u255A\u2550\u255D")
 	color.Green("\n\nMade by https://github.com/V4NSH4J ")
-
+	color.Blue("Do you wish to join tokens to a server? Enter 0 for Yes, 1 for No")
+	var invite int
+	fmt.Scanln(&invite)
+	if invite != 0 && invite != 1 {
+		log.Panicf("Invalid option")
+		return
+	}
+	if invite == 0 {
+		utilities.LaunchInviteJoiner()
+	}
 	color.Blue("Enter 0 for Single mode, Enter 1 for Multi mode (DM Advertising)")
 	var option int
 	fmt.Scanln(&option)
@@ -31,12 +40,32 @@ func main() {
 		return
 	}
 
+	var message directmessage.Message
+	exx, err := os.Executable()
+	if err != nil {
+		return
+	}
+	exx = filepath.ToSlash(exx)
+	filee, errx := os.Open(path.Join(path.Dir(exx) + "/" + "message.json"))
+	if err != nil {
+		color.Red("Error while Opening message.json")
+		fmt.Println(errx)
+		return
+	}
+	defer filee.Close()
+	bytess, _ := io.ReadAll(filee)
+	errrr := json.Unmarshal(bytess, &message)
+	if errrr != nil {
+		color.Red("Error while Unmarshalling Message - Please make sure your Embed colour is a decimal number and not a Hex. Also please make sure you're using the right kind of quotes \"  and not ' (You can add it to notepad and use Ctrl + H to replace all quotes with the right ones) and use escape characters (backslash n) to add new lines instead of EOF")
+		fmt.Println(errrr)
+		return
+	}
+
 	type Config struct {
-		Message   string `json:"message"`
-		Delay     int    `json:"individual_delay"`
-		LongDelay int    `json:"rate_limit_delay"`
-		Offset    int    `json:"offset"`
-		Skip      bool   `json:"skip_completed"`
+		Delay     int  `json:"individual_delay"`
+		LongDelay int  `json:"rate_limit_delay"`
+		Offset    int  `json:"offset"`
+		Skip      bool `json:"skip_completed"`
 	}
 	var config Config
 	ex, err := os.Executable()
@@ -55,12 +84,12 @@ func main() {
 		fmt.Println(err)
 		return
 	}
-
 	tokens, err := utilities.ReadLines("tokens.txt")
 	if err != nil {
 		fmt.Printf("Error while opening tokens.txt, %v \n", err)
 		return
 	}
+
 	if option == 1 {
 		color.Blue("\nMake sure everything is configured and press ENTER to begin SPAM")
 		bufio.NewReader(os.Stdin).ReadBytes('\n')
@@ -119,7 +148,7 @@ func main() {
 							continue
 						}
 						a := directmessage.OpenChannel(tokens[i], memberids[j])
-						b := directmessage.SendMessage(tokens[i], a, config.Message)
+						b := directmessage.SendMessage(tokens[i], a, &message, memberids[j])
 						defer b.Body.Close()
 
 						body, err := ioutil.ReadAll(b.Body)
@@ -142,7 +171,7 @@ func main() {
 							color.Cyan("[%v]Token %v waking up, starting DMs again", time.Now().Format("15:05:04"), tokens[i])
 
 						} else if b.StatusCode == 403 && JsonB.Code == 50007 {
-							color.Red("[%v] User %v has either closed DMs or is not in a mutual server or has blocked the sender",time.Now().Format("15:05:04"), memberids[j])
+							color.Red("[%v] User %v has either closed DMs or is not in a mutual server or has blocked the sender", time.Now().Format("15:05:04"), memberids[j])
 
 						} else if b.StatusCode == 403 && JsonB.Code == 50009 {
 							color.Red("[%v] Token %v can't DM %v - It might not have completed discord's community server member screening or the User is only accepting DMs from friends", time.Now().Format("15:05:04"), tokens[i], memberids[j])
@@ -173,7 +202,7 @@ func main() {
 				go func(i int) {
 					defer wg.Done()
 					a := directmessage.OpenChannel(tokens[i], memberids[i])
-					b := directmessage.SendMessage(tokens[i], a, config.Message)
+					b := directmessage.SendMessage(tokens[i], a, &message, memberids[i])
 					var JsonB jsonResponse
 					if b.StatusCode == 200 {
 						completed = append(completed, memberids[i])
@@ -216,7 +245,7 @@ func main() {
 					time.Sleep(500 * time.Millisecond)
 
 					a := directmessage.OpenChannel(tokens[i], UUID)
-					b := directmessage.SendMessage(tokens[i], a, config.Message)
+					b := directmessage.SendMessage(tokens[i], a, &message, UUID)
 					if b.StatusCode == 200 {
 						color.Green("[%v]Succesfully sent message from %v\n", time.Now().Format("15:05:04"), tokens[i])
 					} else {
@@ -233,7 +262,7 @@ func main() {
 				go func(i int) {
 					for {
 						a := directmessage.OpenChannel(tokens[i], UUID)
-						b := directmessage.SendMessage(tokens[i], a, config.Message)
+						b := directmessage.SendMessage(tokens[i], a, &message, UUID)
 						if b.StatusCode == 200 {
 							color.Green("[%v]Succesfully sent message from %v\n", time.Now().Format("15:05:04"), tokens[i])
 
