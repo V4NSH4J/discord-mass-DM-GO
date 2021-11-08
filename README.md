@@ -22,6 +22,9 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
 
 ## Features ✅
   - Proxyless
+  - In-built invite joiner
+  - Can ping User
+  - Supports Embeds
   - Only working and Free Discord DM Spammer as of November 2021
   - Light on System Resources
   - Configurable
@@ -39,13 +42,15 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
 
 ## Usage 💻
  - Build from Source or Download from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
- - Input your tokens in "input/tokens.txt"
- - [Scrape the UIDs](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) of a server for Multi DM mode. Make a file users.txt in the same directory for it to output. This code is from Discum library
- - Add UID's of discord Users who you want to message in "input/memberids.txt"
- - Decide the delay and the message by setting your config file "config.json"
+ - Input your tokens in `input/tokens.txt`
+ - [Scrape the UIDs](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) of a server for Multi DM mode. Make a file `users.txt` in the same directory for it to output. This code is from Discum library
+ - Add UID's of discord Users who you want to message in `input/memberids.txt`
+ - Decide the delay by setting your config file `config.json`
+ - Add your message in `message.json`. This can be an Embed. Use [this](https://autocode.com/tools/discord/embed-builder/) website for building the embed easily. But be sure to change the quotes from \` to ". This can be done in notepad by Pressing `Ctrl + H` and replacing them. Also add the colour of embed in Decimal, convert the Hex code into Decimal. 
+ - Remove any fields you don't wish to send
+ - Writing <user> anywhere in the message content would ping the user
  - Run the binary
  - Follow the instructions on the Binary
-
 
 ## How to get Help?
 You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
@@ -79,7 +84,7 @@ Name | Type | Description
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 `offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
 `skip_completed` | bool | Set to true to skip members who were already DM'd from completed.txt
-
+ 
 ## Other interesting stuff by me
 [Discord Invite Joiner](https://github.com/V4NSH4J/discord-inviter-GO) - Joins given tokens to a server
 
