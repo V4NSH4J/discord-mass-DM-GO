@@ -48,7 +48,7 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
  - Decide the delay by setting your config file `config.json`
  - Add your message in `message.json`. This can be an Embed. Use [this](https://autocode.com/tools/discord/embed-builder/) website for building the embed easily. But be sure to change the quotes from \` to ". This can be done in notepad by Pressing `Ctrl + H` and replacing them. Also add the colour of embed in Decimal, convert the Hex code into Decimal. 
  - Remove any fields you don't wish to send
- - Writing <user> anywhere in the message content would ping the user
+ - Writing \<user\> anywhere in the message content would ping the user
  - Run the binary
  - Follow the instructions on the Binary
 
