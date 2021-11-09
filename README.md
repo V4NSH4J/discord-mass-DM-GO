@@ -4,7 +4,7 @@ Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 
 Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
 # discord-mass-DM-GO
- A tool written in GO to demonstrate how bad actors utilize requests to spam Discord Users and launch large unsolicited DM Advertisement Campaigns
+ A selfbot written in GO to demonstrate how rule-violators utilize requests to spam Discord Users and launch large unsolicited DM Advertisement Campaigns
  
 ## Overview 🔍
  This program is a multi-threaded Discord Direct Message Spammer. It has 2 modes - Single and Multi. In Single mode, multiple tokens send messages to One discord account they share a mutual server with. In Multi mode, multiple discord tokens send messages to multiple discord accounts scraped from a Public discord server. 
