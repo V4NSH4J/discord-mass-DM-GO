@@ -46,7 +46,7 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
  - [Scrape the UIDs](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) of a server for Multi DM mode. Make a file `users.txt` in the same directory for it to output. This code is from Discum library
  - Add UID's of discord Users who you want to message in `input/memberids.txt`
  - Decide the delay by setting your config file `config.json`
- - Add your message in `message.json`. This can be an Embed. Use [this](https://autocode.com/tools/discord/embed-builder/) website for building the embed easily. But be sure to change the quotes from \` to ". This can be done in notepad by Pressing `Ctrl + H` and replacing them. Also add the colour of embed in Decimal, convert the Hex code into Decimal. 
+ - Add your message in `message.json`. This can be an Embed. Use [this](https://glitchii.github.io/embedbuilder/?editor=json) website for building the embed easily
  - Remove any fields you don't wish to send
  - Writing \<user\> anywhere in the message content would ping the user
  - Run the binary
