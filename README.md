@@ -1,4 +1,3 @@
-![Logo](https://i.imgur.com/VuKSPMC.gif)
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 
 [Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
@@ -11,6 +10,10 @@ Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
  This program is a multi-threaded Discord Direct Message Spammer. It has 2 modes - Single and Multi. In Single mode, multiple tokens send messages to One discord account they share a mutual server with. In Multi mode, multiple discord tokens send messages to multiple discord accounts scraped from a Public discord server. 
 
  ![Feature preview - Discord Mass DM GO](https://i.imgur.com/DH9qMsl.png)
+ 
+## YouTube Video Showcase/Tutorial
+[![Youtube - Click to play](https://img.youtube.com/vi/3m56RTbThbg/maxresdefault.jpg)](https://www.youtube.com/watch?v=3m56RTbThbg&t=174s)
+Click to play!
  
 ## Star the Repo ⭐
 Please star the repo, it really helps me out and allows me to contribute more.
