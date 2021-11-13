@@ -107,3 +107,6 @@ Here are the things I plan to add if the project is succesful, feel free to fork
 ## Donations 🪙
 I spend quite a lot of time in making High Quality & Open Source discord tools because hundreds of people get ripped-off everyday searching for this stuff. If this helped you out even in the slightest, Buy me a coffee and make my day! 
 BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
+
+
+![LOGO](https://user-images.githubusercontent.com/79518089/141605973-70891ef9-c0bd-485c-985a-fd4655a399b3.png)
