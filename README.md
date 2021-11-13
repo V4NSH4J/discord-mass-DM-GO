@@ -1,3 +1,4 @@
+![Logo](https://i.imgur.com/VuKSPMC.gif)
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 
 [Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
