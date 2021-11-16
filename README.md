@@ -25,7 +25,11 @@ Please star the repo, it really helps me out and allows me to contribute more.
 If you've been part of big discord servers, I'm sure you've at some point recieved a DM from one of such bots. Discord is a very large market of gamers with 150 million+ Monthly active users which is why this is such a big issue. People send Crypto exchange scams where they claim you won a fortune in a crypto currency and have to make an account on their website and make a deposit. Second type is Nitro Scams, where they either sent you a token logger binary or link you to a phishing website where they steal your credentials from either QR codes or login. After access of a user's account, their account is also used in a similar spam and their payment method is abused. Third people use to advertise their servers or their NFTs or their crypto to either Pump & dump or just make it popular 
 
 ## Features ✅
-  - Proxyless
+  - Proxyless 
+  - Rotating proxy supported
+  - In-built server leaver
+  - In-built Membership screening bypass
+  - Automatically removes dead tokens 
   - In-built invite joiner
   - Can ping User
   - Supports Embeds
@@ -41,7 +45,7 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
 ![Mass DM in action](https://i.imgur.com/oCAz1GB.gif)
 
 
-[Single DM in action](https://imgur.com/uXKKGyB.gif)
+[Click to see single DM in action](https://imgur.com/uXKKGyB.gif)
 
 
 ## Usage 💻
@@ -55,9 +59,6 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
  - Writing \<user\> anywhere in the message content would ping the user
  - Run the binary
  - Follow the instructions on the Binary
-
- ![Mass DM](https://imgur.com/kzIGJ8S)
- (Actual speed, not sped-up)
 
 ## How to get Help?
 You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
@@ -130,8 +131,12 @@ Example Messages for `message.json` #1
 }
 ```
 Preview -> 
+
 ![Preview 1](https://i.imgur.com/nxYPFVn.png)
+
+
 You can also send only Content, if you don't wish to send an embed
+
 Example Messages for `message.json` #2
 ```json
 {
@@ -139,6 +144,8 @@ Example Messages for `message.json` #2
 }
 ```
 Preview ->
+
+
 ![Preview 2](https://i.imgur.com/L5hlCzH.png)
 
 Note: When the actual message is sent on discord, <user> will change to a ping
@@ -219,7 +226,11 @@ A: Your IP is softbanned / you are rate limited, use a VPN. It will be fixed.
 
 #### Q: What is membership screening/ minimum security of servers preventing me from DMing? 
 A: It looks something like this: 
-![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG?width=655&height=671) You need to be past this in order to send any DMs to members in that server.
+ 
+ 
+![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG?width=655&height=671)
+ 
+You need to be past this in order to send any DMs to members in that server.
 
 #### Q: How to better debug what's going wrong? 
 A: Login into your token and try to understand what's going wrong. I recommend this ![script](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) .
