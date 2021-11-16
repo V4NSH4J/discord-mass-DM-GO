@@ -222,7 +222,7 @@ A: Your IP is softbanned / you are rate limited, use a VPN. It will be fixed.
 A: It looks something like this: 
  
  
-![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG?width=655&height=671)
+![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG)
  
 You need to be past this in order to send any DMs to members in that server.
 
