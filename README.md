@@ -160,12 +160,6 @@ Note: When the actual message is sent on discord, <user> will change to a ping
 
 [Dankgrinder](https://github.com/V4NSH4J/dankgrinder) - An Advanced automation tool for Dankmemer
 
-## To do
-Here are the things I plan to add if the project is succesful, feel free to fork the repository and try adding them & do a pull request. 
-- Membership Screening bypass
-- Proper threading (Setting the number of accounts that concurrently DM at one time)
-- Constant cookies & fingerprints 
-- Rotating proxy support
 
 ## Donations 🪙
 I spend quite a lot of time in making High Quality & Open Source discord tools because hundreds of people get ripped-off everyday searching for this stuff. If this helped you out even in the slightest, Buy me a coffee and make my day! 
