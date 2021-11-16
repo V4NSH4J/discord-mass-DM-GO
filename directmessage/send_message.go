@@ -1,8 +1,13 @@
+// Copyright (C) 2021 github.com/V4NSH4J
+//
+// This source code has been released under the GNU Affero General Public
+// License v3.0. A copy of this license is available at
+// https://www.gnu.org/licenses/agpl-3.0.en.html
+
 package directmessage
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -71,7 +76,7 @@ type Message struct {
 }
 
 // Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
-func SendMessage(authorization string, channelSnowflake string, message *Message, memberid string) *http.Response {
+func SendMessage(authorization string, channelSnowflake string, message *Message, memberid string, cookie string, fingerprint string) *http.Response {
 	x := message.Content
 	if strings.Contains(message.Content, "<user>") {
 		ping := "<@" + memberid + ">"
@@ -91,12 +96,7 @@ func SendMessage(authorization string, channelSnowflake string, message *Message
 
 	url := "https://discord.com/api/v9/channels/" + channelSnowflake + "/messages"
 
-	Cookie := utilities.GetCookie()
-	if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-		fmt.Println("ERR: Empty cookie")
-	}
 
-	Cookies := "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
 
 	req, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
 
@@ -106,8 +106,8 @@ func SendMessage(authorization string, channelSnowflake string, message *Message
 
 	req.Header.Add("Authorization", authorization)
 	req.Header.Add("referer", "ttps://discord.com/channels/@me/"+channelSnowflake)
-	req.Header.Set("Cookie", Cookies)
-	req.Header.Set("x-fingerprint", utilities.GetFingerprint())
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	res, err := http.DefaultClient.Do(utilities.CommonHeaders(req))
 
 	if err != nil {

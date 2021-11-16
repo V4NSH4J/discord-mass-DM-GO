@@ -1,3 +1,9 @@
+// Copyright (C) 2021 github.com/V4NSH4J
+//
+// This source code has been released under the GNU Affero General Public
+// License v3.0. A copy of this license is available at
+// https://www.gnu.org/licenses/agpl-3.0.en.html
+
 package directmessage
 
 import (
@@ -14,17 +20,17 @@ import (
 
 
 // "Opens" the channel with a discord account and outputs the Channel ID or the Channel Snowflake
-func OpenChannel(authorization string, recepientUID string) string {
+func OpenChannel(authorization string, recepientUID string, cookie string, fingerprint string) string {
 	url := "https://discord.com/api/v9/users/@me/channels"
 
 	json_data := []byte("{\"recipients\":[\"" + recepientUID + "\"]}")
-	Cookie := utilities.GetCookie()
-	if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-		fmt.Println("ERR: Empty cookie")
-		return ""
-	}
+	//Cookie := utilities.GetCookie()
+	//if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
+	//	fmt.Println("ERR: Empty cookie")
+	//	return ""
+	//}
 
-	Cookies := "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
+	// Cookies := "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(json_data))
 	if err != nil {
@@ -32,8 +38,8 @@ func OpenChannel(authorization string, recepientUID string) string {
 		return ""
 	}
 	req.Header.Set("authorization", authorization)
-	req.Header.Set("Cookie", Cookies)
-	req.Header.Set("x-fingerprint", utilities.GetFingerprint())
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	httpClient := &http.Client{}
 	resp, err := httpClient.Do(utilities.CommonHeaders(req))
 

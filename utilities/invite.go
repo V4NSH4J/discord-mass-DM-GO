@@ -1,3 +1,9 @@
+// Copyright (C) 2021 github.com/V4NSH4J
+//
+// This source code has been released under the GNU Affero General Public
+// License v3.0. A copy of this license is available at
+// https://www.gnu.org/licenses/agpl-3.0.en.html
+
 package utilities
 
 import (
@@ -15,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/andybalholm/brotli"
 	"github.com/fatih/color"
 )
 
@@ -24,6 +31,7 @@ func GetFingerprint() string {
 	resp, err := http.Get("https://discordapp.com/api/v9/experiments")
 	if err != nil {
 		log.Fatal(err)
+
 	}
 
 	defer resp.Body.Close()
@@ -40,6 +48,31 @@ func GetFingerprint() string {
 	json.Unmarshal(body, &fingerprinty)
 	color.Yellow("Obtained Fingerprint: " + fingerprinty.Fingerprint + "\n")
 	return fingerprinty.Fingerprint
+
+}
+func DecodeBr(data []byte) ([]byte, error) {
+	r := bytes.NewReader(data)
+	br := brotli.NewReader(r)
+	return ioutil.ReadAll(br)
+}
+func Bypass(serverid string, token string) {
+	url := "https://discord.com/api/v9/guilds/" + serverid + "/requests/@me"
+	json_data := "{\"response\":true}"
+	req, err := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(json_data)))
+	if err != nil {
+		color.Red("Error while making http request %v \n", err)
+	}
+	req.Header.Set("authorization", token)
+	httpClient := http.Client{}
+	resp, err := httpClient.Do(commonHeaders(req))
+	if err != nil {
+		color.Red("Error while sending HTTP request bypass %v \n", err)
+	}
+	if resp.StatusCode == 201 || resp.StatusCode == 204 {
+		color.Green("Successfully bypassed token")
+	} else {
+		color.Red("Failed to bypass Token %v", resp.StatusCode)
+	}
 
 }
 
@@ -74,13 +107,12 @@ func GetCookie() cookie {
 	color.Yellow("Obtained Cookies: " + "__dcfduid= " + Cookie.Dcfduid + " " + "__sdcfduid= " + Cookie.Sdcfduid + "\n")
 	return Cookie
 }
-
 func JoinGuild(inviteCode string, token string) {
 	url := "https://discord.com/api/v9/invites/" + inviteCode
 	fmt.Println(url)
 	Cookie := GetCookie()
 	if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-		fmt.Printf("[%v]Empty cookie", time.Now().Format("15:05:04"))
+		fmt.Println("ERR: Empty cookie")
 		return
 	}
 
@@ -101,10 +133,38 @@ func JoinGuild(inviteCode string, token string) {
 	httpClient := http.Client{}
 	resp, err := httpClient.Do(commonHeaders(req))
 	if err != nil {
-		color.Red("[%v]Error while sending request %v \n", time.Now().Format("15:05:04"), err)
+		color.Red("ERR: Error while sending request \n")
 	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+	p, m := DecodeBr(body)
+	if m != nil {
+		color.Red("%v",m)
+	}
+	
+	type guild struct {
+		ID string `json:"id"`
+		Name string `json:"name"`
+	}
+	type joinresponse struct {
+		VerificationForm bool `json:"show_verification_form"`
+		GuildObj guild `json:"guild"`
+	}
+
+
+	var ResponseBody joinresponse
+	json.Unmarshal(p, &ResponseBody)
+
+
 	if resp.StatusCode == 200 {
 		color.Green("Succesfully joined guild")
+		if ResponseBody.VerificationForm {
+			if len(ResponseBody.GuildObj.ID) != 0 {
+				Bypass(ResponseBody.GuildObj.ID, token)
+			}	
+		}
 	}
 	if resp.StatusCode != 200 {
 		fmt.Printf("ERR: Unexpected Status code %v while joining token %v \n", resp.StatusCode, token)

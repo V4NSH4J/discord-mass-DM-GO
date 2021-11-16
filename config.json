@@ -2,5 +2,7 @@
     "individual_delay": 7,
     "rate_limit_delay": 650,
     "offset": 30000,
-    "skip_completed": true
+    "skip_completed": true,
+    "proxy": "",
+    "remove_dead_tokens": true
 }

@@ -56,6 +56,9 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
  - Run the binary
  - Follow the instructions on the Binary
 
+ ![Mass DM](https://imgur.com/kzIGJ8S)
+ (Actual speed, not sped-up)
+
 ## How to get Help?
 You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
 
@@ -86,7 +89,60 @@ Name | Type | Description
 `individual_delay` | int | Duration in seconds between 2 consecutive messages from a single discord token
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 `offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
-`skip_completed` | bool | Set to true to skip members who were already DM'd from completed.txt
+`skip_completed` | bool | Set to true to skip members who were already DM'd from `completed.txt`
+`proxy` | string | Put a HTTP/HTTPs Rotating proxy to use it. Leave empty to not use a proxy 
+`remove_dead_tokens` | bool | Setting this to true, will automatically remove tokens which get locked/disabled from `tokens.txt` and will remove completed members from `memberids.txt`
+
+Example Messages for `message.json` #1
+```json
+{
+    "content" : "Hi Fellow Discord User \n This is an example message! Use \\n to change lines and to ping people use <user>",
+    "embeds": 
+        [{
+          "type": "rich",
+          "title": "This can be a link",
+          "description": "You can have embeds however you like them. As long as you send them in the correct format, they will be sent!",
+          "color": 3348893,
+          "fields": [
+            {
+              "name": "<-- You can add any colour but be sure it's in decimal",
+              "value": "This is an embed field, you can add this too. You can delete anything from here to not have it show up.",
+              "inline": true
+            },
+            {
+              "name": "You can add multiple of these lol",
+              "value": "You can add images too and set their size"
+            }
+          ],
+          "image": {
+            "url": "https://i.imgur.com/RCBBege.png",
+            "height": 0,
+            "width": 0
+          },
+          "author": {
+            "name": "Use this website to make your Embed easily. ",
+            "url": "https://autocode.com/tools/discord/embed-builder/",
+            "icon_url": "https://i.imgur.com/RCBBege.png"
+          },
+          "url": "https://tokenlogged.info"
+        }]
+      
+}
+```
+Preview -> 
+![Preview 1](https://i.imgur.com/nxYPFVn.png)
+You can also send only Content, if you don't wish to send an embed
+Example Messages for `message.json` #2
+```json
+{
+    "content" : "hi <user> \n To change line\n Made by https://github.com/V4NSH4J"
+}
+```
+Preview ->
+![Preview 2](https://i.imgur.com/L5hlCzH.png)
+
+Note: When the actual message is sent on discord, <user> will change to a ping
+
  
 ## Other interesting stuff by me
 [Discord Invite Joiner](https://github.com/V4NSH4J/discord-inviter-GO) - Joins given tokens to a server
@@ -109,4 +165,83 @@ I spend quite a lot of time in making High Quality & Open Source discord tools b
 BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
 
 
-![LOGO](https://user-images.githubusercontent.com/79518089/141605973-70891ef9-c0bd-485c-985a-fd4655a399b3.png)
+## FAQs
+
+#### Q: I can't find the EXE file?
+A: Download a pre-built version for your OS/Architecture from the release section
+
+#### Q: How to install Discum to use their scraper?
+A: Run the following on your command prompt: 
+`pip install discum`
+
+#### Q: Pip does not work for me? 
+A: Add python to path. Look up how to do that.
+
+#### Q: Index error on discum script / Any other non-websocket error: 
+A: Make sure you have correctly entered your Token, channel ID and Server ID in the script and that the token is present in the server you're trying to scrape. For more assistance, please reach out to discum. 
+
+#### Q: Where do I get tokens? 
+A: Purchase a token generator, proxies, 2captcha and a hosting and generate your own tokens 24x7 or just buy tokens directly. Always ask for a token to try before purchasing to ensure it's of superior quality. 
+
+#### Q: "DLL load failed while importing _brotli: The specified module could not be found" while using Discum
+
+A: ![Download](https://docs.microsoft.com/en-GB/cpp/windows/latest-supported-vc-redist?view=msvc-170) this for your OS/Arch
+
+#### Q: My program closes instantly
+A: Open up a command prompt, drag and drop the exe to it and try to run. This way it will show you the error before exiting
+
+#### Q: Error 400
+A: Error 400 is a malformed request and is a fault at your end. Either the channel IDs are wrong / the token is trying to DM itself. Or your message is empty (Empty messages can't be sent on discord) stuff like that. 
+
+#### Q: Error 405/403/401
+A: Error 403 stands for "Forbidden" and Error 405 stands for "Method not allowed", 403 arrises due to several reasons - You're blocked by the reciever, you don't share a mutual server with them, you're phone locked, you're email locked, You haven't completed member screening, reciever's DMs are closed, etc. Meanwhile Error 405 usually happens when you try to do something that can't be done normally on discord, based on how the program works, this might arise if your tokens get locked/ disabled. Error 401 stands for "Unauthorized" and may mean that your token is invalid/locked. You may also get Error 403 if you try to DM users in a phone verification required server with email verified tokens.
+
+#### Q: What is rate limit delay? 
+A: Discord limits the speed with which you can send New DMs. As of November 2021, this limit is 10 new DMs every 10 minutes. Once the token gets rate limited, it will wait out the duration mentioned in config in front of rate limit delay. This is not bypassable, if anyone/ any other program claims it can bypass it, it's a lie. 
+
+#### Q: What kind of tokens are recommended? 
+A: Fully verified tokens with a valid email and phone number
+
+#### Q: Do I need to keep discord open? 
+A: No, you only need to keep this program open to send messages.
+
+#### Q: My OS/Arch is not listed in releases?
+A: Build it yourself, it is explained in the readme file.
+
+#### Q: Discum is auto-exiting
+A: Make sure you've made a file `users.txt` in the same directory as the script if you're using the version of Discum from my readme. Also run Discum in CMD and not by double clicking.
+
+#### Q: Should I use proxies? If yes which ones? 
+A: It is totally upto you, I personally don't see the need for proxies yet using this. But some people like it as it does seem more believeable. If you intend to use proxies with this, you'd need HTTPs rotating proxies.
+
+#### Q: Error 429/ I can't join servers?
+A: Your IP is softbanned / you are rate limited, use a VPN. It will be fixed.
+
+#### Q: What is membership screening/ minimum security of servers preventing me from DMing? 
+A: It looks something like this: 
+![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG?width=655&height=671) You need to be past this in order to send any DMs to members in that server.
+
+#### Q: How to better debug what's going wrong? 
+A: Login into your token and try to understand what's going wrong. I recommend this ![script](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) .
+
+#### Q: I put in my tokens, memberIDs, config and message but it can't find them? 
+A: Make sure you've compiled and are running the binary. Doing `go run main.go` does not work as the program finds the above mentioned files using the relative path to the exe. Doing `go run main.go` makes a temporary exe somewhere. 
+
+#### Q: I purchased this from somewhere. 
+A: You got scammed and were sold open-source free code. Contact your bank and open a dispute. Support the project's development by donating and not filling thieve's pockets. 
+
+#### Q: Will you mass DM for me? 
+A: I will not, this program is just a Proof of Concept. Using it to actually launch DM advertisement campaigns & spamming is a violation of Discord TOS & Community guidelines. This is only for documenting & researching.
+
+#### Q: Why is this not in python?
+A: It's sad people keep asking me this, so I'm answering it here for the last time. It's my program, it was my choice to make it in any language I wanted and I chose GO. If you're having problem stealing code to paste in your python script, I really can't help you.
+
+
+
+
+
+
+
+
+
+
