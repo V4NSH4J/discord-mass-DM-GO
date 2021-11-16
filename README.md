@@ -186,7 +186,7 @@ A: Purchase a token generator, proxies, 2captcha and a hosting and generate your
 
 #### Q: "DLL load failed while importing _brotli: The specified module could not be found" while using Discum
 
-A: ![Download](https://docs.microsoft.com/en-GB/cpp/windows/latest-supported-vc-redist?view=msvc-170) this for your OS/Arch
+A: [Download](https://docs.microsoft.com/en-GB/cpp/windows/latest-supported-vc-redist?view=msvc-170) this for your OS/Arch
 
 #### Q: My program closes instantly
 A: Open up a command prompt, drag and drop the exe to it and try to run. This way it will show you the error before exiting
