@@ -193,6 +193,9 @@ A: Open up a command prompt, drag and drop the exe to it and try to run. This wa
 
 #### Q: Error 400
 A: Error 400 is a malformed request and is a fault at your end. Either the channel IDs are wrong / the token is trying to DM itself. Or your message is empty (Empty messages can't be sent on discord) stuff like that. 
+ 
+#### Q: Error 400 [Code: 40001 Message: Unauthorized]
+ A: Your token has never been connected to a websocket before. My program as of v1.0.5 does not connect them to a websocket either. So once before spamming, you will have to connect them to a websocket using a token onliner or loggign into them then they will start working
 
 #### Q: Error 405/403/401
 A: Error 403 stands for "Forbidden" and Error 405 stands for "Method not allowed", 403 arrises due to several reasons - You're blocked by the reciever, you don't share a mutual server with them, you're phone locked, you're email locked, You haven't completed member screening, reciever's DMs are closed, etc. Meanwhile Error 405 usually happens when you try to do something that can't be done normally on discord, based on how the program works, this might arise if your tokens get locked/ disabled. Error 401 stands for "Unauthorized" and may mean that your token is invalid/locked. You may also get Error 403 if you try to DM users in a phone verification required server with email verified tokens.
