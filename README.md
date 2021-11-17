@@ -227,7 +227,7 @@ A: It looks something like this:
 You need to be past this in order to send any DMs to members in that server.
 
 #### Q: How to better debug what's going wrong? 
-A: Login into your token and try to understand what's going wrong. I recommend this ![script](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) .
+A: Login into your token and try to understand what's going wrong. I recommend this [script](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) .
 
 #### Q: I put in my tokens, memberIDs, config and message but it can't find them? 
 A: Make sure you've compiled and are running the binary. Doing `go run main.go` does not work as the program finds the above mentioned files using the relative path to the exe. Doing `go run main.go` makes a temporary exe somewhere. 
