@@ -214,6 +214,9 @@ A: Make sure you've made a file `users.txt` in the same directory as the script 
 
 #### Q: Should I use proxies? If yes which ones? 
 A: It is totally upto you, I personally don't see the need for proxies yet using this. But some people like it as it does seem more believeable. If you intend to use proxies with this, you'd need HTTPs rotating proxies.
+ 
+#### Q: What is the proxy format? 
+A: The proxy format is username:password@hostname:port
 
 #### Q: Error 429/ I can't join servers?
 A: Your IP is softbanned / you are rate limited, use a VPN. It will be fixed.
