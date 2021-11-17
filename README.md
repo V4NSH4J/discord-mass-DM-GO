@@ -91,7 +91,7 @@ Name | Type | Description
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 `offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
 `skip_completed` | bool | Set to true to skip members who were already DM'd from `completed.txt`
-`proxy` | string | Put a HTTP/HTTPs Rotating proxy to use it. Leave empty to not use a proxy 
+`proxy` | string | Put a HTTP/HTTPs Rotating proxy to use it. Leave empty to not use a proxy. Format is username:password@host:port
 `remove_dead_tokens` | bool | Setting this to true, will automatically remove tokens which get locked/disabled from `tokens.txt` and will remove completed members from `memberids.txt`
 
 Example Messages for `message.json` #1
