@@ -2,7 +2,7 @@ Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 
 [Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
 
-Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
+Donate BTC: bc1qs9069mdegedmv7w0wtwap0qfa2h9j8d403jfej
 # Discord Mass DM GO ![Downloads](https://img.shields.io/github/downloads/V4NSH4J/discord-mass-DM-GO/total) ![Go Report Card](https://goreportcard.com/badge/github.com/V4NSH4J/discord-mass-DM-GO) ![Stars](https://img.shields.io/github/stars/V4NSH4J/discord-mass-DM-GO) ![Forks](https://img.shields.io/github/license/V4NSH4J/discord-mass-DM-GO) ![Lisence](https://img.shields.io/github/forks/V4NSH4J/discord-mass-DM-GO) [![HitCount](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO.svg?style=flat-square)](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO)
  A selfbot written in GO to demonstrate how rule-violators utilize requests to spam Discord Users and launch large unsolicited DM Advertisement Campaigns
  
@@ -163,7 +163,7 @@ Note: When the actual message is sent on discord, <user> will change to a ping
 
 ## Donations 🪙
 I spend quite a lot of time in making High Quality & Open Source discord tools because hundreds of people get ripped-off everyday searching for this stuff. If this helped you out even in the slightest, Buy me a coffee and make my day! 
-BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
+BTC: bc1qs9069mdegedmv7w0wtwap0qfa2h9j8d403jfej
 
 
 ## FAQs
