@@ -1,8 +1,12 @@
 ## Quick Information
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
+
 [Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
+
 Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
+
 Current Version: v1.0.6
+
 Leave a star for updates. Read the readme file for instructions. Updates might've stopped at any point without notice so make sure the program is working before putting in all your tokens.
 
 # Discord Mass DM GO ![Downloads](https://img.shields.io/github/downloads/V4NSH4J/discord-mass-DM-GO/total) ![Go Report Card](https://goreportcard.com/badge/github.com/V4NSH4J/discord-mass-DM-GO) ![Stars](https://img.shields.io/github/stars/V4NSH4J/discord-mass-DM-GO) ![Forks](https://img.shields.io/github/license/V4NSH4J/discord-mass-DM-GO) ![Lisence](https://img.shields.io/github/forks/V4NSH4J/discord-mass-DM-GO) [![HitCount](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO.svg?style=flat-square)](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO)
@@ -56,9 +60,8 @@ DMDGO was written to test a server's security measures and improve their raid pr
   <img width="467" height="272" src="https://i.imgur.com/oCAz1GB.gif">
 </p>
 
-<p align="center">
-  <img width="960" height="910" src="https://imgur.com/uXKKGyB.gif">
-</p>
+
+![Single Mode](https://imgur.com/uXKKGyB.gif)
 
 
 
@@ -75,10 +78,6 @@ DMDGO was written to test a server's security measures and improve their raid pr
  - Run the binary
  - Follow the instructions on the Binary
 
-<p align="center">
-  <img width="960" height="910" src="https://imgur.com/kzIGJ8S">
-</p>
-(Not sped up)
 
 ## How to get Help?
 You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
@@ -175,7 +174,7 @@ Example Messages for `message.json` #1
 Preview -> 
 
 <p align="center">
-  <img width="960" height="910" src="https://i.imgur.com/nxYPFVn.png">
+  <img width="667" height="687" src="https://i.imgur.com/nxYPFVn.png">
 </p>
 
 You can also send only Content, if you don't wish to send an embed
@@ -188,7 +187,7 @@ Example Messages for `message.json` #2
 ```
 Preview ->
 <p align="center">
-  <img width="960" height="910" src="https://i.imgur.com/L5hlCzH.png">
+  <img width="439" height="159" src="https://i.imgur.com/L5hlCzH.png">
 </p>
 
 
