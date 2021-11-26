@@ -1,19 +1,27 @@
+## Quick Information
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
-
 [Discord server](https://discord.gg/fxPJAGxP7z) (temporary) 
-
 Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
+Current Version: v1.0.6
+Leave a star for updates. Read the readme file for instructions. Updates might've stopped at any point without notice so make sure the program is working before putting in all your tokens.
+
 # Discord Mass DM GO ![Downloads](https://img.shields.io/github/downloads/V4NSH4J/discord-mass-DM-GO/total) ![Go Report Card](https://goreportcard.com/badge/github.com/V4NSH4J/discord-mass-DM-GO) ![Stars](https://img.shields.io/github/stars/V4NSH4J/discord-mass-DM-GO) ![Forks](https://img.shields.io/github/license/V4NSH4J/discord-mass-DM-GO) ![Lisence](https://img.shields.io/github/forks/V4NSH4J/discord-mass-DM-GO) [![HitCount](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO.svg?style=flat-square)](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO)
- A selfbot written in GO to demonstrate how rule-violators utilize requests to spam Discord Users and launch large unsolicited DM Advertisement Campaigns
+ A selfbot written in GO to demonstrate how rule-violators spam Discord Users and launch large unsolicited DM Advertisement Campaigns
  
 ## Overview 🔍
- This program is a multi-threaded Discord Direct Message Spammer. It has 2 modes - Single and Multi. In Single mode, multiple tokens send messages to One discord account they share a mutual server with. In Multi mode, multiple discord tokens send messages to multiple discord accounts scraped from a Public discord server. 
+ DMDGO is a multi-threaded Discord Direct Message Spammer. It has 2 spamming modes: 
+  - Single Mode: All tokens send Direct messages to one discord user
+  - Multi Mode: All tokens send messages to users from a list 
+ Both modes require some sort of a common link with the victim(s) [eg: mutual server/ added as friend] 
+ DMDGO also has many side features demonstrating the tools people use to perform these sort of interactions on discord. These features include - Invite joiner, Reaction adder, Token format converter, Guild remover, Getting a message object and much more! 
+ DMDGO tries to imitate requests sent to Discord by an actual user to 100% accuracy to ensure the tokens get the maximum number of messages.
 
- ![Feature preview - Discord Mass DM GO](https://i.imgur.com/DH9qMsl.png)
+ ![Feature preview - Discord Mass DM GO](https://i.imgur.com/pN1brBn.png)
+ ![Feature preview 2 - DM spam](https://i.imgur.com/wUjpCsU.png)
  
 ## YouTube Video Showcase/Tutorial
 [![Youtube - Click to play](https://img.youtube.com/vi/3m56RTbThbg/maxresdefault.jpg)](https://www.youtube.com/watch?v=3m56RTbThbg&t=174s)
-Click to play!
+Click to play! - Showcase of v1.0.5
  
 ## Star the Repo ⭐
 Please star the repo, it really helps me out and allows me to contribute more.
@@ -22,11 +30,16 @@ Please star the repo, it really helps me out and allows me to contribute more.
  The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Please do not use my programs for raiding/ Spamming/ Harassment/ Unsolicited Advertisement . This program was solely written to check a discord server's security measures and to document the relative ease with which bad actors function on Discord.
 
 ## How is this abused?
-If you've been part of big discord servers, I'm sure you've at some point recieved a DM from one of such bots. Discord is a very large market of gamers with 150 million+ Monthly active users which is why this is such a big issue. People send Crypto exchange scams where they claim you won a fortune in a crypto currency and have to make an account on their website and make a deposit. Second type is Nitro Scams, where they either sent you a token logger binary or link you to a phishing website where they steal your credentials from either QR codes or login. After access of a user's account, their account is also used in a similar spam and their payment method is abused. Third people use to advertise their servers or their NFTs or their crypto to either Pump & dump or just make it popular 
+DMDGO was written to test a server's security measures and improve their raid protection. However, people with malicious intent use similar programs to run highly sophisticated phishing operations. Some targetting people's cryptocurrency wallets, others targetting their discord accounts by the allure of a free nitro subscription. This is a way of insanely cheap marketing among the ever-growing userbase of Discord with more than 150 Million monthly active users as of 2021. Which is why people also use similar programs for shilling NFTs and new Alt-coins, some with the intention with rugging the new investors others not. Some also advertise their discord communities to grow their server's activity and membercount. 
 
 ## Features ✅
   - Proxyless
+  - Supports HTTP(s) Proxies
   - In-built invite joiner
+  - Base + Random delay to bypass most Anti-Raid bots.
+  - Can react to messages with Emojis
+  - In-built Token checker
+  - In-built Guid Leaver
   - Can ping User
   - Supports Embeds
   - Only working and Free Discord DM Spammer as of November 2021
@@ -38,26 +51,34 @@ If you've been part of big discord servers, I'm sure you've at some point reciev
   - Free & Open source
   - Compatible with all Major OS and Architecture
 
-![Mass DM in action](https://i.imgur.com/oCAz1GB.gif)
 
+<p align="center">
+  <img width="467" height="272" src="https://i.imgur.com/oCAz1GB.gif">
+</p>
 
-[Single DM in action](https://imgur.com/uXKKGyB.gif)
+<p align="center">
+  <img width="960" height="910" src="https://imgur.com/uXKKGyB.gif">
+</p>
+
 
 
 ## Usage 💻
  - Build from Source or Download from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
  - Input your tokens in `input/tokens.txt`
+ - Input proxies in `input/proxy.txt` Only HTTP(s) proxies of the format user:pass@ip:port or ip:port. Use High Quality proxies for improved functionality.
  - [Scrape the UIDs](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) of a server for Multi DM mode. Make a file `users.txt` in the same directory for it to output. This code is from Discum library
  - Add UID's of discord Users who you want to message in `input/memberids.txt`
  - Decide the delay by setting your config file `config.json`
- - Add your message in `message.json`. This can be an Embed. Use [this](https://glitchii.github.io/embedbuilder/?editor=json) website for building the embed easily
+ - Add your message in `message.json`. This can be an Embed. Use [this](https://glitchii.github.io/embedbuilder/?editor=json) website for building the embed easily. Alternatively, you can use the "Get message" feature in the program.
  - Remove any fields you don't wish to send
  - Writing \<user\> anywhere in the message content would ping the user
  - Run the binary
  - Follow the instructions on the Binary
 
- ![Mass DM](https://imgur.com/kzIGJ8S)
- (Actual speed, not sped-up)
+<p align="center">
+  <img width="960" height="910" src="https://imgur.com/kzIGJ8S">
+</p>
+(Not sped up)
 
 ## How to get Help?
 You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
@@ -67,7 +88,6 @@ The number of DMs each token of your's gets depends on it's quality. Here I will
 - Unverified Token : 5 DMs
 - Email verified Token: 5-50 DMs (Can be more or less depending on quality)
 - Phone verified Tokens: 50+ DMs [Can be more or less depending on quality]
-
 
 What happens when this limit is crossed? Unverified and Email verified tokens get phone locked (Meaning it requires a phone number to unlock them) And Phone verified tokens get disabled by discord for "Suspicious activity" and you need to reset their password to access them again. But for commerical purposes, tokens are one time use. 
 
@@ -90,8 +110,31 @@ Name | Type | Description
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 `offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
 `skip_completed` | bool | Set to true to skip members who were already DM'd from `completed.txt`
-`proxy` | string | Put a HTTP/HTTPs Rotating proxy to use it. Leave empty to not use a proxy 
+`use_proxy` | bool | Wether to use proxies in proxy file or not.
 `remove_dead_tokens` | bool | Setting this to true, will automatically remove tokens which get locked/disabled from `tokens.txt` and will remove completed members from `memberids.txt`
+`remove_completed_members` | bool | When set to true, would remove members who were sent DMs from the member list.
+`stop_dead_tokens` | bool | When set to true, the accounts which get locked/disabled will stop sending DMs
+`bypass_tos` | bool | When set to true, the accounts which join the server will bypass the Discord Membership screening
+`minimize_proxy_use` | bool | Helps save proxy tarrif by not using proxies for non-essential requests.
+Exame Config for `config.json` #1 
+
+```json
+{
+    "individual_delay": 7,
+    "rate_limit_delay": 800,
+    "offset": 300,
+    "skip_completed": true,
+    "use_proxy": true,
+    "remove_dead_tokens": true,
+    "remove_completed_members": true,
+    "stop_dead_tokens": true,
+    "bypass_tos": true,
+    "minimize_proxy_use": false
+}
+
+
+
+```
 
 Example Messages for `message.json` #1
 ```json
@@ -130,7 +173,11 @@ Example Messages for `message.json` #1
 }
 ```
 Preview -> 
-![Preview 1](https://i.imgur.com/nxYPFVn.png)
+
+<p align="center">
+  <img width="960" height="910" src="https://i.imgur.com/nxYPFVn.png">
+</p>
+
 You can also send only Content, if you don't wish to send an embed
 Example Messages for `message.json` #2
 ```json
@@ -139,7 +186,10 @@ Example Messages for `message.json` #2
 }
 ```
 Preview ->
-![Preview 2](https://i.imgur.com/L5hlCzH.png)
+<p align="center">
+  <img width="960" height="910" src="https://i.imgur.com/L5hlCzH.png">
+</p>
+
 
 Note: When the actual message is sent on discord, <user> will change to a ping
 
@@ -153,12 +203,7 @@ Note: When the actual message is sent on discord, <user> will change to a ping
 
 [Dankgrinder](https://github.com/V4NSH4J/dankgrinder) - An Advanced automation tool for Dankmemer
 
-## To do
-Here are the things I plan to add if the project is succesful, feel free to fork the repository and try adding them & do a pull request. 
-- Membership Screening bypass
-- Proper threading (Setting the number of accounts that concurrently DM at one time)
-- Constant cookies & fingerprints 
-- Rotating proxy support
+
 
 ## Donations 🪙
 I spend quite a lot of time in making High Quality & Open Source discord tools because hundreds of people get ripped-off everyday searching for this stuff. If this helped you out even in the slightest, Buy me a coffee and make my day! 
