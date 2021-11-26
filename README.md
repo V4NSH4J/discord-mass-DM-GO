@@ -179,6 +179,7 @@ Preview ->
 </p>
 
 You can also send only Content, if you don't wish to send an embed
+
 Example Messages for `message.json` #2
 ```json
 {
@@ -204,10 +205,9 @@ Note: When the actual message is sent on discord, <user> will change to a ping
 [Dankgrinder](https://github.com/V4NSH4J/dankgrinder) - An Advanced automation tool for Dankmemer
 
 
-
 ## Donations 🪙
 I spend quite a lot of time in making High Quality & Open Source discord tools because hundreds of people get ripped-off everyday searching for this stuff. If this helped you out even in the slightest, Buy me a coffee and make my day! 
-BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
+BTC: bc1qs9069mdegedmv7w0wtwap0qfa2h9j8d403jfej
 
 
 ## FAQs
@@ -230,13 +230,16 @@ A: Purchase a token generator, proxies, 2captcha and a hosting and generate your
 
 #### Q: "DLL load failed while importing _brotli: The specified module could not be found" while using Discum
 
-A: ![Download](https://docs.microsoft.com/en-GB/cpp/windows/latest-supported-vc-redist?view=msvc-170) this for your OS/Arch
+A: [Download](https://docs.microsoft.com/en-GB/cpp/windows/latest-supported-vc-redist?view=msvc-170) this for your OS/Arch
 
 #### Q: My program closes instantly
 A: Open up a command prompt, drag and drop the exe to it and try to run. This way it will show you the error before exiting
 
 #### Q: Error 400
 A: Error 400 is a malformed request and is a fault at your end. Either the channel IDs are wrong / the token is trying to DM itself. Or your message is empty (Empty messages can't be sent on discord) stuff like that. 
+ 
+#### Q: Error 400 [Code: 40001 Message: Unauthorized]
+ A: Your token has never been connected to a websocket before. My program as of v1.0.5 does not connect them to a websocket either. So once before spamming, you will have to connect them to a websocket using a token onliner or loggign into them then they will start working
 
 #### Q: Error 405/403/401
 A: Error 403 stands for "Forbidden" and Error 405 stands for "Method not allowed", 403 arrises due to several reasons - You're blocked by the reciever, you don't share a mutual server with them, you're phone locked, you're email locked, You haven't completed member screening, reciever's DMs are closed, etc. Meanwhile Error 405 usually happens when you try to do something that can't be done normally on discord, based on how the program works, this might arise if your tokens get locked/ disabled. Error 401 stands for "Unauthorized" and may mean that your token is invalid/locked. You may also get Error 403 if you try to DM users in a phone verification required server with email verified tokens.
@@ -258,16 +261,23 @@ A: Make sure you've made a file `users.txt` in the same directory as the script 
 
 #### Q: Should I use proxies? If yes which ones? 
 A: It is totally upto you, I personally don't see the need for proxies yet using this. But some people like it as it does seem more believeable. If you intend to use proxies with this, you'd need HTTPs rotating proxies.
+ 
+#### Q: What is the proxy format? 
+A: The proxy format is username:password@hostname:port
 
 #### Q: Error 429/ I can't join servers?
 A: Your IP is softbanned / you are rate limited, use a VPN. It will be fixed.
 
 #### Q: What is membership screening/ minimum security of servers preventing me from DMing? 
 A: It looks something like this: 
-![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG?width=655&height=671) You need to be past this in order to send any DMs to members in that server.
+ 
+ 
+![Membership Screening](https://media.discordapp.net/attachments/905121020430659597/908460971171909662/sdgsdg.PNG)
+ 
+You need to be past this in order to send any DMs to members in that server.
 
 #### Q: How to better debug what's going wrong? 
-A: Login into your token and try to understand what's going wrong. I recommend this ![script](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) .
+A: Login into your token and try to understand what's going wrong. I recommend this [script](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) .
 
 #### Q: I put in my tokens, memberIDs, config and message but it can't find them? 
 A: Make sure you've compiled and are running the binary. Doing `go run main.go` does not work as the program finds the above mentioned files using the relative path to the exe. Doing `go run main.go` makes a temporary exe somewhere. 
