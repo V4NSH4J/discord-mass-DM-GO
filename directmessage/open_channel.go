@@ -10,53 +10,65 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"time"
 	"io/ioutil"
-	"log"
 	"net/http"
+	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
+	"github.com/fatih/color"
 )
 
 
-// "Opens" the channel with a discord account and outputs the Channel ID or the Channel Snowflake
-func OpenChannel(authorization string, recepientUID string, cookie string, fingerprint string) string {
+func OpenChannel(authorization string, recepientUID string, i int, j int) (string, error) {
 	url := "https://discord.com/api/v9/users/@me/channels"
 
 	json_data := []byte("{\"recipients\":[\"" + recepientUID + "\"]}")
-	//Cookie := utilities.GetCookie()
-	//if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-	//	fmt.Println("ERR: Empty cookie")
-	//	return ""
-	//}
 
-	// Cookies := "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(json_data))
 	if err != nil {
 		fmt.Println("Error while making request")
-		return ""
+		return "", err
+	}
+	req.Close = true
+	cookie, err := utilities.Cookies(i, j)
+	if err != nil {
+		fmt.Println("Error while getting cookie")
+		return "", err
+	}
+	fingerprint, err := utilities.Fingerprint(i, j)
+	if err != nil {
+		fmt.Println("Error while getting fingerprint")
+		return "", err
 	}
 	req.Header.Set("authorization", authorization)
 	req.Header.Set("Cookie", cookie)
 	req.Header.Set("x-fingerprint", fingerprint)
-	httpClient := &http.Client{}
+	req.Header.Set("x-context-properties", "e30=")
+	httpClient, err := utilities.SetProxy(i, j)
+	if err != nil {
+		fmt.Println("Error while setting proxy")
+		return "", err
+	}
 	resp, err := httpClient.Do(utilities.CommonHeaders(req))
 
 	if err != nil {
 		fmt.Printf("Error while sending Open channel request  %v", err)
-		return ""
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-
+	if resp.StatusCode == 401 || resp.StatusCode == 403 {
+		color.Red("[%v] Token %v has been locked or disabled", time.Now().Format("15:05:04"), authorization)
+		return "", fmt.Errorf("locked")
+	}
 	if resp.StatusCode != 200 {
 		fmt.Printf("[%v]Invalid Status Code while sending request %v \n",time.Now().Format("15:05:04"), resp.StatusCode)
-		return ""
+		return "", err
 	}
 	type responseBody struct {
 		ID string `json:"id,omitempty"`
@@ -65,5 +77,5 @@ func OpenChannel(authorization string, recepientUID string, cookie string, finge
 	var channelSnowflake responseBody
 	json.Unmarshal(body, &channelSnowflake)
 
-	return channelSnowflake.ID
+	return channelSnowflake.ID, nil
 }

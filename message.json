@@ -1,15 +1,15 @@
 {
-    "content" : "hi <user>\n To change line\n Made by https://github.com/V4NSH4J",
-    "embeds": [
-        {
+    "content" : "Hi Fellow Discord User \n This is an example message! Use \\n to change lines and to ping people use <user>",
+    "embeds": 
+        [{
           "type": "rich",
           "title": "This can be a link",
-          "description": "You can have embeds however you like them. But make sure to change the quotes style to double quotes and to have your embed colour as a decimal",
+          "description": "You can have embeds however you like them. As long as you send them in the correct format, they will be sent!",
           "color": 3348893,
           "fields": [
             {
-              "name": "<-- You can add any colour but be sure to convert it from Hex to decimal",
-              "value": "This is an embed field, you can add this too. You can delete anything from here to not have it show up. Please make sure your colour is a decimal number.",
+              "name": "<-- You can add any colour but be sure it's in decimal",
+              "value": "This is an embed field, you can add this too. You can delete anything from here to not have it show up.",
               "inline": true
             },
             {
@@ -28,6 +28,6 @@
             "icon_url": "https://i.imgur.com/RCBBege.png"
           },
           "url": "https://tokenlogged.info"
-        }
-      ]
+        }]
+      
 }

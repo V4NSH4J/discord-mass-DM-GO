@@ -4,596 +4,861 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-
 package main
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
 	"math/rand"
 	"os"
-	"path"
-	"path/filepath"
+	"strings"
 	"sync"
+
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/directmessage"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/fatih/color"
+	"github.com/zenthangplus/goccm"
 )
 
+type jsonResponse struct {
+	Message string `json:"message"`
+	Code    int    `json:"code"`
+}
+
+func ExitSafely() {
+	color.Red("\nPress ENTER to EXIT")
+	bufio.NewReader(os.Stdin).ReadBytes('\n')
+}
+
 func main() {
+	// Credits
 
-	color.Blue("\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2551\u2591\u2591\u255A\u2550\u255D\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u2591\u255A\u2550\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u2591\u255A\u2550\u2550\u2550\u2550\u255D\u2591\u2591\u255A\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2557\u2591\u2591\u2591\u2588\u2588\u2588\u2557\r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2551\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\r\n\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u255A\u2550\u255D\u2591\u2588\u2588\u2551\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\r\n\r\n\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2557\u2591\u2591\u2591\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2557\u2591\u2591\u2591\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2591\r\n\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\r\n\u255A\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2557\u2591\u2591\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u2591\u255A\u2550\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u255D\u2591\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u255D\u2591\u2591\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2591\u2591\u2591\u2591\u2591\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u2591\u255A\u2550\u255D\u2591\u2588\u2588\u2551\u2588\u2588\u2551\u2591\u255A\u2550\u255D\u2591\u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2557\u2588\u2588\u2551\u2591\u2591\u2588\u2588\u2551\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D\u2591\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u255D\u2591\u2591\u2591\u2591\u2591\u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u2550\u255D\u255A\u2550\u255D\u2591\u2591\u255A\u2550\u255D")
-	color.Green("\nV1.0.5\nMade by https://github.com/V4NSH4J ")
-	type Config struct {
-		Delay     int    `json:"individual_delay"`
-		LongDelay int    `json:"rate_limit_delay"`
-		Offset    int    `json:"offset"`
-		Skip      bool   `json:"skip_completed"`
-		Proxy     string `json:"proxy"`
-		Call      bool   `json:"call"`
-		Remove    bool   `json:"remove_dead_tokens"`
-	}
-	var config Config
-	ex, err := os.Executable()
+	color.Blue("\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2584    \u2584\u2584\u2584\u2584\u2588\u2588\u2588\u2584\u2584\u2584\u2584   \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2584          \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2584   \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2584  \r\n\u2588\u2588\u2588   \u2580\u2588\u2588\u2588 \u2584\u2588\u2588\u2580\u2580\u2580\u2588\u2588\u2588\u2580\u2580\u2580\u2588\u2588\u2584 \u2588\u2588\u2588   \u2580\u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2580  \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588       \u2584\u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588      \u2580\u2580\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2584  \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588   \u2584\u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588   \u2584\u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580   \u2580\u2588   \u2588\u2588\u2588   \u2588\u2580  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580         \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580   \u2580\u2588\u2588\u2588\u2588\u2588\u2588\u2580  \r\n                                                                   \r\n\rDISCORD MASS DM GO")
+	color.Green("\nV1.0.6 - Made by https://github.com/V4NSH4J ")
+	color.Red("For educational purposes only. Read the full disclaimer and terms of use on GitHub readme file.")
+	time.Sleep(2 * time.Second)
+	// Check all files
+	color.Green("[%v] Checking all files", time.Now().Format("15:05:04"))
+	cfg, err := utilities.GetConfig()
 	if err != nil {
-		color.Red("Error while finding executable")
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		color.Red("Error while opening config.json: %v", err)
+		ExitSafely()
 		return
 	}
-	ex = filepath.ToSlash(ex)
-	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "config.json"))
+	color.Green("[%v] Config Validated!", time.Now().Format("15:05:04"))
+
+	msg, err := utilities.GetMessage()
 	if err != nil {
-		color.Red("Error while Opening config.json")
-		fmt.Println(err)
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		fmt.Printf("Error while opening message.json: %v", err)
+		ExitSafely()
 		return
 	}
-	defer file.Close()
-	bytes, _ := io.ReadAll(file)
-	errr := json.Unmarshal(bytes, &config)
-	if errr != nil {
-		fmt.Println(err)
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
-		return
-	}
-	if config.Proxy != "" {
-		proxy := "http://" + config.Proxy + "/"
-		proxys := "http://" + config.Proxy + "/"
-		os.Setenv("HTTP_PROXY", proxy)
-		os.Setenv("HTTPS_PROXY", proxys)
+	color.Green("[%v] Message validated: %v\n", time.Now().Format("15:05:04"), msg)
 
-		color.Green("Now using Proxy %v", os.Getenv("HTTP_PROXY"))
-	}
-	color.Blue("Do you wish to join tokens to a server? Enter 0 for Yes, 1 for No")
-	var invite int
-	fmt.Scanln(&invite)
-	if invite != 0 && invite != 1 {
-		color.Red("Invalid option")
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
-		return
-	}
-	if invite == 0 {
-		utilities.LaunchInviteJoiner()
-	}
-	color.Blue("Enter 0 for Single mode, Enter 1 for Multi mode (DM Advertising)")
-	var option int
-	fmt.Scanln(&option)
-	if option != 0 && option != 1 {
-		color.Red("Invalid Mode")
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
-		return
-	}
-
-	var message directmessage.Message
-	exx, err := os.Executable()
+	tkns, err := utilities.ReadLines("tokens.txt")
 	if err != nil {
-		color.Red("Error while finding executable")
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		color.Red("Error while opening tokens.txt: %v", err)
+		ExitSafely()
 		return
 	}
-	exx = filepath.ToSlash(exx)
-	filee, errx := os.Open(path.Join(path.Dir(exx) + "/" + "message.json"))
+
+	if len(tkns) == 0 {
+		color.Red("[%v] Enter your tokens in tokens.txt")
+		ExitSafely()
+		return
+	}
+	color.Green("[%v] Tokens validated: %v tokens loaded \n", time.Now().Format("15:05:04"), len(tkns))
+
+	members, err := utilities.ReadLines("memberids.txt")
 	if err != nil {
-		color.Red("Error while Opening message.json")
-		fmt.Println(errx)
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
-		return
-	}
-	defer filee.Close()
-	bytess, _ := io.ReadAll(filee)
-	errrr := json.Unmarshal(bytess, &message)
-	if errrr != nil {
-		color.Red("Error while Unmarshalling Message - Please make sure your Embed colour is a decimal number and not a Hex. Also please make sure you're using the right kind of quotes \"  and not ' (You can add it to notepad and use Ctrl + H to replace all quotes with the right ones) and use escape characters (backslash n) to add new lines instead of EOF")
-		fmt.Println(errrr)
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
+		color.Red("Error while opening memberids.txt: %v", err)
+		ExitSafely()
 		return
 	}
 
+	if len(members) == 0 {
+		color.Red("[%v] Enter your member ids in memberids.txt")
+		ExitSafely()
 
-
-	tokens, err := utilities.ReadLines("tokens.txt")
-	if err != nil {
-		fmt.Printf("Error while opening tokens.txt, %v \n", err)
-		color.Red("\nPress ENTER to EXIT")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
 		return
 	}
-	fingerprintSlice := make([]string, len(tokens))
-	cookieSlice := make([]string, len(tokens))
 
-	if option == 1 {
-		color.Blue("\nMake sure everything is configured and press ENTER to begin SPAM")
-		bufio.NewReader(os.Stdin).ReadBytes('\n')
-		var memberids []string
+	color.Green("[%v] Member ids validated: %v member ids loaded \n", time.Now().Format("15:05:04"), len(members))
+
+	if cfg.Proxy {
+		proxy, err := utilities.ReadLines("proxy.txt")
+		if err != nil {
+			color.Red("Error while opening proxy.txt: %v", err)
+			ExitSafely()
+			return
+		}
+
+		if len(proxy) == 0 {
+			color.Red("[%v] Enter your proxy in proxy.txt", time.Now().Format("15:05:04"))
+			ExitSafely()
+			return
+		}
+		color.Green("[%v] Proxy validated: %v proxy loaded \n", time.Now().Format("15:05:04"), len(proxy))
+	}
+	// All Files validated.
+	Options()
+}
+
+// Options menu
+func Options() {
+	color.Yellow("Leave a star on https://github.com/V4NSH4J/discord-mass-DM-GO for updates!")
+	color.White("Menu:\n1) Invite Joiner\n2) Mass DM advertiser\n3) Single DM spam\n4) Reaction Adder\n5) Get message\n6) Email:Pass:Token to Token\n7) Token Checker\n8) Guild Leaver\n9) Credits & Info\n10) Exit")
+	color.White("\nEnter your choice: ")
+	var choice int
+	fmt.Scanln(&choice)
+	if choice != 1 && choice != 2 && choice != 3 && choice != 4 && choice != 5 && choice != 6 && choice != 7 && choice != 8 && choice != 9 && choice != 0 {
+		color.Red("[%v] Invalid choice", time.Now().Format("15:05:04"))
+
+		return
+	}
+	switch choice {
+	case 1:
+		var invitechoice int
+		color.White("Invite Menu:\n1) Single Invite\n2) Multiple Invites from file")
+		fmt.Scanln(&invitechoice)
+		if invitechoice != 1 && invitechoice != 2 {
+			color.Red("[%v] Invalid choice", time.Now().Format("15:05:04"))
+			ExitSafely()
+			return
+		}
+		switch invitechoice {
+		case 1:
+			color.Cyan("Single Invite Mode")
+			color.White("Enter your invite CODE: ")
+			var invite string
+			fmt.Scanln(&invite)
+			color.White("Enter number of Threads (0 for unlimited): ")
+			var threads int
+			fmt.Scanln(&threads)
+			cfg, err := utilities.GetConfig()
+			if err != nil {
+				color.Red("Error while opening config.json: %v", err)
+				ExitSafely()
+				return
+			}
+			tokens, err := utilities.ReadLines("tokens.txt")
+			if err != nil {
+				color.Red("Error while opening tokens.txt: %v", err)
+				ExitSafely()
+				return
+			}
+			if len(tokens) == 0 {
+				color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:05:04"))
+				ExitSafely()
+				return
+			}
+			if threads > len(tokens) {
+				threads = len(tokens)
+			}
+			if threads == 0 {
+				threads = len(tokens)
+			}
+			color.White("Enter base delay for joining in seconds (0 for none)")
+			var base int
+			fmt.Scanln(&base)
+			color.White("Enter random delay to be added upon base delay (0 for none)")
+			var random int
+			fmt.Scanln(&random)
+			var delay int
+			if random > 0 {
+				delay = base + rand.Intn(random)
+			} else {
+				delay = base
+			}
+			c := goccm.New(threads)
+			for i := 0; i < len(tokens); i++ {
+				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				c.Wait()
+				go func(i int) {
+					err := utilities.Invite(invite, tokens[i])
+					if err != nil {
+						color.Red("[%v] Error while joining: %v", time.Now().Format("15:05:04"), err)
+					}
+					time.Sleep(time.Duration(delay) * time.Second)
+					c.Done()
+
+				}(i)
+			}
+			c.WaitAllDone()
+			color.Green("[%v] All threads finished", time.Now().Format("15:05:04"))
+		case 2:
+			color.Cyan("Multiple Invite Mode")
+			cfg, err := utilities.GetConfig()
+			if err != nil {
+				color.Red("Error while opening config.json: %v", err)
+				ExitSafely()
+				return
+			}
+			tokens, err := utilities.ReadLines("tokens.txt")
+			if err != nil {
+				color.Red("Error while opening tokens.txt: %v", err)
+				ExitSafely()
+				return
+			}
+			if len(tokens) == 0 {
+				color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:05:04"))
+				ExitSafely()
+				return
+			}
+			invites, err := utilities.ReadLines("invite.txt")
+			if err != nil {
+				color.Red("Error while opening invite.txt: %v", err)
+				ExitSafely()
+				return
+			}
+			if len(invites) == 0 {
+				color.Red("[%v] Enter your invites in invite.txt", time.Now().Format("15:05:04"))
+				ExitSafely()
+				return
+			}
+			color.White("Enter delay between 2 consecutive joins by 1 token in seconds: ")
+			var delay int
+			fmt.Scanln(&delay)
+			color.White("Enter number of Threads (0 for unlimited): ")
+			var threads int
+			fmt.Scanln(&threads)
+			if threads > len(tokens) {
+				threads = len(tokens)
+			}
+			if threads == 0 {
+				threads = len(tokens)
+			}
+			c := goccm.New(threads)
+			for i := 0; i < len(tokens); i++ {
+				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				c.Wait()
+				go func(i int) {
+					for j := 0; j < len(invites); j++ {
+						err := utilities.Invite(invites[j], tokens[i])
+						if err != nil {
+							color.Red("[%v] Error while joining: %v", time.Now().Format("15:05:04"), err)
+						}
+						time.Sleep(time.Duration(delay) * time.Second)
+					}
+					c.Done()
+				}(i)
+			}
+			c.WaitAllDone()
+			color.Green("[%v] All threads finished", time.Now().Format("15:05:04"))
+		}
+	case 2:
+		// DM Advertiser - Blueprint
+		// 1. Load all files and manage errors
+		// 2. Manage the threading
+		// 3. Check token {if working, continue; if not working - end instance & add IDs to failed}
+		// 4. Check mutuals (if error/not mutual, continue loop & add to failed; if mutual, continue)
+		// 5. Open the channel (if error, continue loop & add to failed; if no error, continue)
+		// 6. Send DM (if sent, add to completed slice, print to file. If not sent; continue loop if require checking, close instance if locked)
+		// 7. Truncate members with members left
+		// 8. If all DMs gone, truncate tokens with tokens left
+		// 9. Exit out to menu
+		color.Cyan("Mass DM Advertiser/Spammer")
+		color.Red("Please ensure you have used the invite joiner to join your tokens to the server and that they haven't been kicked/banned by an anti-raid bot")
+		// Load files & Check for sources of error to prevent sudden crashes.
+		// Also initiate variables and slices for logging and counting
+
 		var completed []string
 		var failed []string
-		var deadtoken []string
-		var left []string
-		type jsonResponse struct {
-			Message string `json:"message"`
-			Code    int    `json:"code"`
-		}
-
-		memberids, err = utilities.ReadLines("memberids.txt")
+		var dead []string
+		completed, err := utilities.ReadLines("completed.txt")
 		if err != nil {
-			fmt.Printf("[%v]Error while opening Memberids: %v \n", time.Now().Format("15:05:04"), err)
-			color.Red("\nPress ENTER to EXIT")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
+			color.Red("Error while opening completed.txt: %v", err)
+			ExitSafely()
 			return
 		}
-		completed, err = utilities.ReadLines("completed.txt")
+		tokens, err := utilities.ReadLines("tokens.txt")
 		if err != nil {
-			fmt.Printf("[%v]Error while opening Completed member list: %v \n", time.Now().Format("15:05:04"), err)
-			color.Red("\nPress ENTER to EXIT")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
+			color.Red("Error while opening tokens.txt: %v", err)
+			ExitSafely()
+			return
+		}
+		members, err := utilities.ReadLines("memberids.txt")
+		if err != nil {
+			color.Red("Error while opening members.txt: %v", err)
+			ExitSafely()
 			return
 		}
 
-		if len(tokens) == 0 {
-			fmt.Printf("[%v]No tokens loaded", time.Now().Format("15:05:04"))
-			color.Red("\nPress ENTER to EXIT")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
+		cfg, err := utilities.GetConfig()
+		if err != nil {
+			color.Red("Error while opening config.json: %v", err)
+			ExitSafely()
 			return
 		}
+		if cfg.Skip {
+			members = utilities.RemoveSubset(members, completed)
+		}
+		msg, err := utilities.GetMessage()
+		if err != nil {
+			color.Red("Error while opening message.txt: %v", err)
+			ExitSafely()
+			return
+		}
+		if len(tokens) == 0 || len(members) == 0 {
+			color.Red("[%v] Enter your tokens in tokens.txt and members in members.txt", time.Now().Format("15:05:04"))
+			ExitSafely()
+			return
+		}
+		if len(members) < len(tokens) {
+			tokens = tokens[:len(members)]
+		}
+		// Threading system to prevent large-scale concurrency. Might be detectable.
 
-		if len(memberids) == 0 {
-			fmt.Printf("[%v]No Member ID's loaded", time.Now().Format("15:05:04"))
-			color.Red("\nPress ENTER to EXIT")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
-			return
+		var wg sync.WaitGroup
+		wg.Add(len(tokens))
+
+		start := time.Now()
+		for i := 0; i < len(tokens); i++ {
+			// Offset goroutines by a few milliseconds. Made a big difference in my testing.
+			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+
+			go func(i int) {
+				for j := i * (len(members) / len(tokens)); j < (i+1)*(len(members)/len(tokens)); j++ {
+					// Check if token is still valid at start of loop. Close instance is non-functional.
+					status := utilities.CheckToken(tokens[i], i, len(tokens))
+					if status != 200 && status != 204 && status != 429 && status != -1 {
+						color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v", time.Now().Format("15:05:04"), tokens[i], status)
+						failed = append(failed, members[j:(i+1)*(len(members)/len(tokens))]...)
+						dead = append(dead, tokens[i])
+						err := Append("input/failed.txt", members[j:(i+1)*(len(members)/len(tokens))])
+						if err != nil {
+							fmt.Println(err)
+						}
+						if cfg.Stop {
+							break
+						}
+
+					}
+
+					// Get user info and check for mutual servers with the victim. Continue loop if no mutual servers or error.
+					info, err := directmessage.UserInfo(tokens[i], members[j], i, len(tokens))
+					if err != nil {
+						color.Red("[%v] Error while getting user info: %v", time.Now().Format("15:05:04"), err)
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						failed = append(failed, members[j])
+
+						continue
+					}
+					if len(info.Mutual) == 0 {
+						color.Red("[%v] Token %v failed to DM %v [No Mutual Server]", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						failed = append(failed, members[j])
+						continue
+					}
+
+					// Send DM to victim. Continue loop if error.
+					snowflake, err := directmessage.OpenChannel(tokens[i], members[j], i, len(tokens))
+					if err != nil {
+						color.Red("[%v] Error while opening DM channel: %v", time.Now().Format("15:05:04"), err)
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						failed = append(failed, members[j])
+						continue
+					}
+
+					resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, members[j], i, len(tokens))
+					if err != nil {
+						color.Red("[%v] Error while sending message: %v", time.Now().Format("15:05:04"), err)
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						failed = append(failed, members[j])
+						continue
+					}
+					body, err := utilities.ReadBody(*resp)
+					if err != nil {
+						color.Red("[%v] Error while reading body: %v", time.Now().Format("15:05:04"), err)
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						failed = append(failed, members[j])
+						continue
+					}
+					var response jsonResponse
+					errx := json.Unmarshal(body, &response)
+					if errx != nil {
+						color.Red("[%v] Error while unmarshalling body: %v", time.Now().Format("15:05:04"), errx)
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						failed = append(failed, members[j])
+						continue
+					}
+					// Everything is fine, continue as usual
+					if resp.StatusCode == 200 {
+						err = WriteLine("input/completed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						completed = append(completed, members[j])
+						color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator, len(completed))
+						// Case-based error, something unusual with data enterred
+					} else if resp.StatusCode == 400 {
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						color.Red("[%v] Token %v failed to DM %v Check wether the token tried to DM itself or tried sending an empty message!", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+						// Forbidden - Token is being rate limited
+					} else if resp.StatusCode == 403 && response.Code == 40003 {
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						color.Cyan("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:05:04"), tokens[i], int(cfg.LongDelay/60))
+						time.Sleep(time.Duration(cfg.LongDelay) * time.Second)
+						color.Cyan("[%v] Token %v continuing!", time.Now().Format("15:05:04"), tokens[i])
+						// Forbidden - DM's are closed
+					} else if resp.StatusCode == 403 && response.Code == 50007 {
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						color.Red("[%v] Token %v failed to DM %v User has DMs closed or not present in server", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+						// Forbidden - Locked or Disabled
+					} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						color.Red("[%v] Token %v is locked or disabled. Stopping instance.", time.Now().Format("15:05:04"), tokens[i])
+						dead = append(dead, tokens[i])
+						// Stop token if locked or disabled
+						if cfg.Stop {
+							break
+						}
+						// Forbidden - Invalid token
+					} else if resp.StatusCode == 403 && response.Code == 50009 {
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						color.Red("[%v] Token %v can't DM %v. It might not have bypassed community screening.", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+						// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
+					} else {
+						err = WriteLine("input/failed.txt", members[j])
+						if err != nil {
+							fmt.Println(err)
+						}
+						color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator, response.Code, resp.Status, response.Message)
+					}
+					time.Sleep(time.Duration(cfg.Delay) * time.Second)
+				}
+				wg.Done()
+			}(i)
 		}
-		var mode int
-		if len(memberids) >= len(tokens) {
-			mode = 1
+		wg.Wait()
+
+		color.Green("[%v] Threads have finished! Writing to file", time.Now().Format("15:05:04"))
+		elapsed := time.Since(start)
+		color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(completed), len(failed), len(dead), len(tokens)-len(dead))
+		if cfg.Remove {
+			m := utilities.RemoveSubset(tokens, dead)
+			err := Truncate("input/tokens.txt", m)
+			if err != nil {
+				fmt.Println(err)
+			}
+			color.Green("Updated tokens.txt")
 		}
-		if len(memberids) < len(tokens) {
-			mode = 2
+		if cfg.RemoveM {
+			m := utilities.RemoveSubset(members, completed)
+			err := Truncate("input/memberids.txt", m)
+			if err != nil {
+				fmt.Println(err)
+			}
+			color.Green("Updated memberids.txt")
+
+		}
+	case 3:
+		color.Cyan("Single DM Spammer")
+		color.White("Enter 0 for one message; Enter 1 for continuous spam")
+		var choice int
+		fmt.Scanln(&choice)
+		tokens, err := utilities.ReadLines("tokens.txt")
+		if err != nil {
+			fmt.Println(err)
+		}
+		cfg, err := utilities.GetConfig()
+		if err != nil {
+			fmt.Println(err)
+		}
+		msg, err := utilities.GetMessage()
+		if err != nil {
+			fmt.Println(err)
+		}
+		color.White("Ensure a common link and enter victim's ID: ")
+		var victim string
+		fmt.Scanln(&victim)
+		var wg sync.WaitGroup
+		wg.Add(len(tokens))
+		if choice == 0 {
+			for i := 0; i < len(tokens); i++ {
+				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				go func(i int) {
+					defer wg.Done()
+					snowflake, err := directmessage.OpenChannel(tokens[i], victim, i, len(tokens))
+					if err != nil {
+						fmt.Println(err)
+					}
+					resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, victim, i, len(tokens))
+					if err != nil {
+						fmt.Println(err)
+					}
+					if resp.StatusCode == 200 {
+						color.Green("[%v] Token %v DM'd %v", time.Now().Format("15:05:04"), tokens[i], victim)
+					} else {
+						color.Red("[%v] Token %v failed to DM %v", time.Now().Format("15:05:04"), tokens[i], victim)
+					}
+				}(i)
+			}
+			wg.Wait()
+		}
+		if choice == 1 {
+			for i := 0; i < len(tokens); i++ {
+				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				go func(i int) {
+					defer wg.Done()
+					var c int
+					for {
+						snowflake, err := directmessage.OpenChannel(tokens[i], victim, i, len(tokens))
+						if err != nil {
+							fmt.Println(err)
+						}
+						resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, victim, i, len(tokens))
+						if err != nil {
+							fmt.Println(err)
+						}
+						if resp.StatusCode == 200 {
+							color.Green("[%v] Token %v DM'd %v [%v]", time.Now().Format("15:05:04"), tokens[i], victim, c)
+						} else {
+							color.Red("[%v] Token %v failed to DM %v", time.Now().Format("15:05:04"), tokens[i], victim)
+						}
+						c++
+					}
+				}(i)
+				wg.Wait()
+			}
+		}
+		color.Green("[%v] Threads have finished!", time.Now().Format("15:05:04"))
+
+	case 4:
+		color.Cyan("Reaction Adder")
+		color.White("Menu:\n1) From message\n2) Manually")
+		var choice int
+		fmt.Scanln(&choice)
+		tokens, err := utilities.ReadLines("tokens.txt")
+		if err != nil {
+			fmt.Println(err)
+		}
+		cfg, err := utilities.GetConfig()
+		if err != nil {
+			fmt.Println(err)
 		}
 		var wg sync.WaitGroup
-		color.Green("[%v]Starting now", time.Now().Format("15:05:04"))
-		start := time.Now()
-
-		if mode == 1 {
-			wg.Add(len(tokens))
-			ChannelPerToken := len(memberids) / len(tokens)
-			for i := 0; i < len(tokens); i++ {
-				go func(i int) {
-					defer wg.Done()
-					time.Sleep(time.Duration(rand.Intn(config.Offset)) * time.Millisecond)
-					x := ChannelPerToken * i
-					y := x + ChannelPerToken
-
-					for j := x; j < y; j++ {
-						if len(completed) > 0 && config.Skip && utilities.Contains(completed, memberids[j]) {
-							color.Green("[%v] Skipping Member %v [Already DM'd]", time.Now().Format("15:05:04"), memberids[j])
-							continue
-						}
-						if fingerprintSlice[i] == "" {
-							fingerprintSlice[i] = utilities.GetFingerprint()
-							if fingerprintSlice[i] == "" {
-								color.Red("[%v] No Fingerprint for <%v>", time.Now().Format("15:05:04"), tokens[i])
-								continue
-							}
-						}
-						if cookieSlice[i] == "" {
-							Cookie := utilities.GetCookie()
-							if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-								color.Red("[%v] No Cookie for <%v>", time.Now().Format("15:05:04"), tokens[i])
-								continue
-							}
-							cookieSlice[i] = "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
-						}
-						a := directmessage.OpenChannel(tokens[i], memberids[j], cookieSlice[i], fingerprintSlice[i])
-						b := directmessage.SendMessage(tokens[i], a, &message, memberids[j], cookieSlice[i], fingerprintSlice[i])
-						defer b.Body.Close()
-
-						body, err := ioutil.ReadAll(b.Body)
-						if err != nil {
-							log.Fatal(err)
-						}
-						var JsonB jsonResponse
-						json.Unmarshal(body, &JsonB)
-						if b.StatusCode == 200 {
-							completed = append(completed, memberids[j])
-							color.Green("[%v]Successfully sent DM to %v from <%v> [%v]", time.Now().Format("15:05:04"), memberids[j], tokens[i], len(completed))
-							w := utilities.WriteLines("completed.txt", memberids[j])
-							if w != nil {
-								fmt.Println(w)
-							}
-
-						} else if b.StatusCode == 403 && JsonB.Code == 40003 {
-							color.Cyan("[%v]Token <%v> sleeping for %v minutes! Consider setting this delay to an appropriate amount (10-20 Minutes) to ensure your tokens last long!", time.Now().Format("15:05:04"), tokens[i], int(config.LongDelay/60))
-							time.Sleep(time.Duration(config.LongDelay) * time.Second)
-							color.Cyan("[%v]Token <%v> waking up, starting DMs again", time.Now().Format("15:05:04"), tokens[i])
-							q := utilities.WriteLines("failed.txt", memberids[j])
-							if q != nil {
-								fmt.Println(q)
-							}
-							failed = append(failed, memberids[j])
-
-						} else if b.StatusCode == 403 && JsonB.Code == 50007 {
-							color.Red("[%v] User %v has either closed DMs or is not in a mutual server or has blocked the token <%v>", time.Now().Format("15:05:04"), memberids[j], tokens[i])
-							q := utilities.WriteLines("failed.txt", memberids[j])
-							if q != nil {
-								fmt.Println(q)
-							}
-							failed = append(failed, memberids[j])
-
-						} else if b.StatusCode == 403 && JsonB.Code == 40002 {
-							color.Red("[%v] Token <%v> is LOCKED. Adding it's memberIDs to the failed list & Stopping the instance", time.Now().Format("15:05:04"), tokens[i])
-							deadtoken = append(deadtoken, tokens[i])
-							for m := j; m < y; m++ {
-								q := utilities.WriteLines("failed.txt", memberids[m])
-								if q != nil {
-									color.Red("[%v] Failed to write to failed.txt %v", time.Now().Format("15:05:04"), q)
-								}
-								failed = append(failed, memberids[m])
-								left = append(left, memberids[m])
-
-							}
-							break
-						} else if b.StatusCode == 401 {
-							color.Red("[%v] Token <%v> is wrong or Disabled. Adding it's memberIDs to the failed list & Stopping instance", time.Now().Format("15:05:04"), tokens[i])
-							deadtoken = append(deadtoken, tokens[i])
-							for m := j; m < y; m++ {
-								q := utilities.WriteLines("failed.txt", memberids[m])
-								if q != nil {
-									color.Red("[%v] Failed to write to failed.txt %v", time.Now().Format("15:05:04"), q)
-								}
-								failed = append(failed, memberids[m])
-								left = append(left, memberids[m])
-
-							}
-							break
-
-						} else if b.StatusCode == 405 && a == "" {
-							color.Red("[%v] Token <%v> is wrong or Disabled. Adding it's memberIDs to the failed list & Stopping instance", time.Now().Format("15:05:04"), tokens[i])
-							deadtoken = append(deadtoken, tokens[i])
-							for m := j; m < y; m++ {
-								q := utilities.WriteLines("failed.txt", memberids[m])
-								if q != nil {
-									color.Red("[%v] Failed to write to failed.txt %v", time.Now().Format("15:05:04"), q)
-								}
-								failed = append(failed, memberids[m])
-								left = append(left, memberids[m])
-
-							}
-							break
-
-						} else if b.StatusCode == 403 && JsonB.Code == 50009 {
-							color.Red("[%v] Token <%v> can't DM %v - It might not have completed discord's community server member screening or the User is only accepting DMs from friends", time.Now().Format("15:05:04"), tokens[i], memberids[j])
-							q := utilities.WriteLines("failed.txt", memberids[j])
-							if q != nil {
-								fmt.Println(q)
-							}
-							failed = append(failed, memberids[j])
-
-						} else if b.StatusCode == 405 {
-							color.Red("[%v] Token <%v> might be phone locked or disabled or may not have a mutual server  %v %v", time.Now().Format("15:05:04"), tokens[i], JsonB.Code, JsonB.Message)
-							q := utilities.WriteLines("failed.txt", memberids[j])
-							if q != nil {
-								fmt.Println(q)
-							}
-							failed = append(failed, memberids[j])
-						} else {
-							failed = append(failed, memberids[j])
-							color.Red("[%v]Failed to send DM to %v (Error %v) token <%v> - %v (%v)", time.Now().Format("15:05:04"), memberids[j], b.StatusCode, tokens[i], JsonB.Code, JsonB.Message)
-							q := utilities.WriteLines("failed.txt", memberids[j])
-							if q != nil {
-								fmt.Println(q)
-							}
-						}
-						time.Sleep(time.Duration(config.Delay) * time.Second)
-					}
-				}(i)
-
-			}
-			wg.Wait()
-
-		}
-
-		if mode == 2 {
-			wg.Add(len(memberids))
-			for i := 0; i < len(memberids); i++ {
-				if len(completed) > 0 && config.Skip && utilities.Contains(completed, memberids[i]) {
-					color.Green("[%v] Skipping Member %v [Already DM'd]", time.Now().Format("15:05:04"), memberids[i])
-					continue
-				}
-				go func(i int) {
-					defer wg.Done()
-					if fingerprintSlice[i] == "" {
-						fingerprintSlice[i] = utilities.GetFingerprint()
-						if fingerprintSlice[i] == "" {
-							color.Red("[%v] No Fingerprint for <%v>", time.Now().Format("15:05:04"), tokens[i])
-							return
-						}
-					}
-					if cookieSlice[i] == "" {
-						Cookie := utilities.GetCookie()
-						if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-							color.Red("[%v] No Cookie for <%v>", time.Now().Format("15:05:04"), tokens[i])
-							return
-						}
-						cookieSlice[i] = "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
-
-					}
-
-					a := directmessage.OpenChannel(tokens[i], memberids[i], cookieSlice[i], fingerprintSlice[i])
-					b := directmessage.SendMessage(tokens[i], a, &message, memberids[i], cookieSlice[i], fingerprintSlice[i])
-					var JsonB jsonResponse
-					if b.StatusCode == 200 {
-						completed = append(completed, memberids[i])
-						color.Green("[%v]Successfully sent DM to %v from <%v>", time.Now().Format("15:05:04"), memberids[i], tokens[i])
-
-					} else if b.StatusCode == 403 && JsonB.Code == 40003 {
-						time.Sleep(10 * time.Minute)
-						color.Cyan("[%v] Token sleeping for 10 minutes!", tokens[i])
-						time.Sleep(time.Duration(config.LongDelay) * time.Second)
-					} else if b.StatusCode == 403 && JsonB.Code == 40002 {
-						color.Red("[%v] Token <%v> is LOCKED. Adding it's memberIDs to the failed list & Stopping the instance", time.Now().Format("15:05:04"), tokens[i])
-						deadtoken = append(deadtoken, tokens[i])
-						q := utilities.WriteLines("failed.txt", memberids[i])
-						if q != nil {
-							color.Red("[%v] Failed to write to failed.txt %v", time.Now().Format("15:05:04"), q)
-						}
-						failed = append(failed, memberids[i])
-						left = append(left, memberids[i])
-					} else if b.StatusCode == 405 && a == "" {
-						color.Red("[%v] Token <%v> is LOCKED. Adding it's memberIDs to the failed list & Stopping the instance", time.Now().Format("15:05:04"), tokens[i])
-						deadtoken = append(deadtoken, tokens[i])
-						q := utilities.WriteLines("failed.txt", memberids[i])
-						if q != nil {
-							color.Red("[%v] Failed to write to failed.txt %v", time.Now().Format("15:05:04"), q)
-						}
-						failed = append(failed, memberids[i])
-						left = append(left, memberids[i])
-					} else if b.StatusCode == 401 {
-						color.Red("[%v] Token <%v> is wrong or Disabled. Adding it's memberIDs to the failed list & Stopping instance", time.Now().Format("15:05:04"), tokens[i])
-						deadtoken = append(deadtoken, tokens[i])
-
-						q := utilities.WriteLines("failed.txt", memberids[i])
-						if q != nil {
-							color.Red("[%v] Failed to write to failed.txt %v", time.Now().Format("15:05:04"), q)
-						}
-						failed = append(failed, memberids[i])
-						left = append(left, memberids[i])
-
-					} else {
-						failed = append(failed, memberids[i])
-						color.Red("[%v]Failed to send DM to %v from <%v> Code %v Err %v", time.Now().Format("15:05:04"), memberids[i], tokens[i], JsonB.Code, JsonB.Message)
-					}
-				}(i)
-			}
-			wg.Wait()
-		}
-		elapsed := time.Since(start)
-		color.Blue("[%v]DM advertisement took %s. DM'd %v users and failed to DM %v users", time.Now().Format("15:05:04"), elapsed, len(completed), len(failed))
-		fmt.Println("Writing to file, please wait!")
-		if config.Remove {
-			e := utilities.RemoveSubset(tokens, deadtoken)
+		wg.Add(len(tokens))
+		if choice == 1 {
+			color.White("Enter a token which can see the message:")
+			var token string
+			fmt.Scanln(&token)
+			color.White("Enter message ID: ")
+			var id string
+			fmt.Scanln(&id)
+			color.White("Enter channel ID: ")
+			var channel string
+			fmt.Scanln(&channel)
+			msg, err := utilities.GetRxn(channel, id, token)
 			if err != nil {
-				color.Red("[%v] Failed to remove dead tokens", time.Now().Format("15:05:04"))
+				fmt.Println(err)
 			}
-			utilities.TruncateLines("tokens.txt", e)
-			utilities.TruncateLines("memberids.txt", left)
-
-		}
-		color.Blue("Do you wish to leave tokens from the server? 0 for yes, 1 for no")
-		var think int
-		fmt.Scanln(&think)
-		if think != 0 && think != 1 {
-			color.Red("Invalid Option")
-			return
-		}
-		if think == 1 {
-			color.Green("All completed")
-			return
-		}
-		if think == 0 {
-			var serverID string
-			color.Blue("Enter Server ID")
-			fmt.Scanln(&serverID)
-
-			var wg sync.WaitGroup
-			wg.Add(len(tokens))
+			color.White("Select Emoji")
+			for i := 0; i < len(msg.Reactions); i++ {
+				color.White("%v) %v %v", i, msg.Reactions[i].Emojis.Name, msg.Reactions[i].Count)
+			}
+			var emoji int
+			var send string
+			fmt.Scanln(&emoji)
 			for i := 0; i < len(tokens); i++ {
-				time.Sleep(5 * time.Millisecond)
+				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
-					if fingerprintSlice[i] == "" {
-						fingerprintSlice[i] = utilities.GetFingerprint()
-						if fingerprintSlice[i] == "" {
-							color.Red("[%v] No Fingerprint for <%v> Couldn't leave server", time.Now().Format("15:05:04"), tokens[i])
-							return
-						}
-					}
-					if cookieSlice[i] == "" {
-						Cookie := utilities.GetCookie()
-						if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-							color.Red("[%v] No Cookie for <%v> Couldn't leave server", time.Now().Format("15:05:04"), tokens[i])
-							return
-						}
-						cookieSlice[i] = "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
+					if msg.Reactions[emoji].Emojis.ID == "" {
+						send = msg.Reactions[emoji].Emojis.Name
 
+					} else if msg.Reactions[emoji].Emojis.ID != "" {
+						send = msg.Reactions[emoji].Emojis.Name + "" + msg.Reactions[emoji].Emojis.ID
 					}
-					xa := utilities.Leave(serverID, tokens[i], fingerprintSlice[i])
-					if xa == 204 || xa == 200 {
-						color.Green("Successfully left from <%v>", tokens[i])
-					} else {
-						color.Red("Failed to leave from <%v>", tokens[i])
+					err := utilities.React(tokens[i], channel, id, send, i, len(tokens))
+					if err != nil {
+						fmt.Println(err)
+						color.Red("[%v] %v failed to react", time.Now().Format("15:05:04"), tokens[i])
 					}
+					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:05:04"), tokens[i])
+
 				}(i)
 			}
 			wg.Wait()
-			color.Red("\nPress ENTER to EXIT")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
-			return
+			color.Green("[%v] Completed all threads.", time.Now().Format("15:05:04"))
 		}
-
-	}
-	if option == 0 {
-		color.Blue("Please make sure the tokens are in a mutual server as the victim and enter the victim's discord UID here: ")
-		var UUID string
-		fmt.Scanln(&UUID)
-		color.Blue("Press 0 for single message, press 1 for continuous spam: ")
-		var mode int
-		fmt.Scanln(&mode)
-		if mode != 0 && mode != 1 {
-			log.Panic("Invalid mode")
-			return
-		}
-		if mode == 0 {
-			var wg sync.WaitGroup
-			wg.Add(len(tokens))
+		if choice == 2 {
+			color.White("Enter channel ID")
+			var channel string
+			fmt.Scanln(&channel)
+			color.White("Enter message ID")
+			var id string
+			fmt.Scanln(&id)
+			color.Red("If you have a message, please use choice 1. If you want to add a custom emoji. Follow these instructions, if you don't, it won't work.\n If it's a default emoji which appears on the emoji keyboard, just copy it as TEXT not how it appears on Discord with the colons. Type it as text, it might look like 2 question marks on console but ignore.\n If it's a custom emoji (Nitro emoji) type it like this -> name:emojiID To get the emoji ID, copy the emoji link and copy the emoji ID from the URL.\nIf you do not follow this, it will not work. Don't try to do impossible things like trying to START a nitro reaction with a non-nitro account.")
+			color.White("Enter emoji")
+			var emoji string
+			fmt.Scanln(&emoji)
 			for i := 0; i < len(tokens); i++ {
+				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				go func(i int) {
-					color.Yellow("Loading")
-					time.Sleep(500 * time.Millisecond)
-					if fingerprintSlice[i] == "" {
-						fingerprintSlice[i] = utilities.GetFingerprint()
-						if fingerprintSlice[i] == "" {
-							color.Red("[%v] No Fingerprint for %v", time.Now().Format("15:05:04"), tokens[i])
-							return
-						}
+					defer wg.Done()
+					err := utilities.React(tokens[i], channel, id, emoji, i, len(tokens))
+					if err != nil {
+						fmt.Println(err)
+						color.Red("[%v] %v failed to react", time.Now().Format("15:05:04"), tokens[i])
 					}
-					if cookieSlice[i] == "" {
-						Cookie := utilities.GetCookie()
-						if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-							color.Red("[%v] No Cookie for %v", time.Now().Format("15:05:04"), tokens[i])
-							return
-						}
-						cookieSlice[i] = "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
-					}
-					a := directmessage.OpenChannel(tokens[i], UUID, cookieSlice[i], fingerprintSlice[i])
-					b := directmessage.SendMessage(tokens[i], a, &message, UUID, cookieSlice[i], fingerprintSlice[i])
-					if b.StatusCode == 200 {
-						color.Green("[%v]Successfully sent message from %v\n", time.Now().Format("15:05:04"), tokens[i])
-					} else {
-						color.Red("[%v]Failed to send message from %v\n", time.Now().Format("15:05:04"), tokens[i])
-					}
+					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:05:04"), tokens[i])
 				}(i)
-
 			}
-			color.Blue("Do you wish to leave tokens from the server? 0 for yes, 1 for no")
-			var think int
-			fmt.Scanln(&think)
-			if think != 0 && think != 1 {
-				color.Red("Invalid Option")
-				return
-			}
-			if think == 0 {
-				color.Green("All completed")
-				return
-			}
-			if think == 1 {
-				var serverID string
-				color.Blue("Enter Server ID")
-				fmt.Scanln(&serverID)
+			wg.Wait()
+			color.Green("[%v] Completed all threads.", time.Now().Format("15:05:04"))
+		}
 
-				var wg sync.WaitGroup
-				wg.Add(len(tokens))
-				for i := 0; i < len(tokens); i++ {
-					time.Sleep(5 * time.Millisecond)
-					go func(i int) {
-						defer wg.Done()
-						if fingerprintSlice[i] == "" {
-							fingerprintSlice[i] = utilities.GetFingerprint()
-							if fingerprintSlice[i] == "" {
-								color.Red("[%v] No Fingerprint for <%v> Couldn't leave server", time.Now().Format("15:05:04"), tokens[i])
-								return
-							}
-						}
-						if cookieSlice[i] == "" {
-							Cookie := utilities.GetCookie()
-							if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-								color.Red("[%v] No Cookie for <%v> Couldn't leave server", time.Now().Format("15:05:04"), tokens[i])
-								return
-							}
-							cookieSlice[i] = "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
+	case 5:
+		// Uses ?around & ?limit parameters to discord's REST API to get messages to get the exact message needed
+		color.Cyan("Get Message - This will get the message from Discord which you want to send.")
+		color.White("Enter your token: \n")
+		var token string
+		fmt.Scanln(&token)
+		color.White("Enter the channelID: \n")
+		var channelID string
+		fmt.Scanln(&channelID)
+		color.White("Enter the messageID: \n")
+		var messageID string
+		fmt.Scanln(&messageID)
+		message, err := utilities.FindMessage(channelID, messageID, token)
+		if err != nil {
+			color.Red("Error while finding message: %v", err)
+			ExitSafely()
+			return
+		}
+		color.Green("[%v] Message: %v", time.Now().Format("15:05:04"), message)
 
-						}
-						xa := utilities.Leave(serverID, tokens[i], cookieSlice[i])
-						if xa == 204 || xa == 200 {
-							color.Green("Successfully left from <%v>", tokens[i])
-						} else {
-							color.Red("Failed to leave from <%v>", tokens[i])
-						}
-					}(i)
+	case 6:
+		// Quick way to interconvert tokens from a popular format to the one this program supports.
+		color.Cyan("Email:Password:Token to Token")
+		Tokens, err := utilities.ReadLines("tokens.txt")
+		if err != nil {
+			color.Red("Error while opening tokens.txt: %v", err)
+			ExitSafely()
+			return
+		}
+		if len(Tokens) == 0 {
+			color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:05:04"))
+			ExitSafely()
+			return
+		}
+		var onlytokens []string
+		for i := 0; i < len(Tokens); i++ {
+			if strings.Contains(Tokens[i], ":") {
+				token := strings.Split(Tokens[i], ":")[2]
+				onlytokens = append(onlytokens, token)
+			}
+		}
+		t := utilities.TruncateLines("tokens.txt", onlytokens)
+		if t != nil {
+			color.Red("[%v] Error while truncating tokens.txt: %v", time.Now().Format("15:05:04"), t)
+			ExitSafely()
+			return
+		}
+	case 7:
+		// Basic token checker
+		color.Cyan("Token checker")
+		tokens, err := utilities.ReadLines("tokens.txt")
+		if err != nil {
+			color.Red("Error while opening tokens.txt: %v", err)
+			ExitSafely()
+			return
+		}
+		if len(tokens) == 0 {
+			color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:05:04"))
+			ExitSafely()
+			return
+		}
+		cfg, err := utilities.GetConfig()
+		if err != nil {
+			color.Red("Error while opening config.json: %v", err)
+			ExitSafely()
+			return
+		}
+		color.White("Enter the number of threads: \n")
+		var threads int
+		fmt.Scanln(&threads)
+		if threads > len(tokens) {
+			threads = len(tokens)
+		}
+		if threads == 0 {
+			threads = len(tokens)
+		}
+		c := goccm.New(threads)
+		var working []string
+		for i := 0; i < len(tokens); i++ {
+			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+			c.Wait()
+			go func(i int) {
+				err := utilities.CheckToken(tokens[i], i, len(tokens))
+				if err != 200 {
+					color.Red("[%v] Token Invalid %v", time.Now().Format("15:05:04"), tokens[i])
+				} else {
+					color.Green("[%v] Token Valid %v", time.Now().Format("15:05:04"), tokens[i])
+					working = append(working, tokens[i])
 				}
-			}
-			wg.Wait()
-			color.Red("\nPress ENTER to EXIT")
-			bufio.NewReader(os.Stdin).ReadBytes('\n')
-		} else {
-			var wg sync.WaitGroup
-			wg.Add(len(tokens))
-			for i := 0; i < len(tokens); i++ {
-				go func(i int) {
-					for {
-						if fingerprintSlice[i] == "" {
-							fingerprintSlice[i] = utilities.GetFingerprint()
-							if fingerprintSlice[i] == "" {
-								color.Red("[%v] No Fingerprint for %v", time.Now().Format("15:05:04"), tokens[i])
-								return
-							}
-						}
-						if cookieSlice[i] == "" {
-							Cookie := utilities.GetCookie()
-							if Cookie.Dcfduid == "" && Cookie.Sdcfduid == "" {
-								color.Red("[%v] No Cookie for %v", time.Now().Format("15:05:04"), tokens[i])
-								return
-							}
-							cookieSlice[i] = "__dcfduid=" + Cookie.Dcfduid + "; " + "__sdcfduid=" + Cookie.Sdcfduid + "; " + " locale=us" + "; __cfruid=d2f75b0a2c63c38e6b3ab5226909e5184b1acb3e-1634536904"
+				c.Done()
+			}(i)
+		}
+		c.WaitAllDone()
+		t := utilities.TruncateLines("tokens.txt", working)
+		if t != nil {
+			color.Red("[%v] Error while truncating tokens.txt: %v", time.Now().Format("15:05:04"), t)
+			ExitSafely()
+			return
+		}
+		color.Green("[%v] All threads finished", time.Now().Format("15:05:04"))
 
-						}
-						a := directmessage.OpenChannel(tokens[i], UUID, cookieSlice[i], fingerprintSlice[i])
-						b := directmessage.SendMessage(tokens[i], a, &message, UUID, cookieSlice[i], fingerprintSlice[i])
-						if b.StatusCode == 200 {
-							color.Green("[%v]Successfully sent message from %v\n", time.Now().Format("15:05:04"), tokens[i])
+	case 8:
+		// Leavs tokens from a server
+		color.Cyan("Guild Leaver")
+		cfg, err := utilities.GetConfig()
+		if err != nil {
+			color.Red("Error while opening config.json: %v", err)
+			ExitSafely()
+			return
+		}
+		tokens, err := utilities.ReadLines("tokens.txt")
+		if err != nil {
+			color.Red("Error while opening tokens.txt: %v", err)
+			ExitSafely()
+			return
+		}
+		if len(tokens) == 0 {
+			color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:05:04"))
+			ExitSafely()
+			return
+		}
+		color.White("Enter the number of threads (0 for unlimited): ")
+		var threads int
+		fmt.Scanln(&threads)
+		if threads > len(tokens) {
+			threads = len(tokens)
+		}
+		if threads == 0 {
+			threads = len(tokens)
+		}
+		color.White("Enter delay between leaves: ")
+		var delay int
+		fmt.Scanln(&delay)
+		color.White("Enter serverid: ")
+		var serverid string
+		fmt.Scanln(&serverid)
+		c := goccm.New(threads)
+		for i := 0; i < len(tokens); i++ {
+			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+			c.Wait()
+			go func(i int) {
+				p := utilities.Leave(serverid, tokens[i])
+				if p == 0 {
+					color.Red("[%v] Error while leaving", time.Now().Format("15:05:04"))
+				}
+				if p == 200 || p == 204 {
+					color.Green("[%v] Left server", time.Now().Format("15:05:04"))
+				} else {
+					color.Red("[%v] Error while leaving", time.Now().Format("15:05:04"))
+				}
+				time.Sleep(time.Duration(delay) * time.Second)
+				c.Done()
+			}(i)
+		}
+		c.WaitAllDone()
+		color.Green("[%v] All threads finished", time.Now().Format("15:05:04"))
 
-						} else {
-							color.Red("[%v]Failed to send message from %v\n", time.Now().Format("15:05:04"), tokens[i])
-							break
-						}
-						time.Sleep(time.Duration(config.Delay) * time.Second)
-					}
-				}(i)
-			}
-			wg.Wait()
+	case 9:
+		color.Blue("Made with <3 by github.com/V4NSH4J for free. If you were sold this program, you got scammed.")
+	case 10:
+		// Exit without error
+		os.Exit(0)
+
+	}
+	time.Sleep(1 * time.Second)
+	Options()
+
+}
+
+// Append items from slice to file
+func Append(filename string, items []string) error {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, item := range items {
+		if _, err = file.WriteString(item + "\n"); err != nil {
+			return err
 		}
 	}
+
+	return nil
+}
+
+// Truncate items from slice to file
+func Truncate(filename string, items []string) error {
+	file, err := os.OpenFile(filename, os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, item := range items {
+		if _, err = file.WriteString(item + "\n"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Write line to file
+func WriteLine(filename string, line string) error {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err = file.WriteString(line + "\n"); err != nil {
+		return err
+	}
+
+	return nil
 }
