@@ -9,7 +9,7 @@ Current Version: v1.0.6
 
 Leave a star for updates. Read the readme file for instructions. Updates might've stopped at any point without notice so make sure the program is working before putting in all your tokens.
 
-# Discord Mass DM GO ![Downloads](https://img.shields.io/github/downloads/V4NSH4J/discord-mass-DM-GO/total) ![Go Report Card](https://goreportcard.com/badge/github.com/V4NSH4J/discord-mass-DM-GO) ![Stars](https://img.shields.io/github/stars/V4NSH4J/discord-mass-DM-GO) ![Forks](https://img.shields.io/github/license/V4NSH4J/discord-mass-DM-GO) ![Lisence](https://img.shields.io/github/forks/V4NSH4J/discord-mass-DM-GO) [![HitCount](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO.svg?style=flat-square)](http://hits.dwyl.com/V4NSH4J/discord-mass-DM-GO)
+# Discord Mass DM GO ![Downloads](https://img.shields.io/github/downloads/V4NSH4J/discord-mass-DM-GO/total) ![Go Report Card](https://goreportcard.com/badge/github.com/V4NSH4J/discord-mass-DM-GO) ![Stars](https://img.shields.io/github/stars/V4NSH4J/discord-mass-DM-GO) ![Forks](https://img.shields.io/github/license/V4NSH4J/discord-mass-DM-GO) ![Lisence](https://img.shields.io/github/forks/V4NSH4J/discord-mass-DM-GO) 
  A selfbot written in GO to demonstrate how rule-violators spam Discord Users and launch large unsolicited DM Advertisement Campaigns
  
 ## Overview 🔍
