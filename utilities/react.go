@@ -12,7 +12,7 @@ import (
 	"net/url"
 )
 
-func React(token string, channelID string, MessageID string, Emoji string, i int, j int) error {
+func React(token string, channelID string, MessageID string, Emoji string) error {
 	encodedID := url.QueryEscape(Emoji)
 	site := "https://discord.com/api/v9/channels/" + channelID + "/messages/" + MessageID + "/reactions/" + encodedID + "/@me"
 
@@ -21,27 +21,16 @@ func React(token string, channelID string, MessageID string, Emoji string, i int
 		return err
 	}
 	req.Close = true
-	cookie, err := Cookies(i, j)
+	cookie, err := Cookies()
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Authorization", token)
 	req.Header.Set("Cookie", cookie)
 
-	cfg, err := GetConfig()
-	if err != nil {
-		return err
-	}
 
-	var httpClient *http.Client
-	if !cfg.Minimize {
-		httpClient, err = SetProxy(i, j)
-		if err != nil {
-			return err
-		}
-	} else {
-		httpClient = http.DefaultClient
-	}
+
+	httpClient := http.DefaultClient
 
 	resp, err := httpClient.Do(req)
 	if err != nil {

@@ -7,20 +7,20 @@
 package main
 
 import (
-        "bufio"
-        "encoding/json"
-        "fmt"
-        "math/rand"
-        "os"
-        "strings"
-        "sync"
+	"bufio"
+	"encoding/json"
+	"fmt"
+	"math/rand"
+	"os"
+	"strings"
+	"sync"
 
-        "time"
+	"time"
 
-        "github.com/V4NSH4J/discord-mass-dm-GO/directmessage"
-        "github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-        "github.com/fatih/color"
-        "github.com/zenthangplus/goccm"
+	"github.com/V4NSH4J/discord-mass-dm-GO/directmessage"
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
+	"github.com/fatih/color"
+	"github.com/zenthangplus/goccm"
 )
 
 type jsonResponse struct {
@@ -34,8 +34,8 @@ func ExitSafely() {
 }
 
 func main() {
-        // Credits
 
+        // Credits
         color.Blue("\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2584    \u2584\u2584\u2584\u2584\u2588\u2588\u2588\u2584\u2584\u2584\u2584   \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2584          \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2584   \u2584\u2588\u2588\u2588\u2588\u2588\u2588\u2584  \r\n\u2588\u2588\u2588   \u2580\u2588\u2588\u2588 \u2584\u2588\u2588\u2580\u2580\u2580\u2588\u2588\u2588\u2580\u2580\u2580\u2588\u2588\u2584 \u2588\u2588\u2588   \u2580\u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2580  \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588       \u2584\u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588      \u2580\u2580\u2588\u2588\u2588 \u2588\u2588\u2588\u2588\u2584  \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588   \u2584\u2588\u2588\u2588 \u2588\u2588\u2588   \u2588\u2588\u2588   \u2588\u2588\u2588 \u2588\u2588\u2588   \u2584\u2588\u2588\u2588        \u2588\u2588\u2588    \u2588\u2588\u2588 \u2588\u2588\u2588    \u2588\u2588\u2588 \r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580   \u2580\u2588   \u2588\u2588\u2588   \u2588\u2580  \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580         \u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2588\u2580   \u2580\u2588\u2588\u2588\u2588\u2588\u2588\u2580  \r\n                                                                   \r\n\rDISCORD MASS DM GO")
         color.Green("\nV1.0.6 - Made by https://github.com/V4NSH4J ")
         color.Red("For educational purposes only. Read the full disclaimer and terms of use on GitHub readme file.")
@@ -88,20 +88,12 @@ func main() {
 
         color.Green("[%v] Member ids validated: %v member ids loaded \n", time.Now().Format("15:05:04"), len(members))
 
-        if cfg.Proxy {
-                proxy, err := utilities.ReadLines("proxy.txt")
-                if err != nil {
-                        color.Red("Error while opening proxy.txt: %v", err)
-                        ExitSafely()
-                        return
-                }
-
-                if len(proxy) == 0 {
-                        color.Red("[%v] Enter your proxy in proxy.txt", time.Now().Format("15:05:04"))
-                        ExitSafely()
-                        return
-                }
-                color.Green("[%v] Proxy validated: %v proxy loaded \n", time.Now().Format("15:05:04"), len(proxy))
+        if cfg.Proxy != "" {
+                color.Green("[%v] Now setting proxy as %v", time.Now().Format("15:05:04"), cfg.Proxy)
+                os.Setenv("http_proxy", "http://" + cfg.Proxy)
+                os.Setenv("https_proxy", "http://" + cfg.Proxy)
+        } else {
+                color.Green("[%v] Proxyless mode", time.Now().Format("15:05:04"))
         }
         // All Files validated.
         Options()
@@ -323,7 +315,7 @@ func Options() {
                         go func(i int) {
                                 for j := i * (len(members) / len(tokens)); j < (i+1)*(len(members)/len(tokens)); j++ {
                                         // Check if token is still valid at start of loop. Close instance is non-functional.
-                                        status := utilities.CheckToken(tokens[i], i, len(tokens))
+                                        status := utilities.CheckToken(tokens[i])
                                         if status != 200 && status != 204 && status != 429 && status != -1 {
                                                 color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v", time.Now().Format("15:05:04"), tokens[i], status)
                                                 failed = append(failed, members[j:(i+1)*(len(members)/len(tokens))]...)
@@ -335,33 +327,38 @@ func Options() {
                                                 if cfg.Stop {
                                                         break
                                                 }
-
+                                                
                                         }
-
+                                        var user string
+                                        user = members[j]
                                         // Get user info and check for mutual servers with the victim. Continue loop if no mutual servers or error.
-                                        info, err := directmessage.UserInfo(tokens[i], members[j], i, len(tokens))
-                                        if err != nil {
-                                                color.Red("[%v] Error while getting user info: %v", time.Now().Format("15:05:04"), err)
-                                                err = WriteLine("input/failed.txt", members[j])
+                                        if cfg.Mutual {
+                                                info, err := directmessage.UserInfo(tokens[i], members[j])
                                                 if err != nil {
-                                                        fmt.Println(err)
-                                                }
-                                                failed = append(failed, members[j])
+                                                        color.Red("[%v] Error while getting user info: %v", time.Now().Format("15:05:04"), err)
+                                                        err = WriteLine("input/failed.txt", members[j])
+                                                        if err != nil {
+                                                                fmt.Println(err)
+                                                        }
+                                                        failed = append(failed, members[j])
 
-                                                continue
-                                        }
-                                        if len(info.Mutual) == 0 {
-                                                color.Red("[%v] Token %v failed to DM %v [No Mutual Server]", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
-                                                err = WriteLine("input/failed.txt", members[j])
-                                                if err != nil {
-                                                        fmt.Println(err)
+                                                        continue
                                                 }
-                                                failed = append(failed, members[j])
-                                                continue
+                                                if len(info.Mutual) == 0 {
+                                                        color.Red("[%v] Token %v failed to DM %v [No Mutual Server]", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+                                                        err = WriteLine("input/failed.txt", members[j])
+                                                        if err != nil {
+                                                                fmt.Println(err)
+                                                        }
+                                                        failed = append(failed, members[j])
+                                                        continue
+                                                }
+                                                user = info.User.Username + "#" + info.User.Discriminator
                                         }
+                                        
 
                                         // Send DM to victim. Continue loop if error.
-                                        snowflake, err := directmessage.OpenChannel(tokens[i], members[j], i, len(tokens))
+                                        snowflake, err := directmessage.OpenChannel(tokens[i], members[j])
                                         if err != nil {
                                                 color.Red("[%v] Error while opening DM channel: %v", time.Now().Format("15:05:04"), err)
                                                 err = WriteLine("input/failed.txt", members[j])
@@ -371,8 +368,9 @@ func Options() {
                                                 failed = append(failed, members[j])
                                                 continue
                                         }
+                                        
 
-                                        resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, members[j], i, len(tokens))
+                                        resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, members[j])
                                         if err != nil {
                                                 color.Red("[%v] Error while sending message: %v", time.Now().Format("15:05:04"), err)
                                                 err = WriteLine("input/failed.txt", members[j])
@@ -410,14 +408,14 @@ func Options() {
                                                         fmt.Println(err)
                                                 }
                                                 completed = append(completed, members[j])
-                                                color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator, len(completed))
+                                                color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:05:04"), tokens[i], user, len(completed))
                                                 // Case-based error, something unusual with data enterred
                                         } else if resp.StatusCode == 400 {
                                                 err = WriteLine("input/failed.txt", members[j])
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
-                                                color.Red("[%v] Token %v failed to DM %v Check wether the token tried to DM itself or tried sending an empty message!", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+                                                color.Red("[%v] Token %v failed to DM %v Check wether the token tried to DM itself or tried sending an empty message!", time.Now().Format("15:05:04"), tokens[i], user)
                                                 // Forbidden - Token is being rate limited
                                         } else if resp.StatusCode == 403 && response.Code == 40003 {
                                                 err = WriteLine("input/failed.txt", members[j])
@@ -433,14 +431,14 @@ func Options() {
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
-                                                color.Red("[%v] Token %v failed to DM %v User has DMs closed or not present in server", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+                                                color.Red("[%v] Token %v failed to DM %v User has DMs closed or not present in server", time.Now().Format("15:05:04"), tokens[i], user)
                                                 // Forbidden - Locked or Disabled
                                         } else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
                                                 err = WriteLine("input/failed.txt", members[j])
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
-                                                color.Red("[%v] Token %v is locked or disabled. Stopping instance.", time.Now().Format("15:05:04"), tokens[i])
+                                                color.Red("[%v] Token %v is locked or disabled. Stopping instance. %v %v", time.Now().Format("15:05:04"), tokens[i], resp.StatusCode, response.Message)
                                                 dead = append(dead, tokens[i])
                                                 // Stop token if locked or disabled
                                                 if cfg.Stop {
@@ -452,14 +450,14 @@ func Options() {
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
-                                                color.Red("[%v] Token %v can't DM %v. It might not have bypassed community screening.", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator)
+                                                color.Red("[%v] Token %v can't DM %v. It might not have bypassed community screening.", time.Now().Format("15:05:04"), tokens[i], user)
                                                 // General case - Continue loop. If problem with instance, it will be stopped at start of loop.
                                         } else {
                                                 err = WriteLine("input/failed.txt", members[j])
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
-                                                color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:05:04"), tokens[i], info.User.Username+info.User.Discriminator, response.Code, resp.Status, response.Message)
+                                                color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:05:04"), tokens[i], user, response.Code, resp.Status, response.Message)
                                         }
                                         time.Sleep(time.Duration(cfg.Delay) * time.Second)
                                 }
@@ -515,11 +513,11 @@ func Options() {
                                 time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
                                 go func(i int) {
                                         defer wg.Done()
-                                        snowflake, err := directmessage.OpenChannel(tokens[i], victim, i, len(tokens))
+                                        snowflake, err := directmessage.OpenChannel(tokens[i], victim)
                                         if err != nil {
                                                 fmt.Println(err)
                                         }
-                                        resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, victim, i, len(tokens))
+                                        resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, victim)
                                         if err != nil {
                                                 fmt.Println(err)
                                         }
@@ -539,11 +537,11 @@ func Options() {
                                         defer wg.Done()
                                         var c int
                                         for {
-                                                snowflake, err := directmessage.OpenChannel(tokens[i], victim, i, len(tokens))
+                                                snowflake, err := directmessage.OpenChannel(tokens[i], victim)
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
-                                                resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, victim, i, len(tokens))
+                                                resp, err := directmessage.SendMessage(tokens[i], snowflake, &msg, victim)
                                                 if err != nil {
                                                         fmt.Println(err)
                                                 }
@@ -606,7 +604,7 @@ func Options() {
                                         } else if msg.Reactions[emoji].Emojis.ID != "" {
                                                 send = msg.Reactions[emoji].Emojis.Name + "" + msg.Reactions[emoji].Emojis.ID
                                         }
-                                        err := utilities.React(tokens[i], channel, id, send, i, len(tokens))
+                                        err := utilities.React(tokens[i], channel, id, send)
                                         if err != nil {
                                                 fmt.Println(err)
                                                 color.Red("[%v] %v failed to react", time.Now().Format("15:05:04"), tokens[i])
@@ -633,7 +631,7 @@ func Options() {
                                 time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
                                 go func(i int) {
                                         defer wg.Done()
-                                        err := utilities.React(tokens[i], channel, id, emoji, i, len(tokens))
+                                        err := utilities.React(tokens[i], channel, id, emoji)
                                         if err != nil {
                                                 fmt.Println(err)
                                                 color.Red("[%v] %v failed to react", time.Now().Format("15:05:04"), tokens[i])
@@ -727,7 +725,7 @@ func Options() {
                         time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
                         c.Wait()
                         go func(i int) {
-                                err := utilities.CheckToken(tokens[i], i, len(tokens))
+                                err := utilities.CheckToken(tokens[i])
                                 if err != 200 {
                                         color.Red("[%v] Token Invalid %v", time.Now().Format("15:05:04"), tokens[i])
                                 } else {

@@ -15,7 +15,7 @@ import (
 
 // Cookies are required for legitimate looking requests, a GET request to discord.com has these required cookies in it's response along with the website HTML
 // We can use this to get the cookies & arrange them in a string
-func Cookies(i int, j int) (string, error) {
+func Cookies() (string, error) {
 
 	url := "https://discord.com"
 
@@ -25,20 +25,9 @@ func Cookies(i int, j int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	cfg, err := GetConfig()
-	if err != nil {
-		return "", err
-	}
 
-	var httpClient *http.Client
-	if !cfg.Minimize {
-		httpClient, err = SetProxy(i, j)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		httpClient = http.DefaultClient
-	}
+
+	httpClient := http.DefaultClient
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -63,7 +52,7 @@ type response struct {
 }
 
 // Getting Fingerprint to use in our requests for more legitimate seeming requests.
-func Fingerprint(i int, j int) (string, error) {
+func Fingerprint() (string, error) {
 	url := "https://discord.com/api/v9/experiments"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -73,19 +62,7 @@ func Fingerprint(i int, j int) (string, error) {
 		return "", err
 	}
 
-	cfg, err := GetConfig()
-	if err != nil {
-		return "", err
-	}
-	var httpClient *http.Client
-	if !cfg.Minimize {
-		httpClient, err = SetProxy(i, j)
-		if err != nil {
-			return "", err
-		}
-	} else {
-		httpClient = http.DefaultClient
-	}
+	httpClient := http.DefaultClient
 
 	resp, err := httpClient.Do(RegisterHeaders(req))
 	if err != nil {

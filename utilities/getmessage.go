@@ -20,7 +20,7 @@ func FindMessage(channel string, messageid string, token string) (string, error)
 		return "", err
 	}
 	req.Close = true
-	Cookie, err := Cookies(-1, -1)
+	Cookie, err := Cookies()
 	if err != nil {
 		return "", err
 	}
@@ -59,7 +59,7 @@ func GetRxn(channel string, messageid string, token string) (Message, error) {
 		return Message{}, err
 	}
 	req.Close = true
-	Cookie, err := Cookies(-1, -1)
+	Cookie, err := Cookies()
 	if err != nil {
 		return Message{}, err
 	}

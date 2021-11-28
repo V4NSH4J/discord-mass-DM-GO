@@ -23,18 +23,14 @@ func Leave(serverid string, token string) int {
                 return 0
         }
         req.Close = true
-        cookie, err := Cookies(-1, -1)
+        cookie, err := Cookies()
         if err != nil {
                 color.Red("Error: %s", err)
                 return 0
         }
         req.Header.Set("authorization", token)
         req.Header.Set("Cookie", cookie)
-        httpClient, err := SetProxy(-1, -1)
-        if err != nil {
-                color.Red("Error: %s", err)
-                return 0
-        }
+        httpClient := http.DefaultClient
         resp, errq := httpClient.Do(CommonHeaders(req))
         if errq != nil {
                 fmt.Println(errq)

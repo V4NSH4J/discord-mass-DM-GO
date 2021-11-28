@@ -18,7 +18,7 @@ import (
 )
 
 // Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
-func SendMessage(authorization string, channelSnowflake string, message *utilities.Message, memberid string, i int, j int) (*http.Response, error) {
+func SendMessage(authorization string, channelSnowflake string, message *utilities.Message, memberid string) (*http.Response, error) {
         x := message.Content
         if strings.Contains(message.Content, "<user>") {
                 ping := "<@" + memberid + ">"
@@ -37,12 +37,12 @@ func SendMessage(authorization string, channelSnowflake string, message *utiliti
         }
 
         url := "https://discord.com/api/v9/channels/" + channelSnowflake + "/messages"
-        cookie, err := utilities.Cookies(i, j)
+        cookie, err := utilities.Cookies()
         if err != nil {
                 fmt.Println("Error while getting cookie")
                 return nil, err
         }
-        fingerprint, err := utilities.Fingerprint(i, j)
+        fingerprint, err := utilities.Fingerprint()
         if err != nil {
                 fmt.Println("Error while getting fingerprint")
                 return nil, err
@@ -55,13 +55,12 @@ func SendMessage(authorization string, channelSnowflake string, message *utiliti
         }
 
         req.Header.Add("Authorization", authorization)
-        req.Header.Add("referer", "ttps://discord.com/channels/@me/"+channelSnowflake)
+        req.Header.Add("referer", "https://discord.com/channels/@me/"+channelSnowflake)
         req.Header.Set("Cookie", cookie)
         req.Header.Set("x-fingerprint", fingerprint)
-        httpClient, err := utilities.SetProxy(i, j)
-        if err != nil {
-                return nil, err
-        }
+        req.Header.Set("host", "discord.com")
+        req.Header.Set("origin", "https://discord.com")
+        httpClient := http.DefaultClient
 
         res, err := httpClient.Do(utilities.CommonHeaders(req))
 

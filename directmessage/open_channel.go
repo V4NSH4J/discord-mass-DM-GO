@@ -10,7 +10,6 @@ import (
         "bytes"
         "encoding/json"
         "fmt"
-        "io/ioutil"
         "net/http"
         "time"
 
@@ -18,7 +17,7 @@ import (
         "github.com/fatih/color"
 )
 
-func OpenChannel(authorization string, recepientUID string, i int, j int) (string, error) {
+func OpenChannel(authorization string, recepientUID string) (string, error) {
         url := "https://discord.com/api/v9/users/@me/channels"
 
         json_data := []byte("{\"recipients\":[\"" + recepientUID + "\"]}")
@@ -29,12 +28,12 @@ func OpenChannel(authorization string, recepientUID string, i int, j int) (strin
                 return "", err
         }
         req.Close = true
-        cookie, err := utilities.Cookies(i, j)
+        cookie, err := utilities.Cookies()
         if err != nil {
                 fmt.Println("Error while getting cookie")
                 return "", err
         }
-        fingerprint, err := utilities.Fingerprint(i, j)
+        fingerprint, err := utilities.Fingerprint()
         if err != nil {
                 fmt.Println("Error while getting fingerprint")
                 return "", err
@@ -43,11 +42,10 @@ func OpenChannel(authorization string, recepientUID string, i int, j int) (strin
         req.Header.Set("Cookie", cookie)
         req.Header.Set("x-fingerprint", fingerprint)
         req.Header.Set("x-context-properties", "e30=")
-        httpClient, err := utilities.SetProxy(i, j)
-        if err != nil {
-                fmt.Println("Error while setting proxy")
-                return "", err
-        }
+        req.Header.Set("host", "discord.com")
+        req.Header.Set("origin", "https://discord.com")
+
+        httpClient := http.DefaultClient
         resp, err := httpClient.Do(utilities.CommonHeaders(req))
 
         if err != nil {
@@ -56,7 +54,7 @@ func OpenChannel(authorization string, recepientUID string, i int, j int) (strin
         }
         defer resp.Body.Close()
 
-        body, err := ioutil.ReadAll(resp.Body)
+        body, err := utilities.ReadBody(*resp)
         if err != nil {
                 return "", err
         }
