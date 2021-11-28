@@ -3,7 +3,7 @@
     "rate_limit_delay": 800,
     "offset": 300,
     "skip_completed": true,
-    "proxy": "v4nsh4j:birmingham024@geo.iproyal.com:12323",
+    "proxy": "",
     "remove_dead_tokens": true,
     "remove_completed_members": true,
     "stop_dead_tokens": true,
