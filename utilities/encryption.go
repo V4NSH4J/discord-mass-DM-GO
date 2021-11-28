@@ -8,11 +8,11 @@ package utilities
 
 import (
 	"bytes"
-	"net/http"
-	"io/ioutil"
 	"github.com/andybalholm/brotli"
-
+	"io/ioutil"
+	"net/http"
 )
+
 // Decoding brotli encrypted responses
 func DecodeBr(data []byte) ([]byte, error) {
 	r := bytes.NewReader(data)
@@ -22,9 +22,9 @@ func DecodeBr(data []byte) ([]byte, error) {
 
 // Function to handle all sorts of accepted-encryptions
 func ReadBody(resp http.Response) ([]byte, error) {
-	
+
 	defer resp.Body.Close()
-	
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
@@ -40,4 +40,3 @@ func ReadBody(resp http.Response) ([]byte, error) {
 	return body, nil
 
 }
-

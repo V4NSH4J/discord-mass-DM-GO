@@ -15,12 +15,12 @@ import (
 )
 
 type UserInf struct {
-	User User `json:"user"`
+	User   User     `json:"user"`
 	Mutual []Guilds `json:"mutual_guilds"`
 }
 type User struct {
-	ID string `json:"id"`
-	Username string `json:"username"`
+	ID            string `json:"id"`
+	Username      string `json:"username"`
 	Discriminator string `json:"discriminator"`
 }
 type Guilds struct {

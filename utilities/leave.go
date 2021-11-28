@@ -7,8 +7,8 @@
 package utilities
 
 import (
-	"fmt"
 	"bytes"
+	"fmt"
 	"net/http"
 
 	"github.com/fatih/color"

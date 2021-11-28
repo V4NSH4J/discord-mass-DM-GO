@@ -42,7 +42,7 @@ func Bypass(serverid string, token string) error {
 		return err
 	}
 	if resp.StatusCode == 201 || resp.StatusCode == 204 {
-		color.Green("Successfully bypassed token")
+		color.Green("Succesfully bypassed token")
 	} else {
 		color.Red("Failed to bypass Token %v", resp.StatusCode)
 	}

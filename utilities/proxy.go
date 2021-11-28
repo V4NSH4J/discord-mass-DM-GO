@@ -37,7 +37,7 @@ func SetProxy(i int, j int) (*http.Client, error) {
 				return nil, err
 			}
 		}
-		
+
 		myClient := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
 		return myClient, nil
 	}

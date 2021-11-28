@@ -4,11 +4,12 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities 
+package utilities
 
 import (
 	"net/http"
 )
+
 // General headers for sending requests on discord
 func CommonHeaders(req *http.Request) *http.Request {
 
@@ -22,10 +23,10 @@ func CommonHeaders(req *http.Request) *http.Request {
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.16 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36")
 	req.Header.Set("TE", "trailers")
-	return req 
+	return req
 }
 
-func RegisterHeaders(req *http.Request) (*http.Request){
+func RegisterHeaders(req *http.Request) *http.Request {
 	req.Header.Set("accept", "*/*")
 	req.Header.Set("authority", "discord.com")
 	req.Header.Set("method", "POST")
@@ -46,7 +47,6 @@ func RegisterHeaders(req *http.Request) (*http.Request){
 	req.Header.Set("sec-fetch-mode", "cors")
 	req.Header.Set("sec-fetch-site", "same-origin")
 
-	
 	return req
 
 }

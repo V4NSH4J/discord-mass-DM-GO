@@ -55,7 +55,6 @@ func WriteLines(filename string, line string) error {
 
 }
 
-
 func TruncateLines(filename string, line []string) error {
 	ex, err := os.Executable()
 	if err != nil {

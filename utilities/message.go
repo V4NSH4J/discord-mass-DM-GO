@@ -11,11 +11,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"path"
+	"path/filepath"
 
 	"github.com/fatih/color"
-	
 )
 
 type MessageEmbedImage struct {
@@ -72,18 +71,18 @@ type Embed struct {
 	Fields    []EmbedField           `json:"fields,omitempty"`
 }
 type Emoji struct {
-	ID  string `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
-	Animated bool `json:"animated,omitempty"`
+	ID       string `json:"id,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Animated bool   `json:"animated,omitempty"`
 }
 type Reaction struct {
 	Emojis Emoji `json:"emoji,omitempty"`
-	Count int `json:"count,omitempty"`
+	Count  int   `json:"count,omitempty"`
 }
 
 type Message struct {
-	Content string  `json:"content,omitempty"`
-	Embeds  []Embed `json:"embeds,omitempty"`
+	Content   string     `json:"content,omitempty"`
+	Embeds    []Embed    `json:"embeds,omitempty"`
 	Reactions []Reaction `json:"reactions,omitempty"`
 }
 

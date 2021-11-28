@@ -4,7 +4,7 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities 
+package utilities
 
 import (
 	"encoding/json"
@@ -18,17 +18,17 @@ import (
 )
 
 type Config struct {
-	Delay     int    `json:"individual_delay"`
-	LongDelay int    `json:"rate_limit_delay"`
-	Offset    int    `json:"offset"`
-	Skip      bool   `json:"skip_completed"`
+	Delay     int  `json:"individual_delay"`
+	LongDelay int  `json:"rate_limit_delay"`
+	Offset    int  `json:"offset"`
+	Skip      bool `json:"skip_completed"`
 	Proxy     bool `json:"use_proxy"`
-	Call      bool   `json:"call"`
-	Remove    bool   `json:"remove_dead_tokens"`
-	RemoveM   bool   `json:"remove_completed_members"`
-	Stop      bool   `json:"stop_dead_tokens"`
-	Bypass     bool   `json:"bypass_tos"`
-	Minimize  bool    `json:"minimize_proxy_use"`
+	Call      bool `json:"call"`
+	Remove    bool `json:"remove_dead_tokens"`
+	RemoveM   bool `json:"remove_completed_members"`
+	Stop      bool `json:"stop_dead_tokens"`
+	Bypass    bool `json:"bypass_tos"`
+	Minimize  bool `json:"minimize_proxy_use"`
 }
 
 func GetConfig() (Config, error) {
@@ -49,10 +49,8 @@ func GetConfig() (Config, error) {
 	errr := json.Unmarshal(bytes, &config)
 	if errr != nil {
 		fmt.Println(err)
-		return Config{-1, -1, -1, false, false,false, false, false, false, false, false}, err
+		return Config{-1, -1, -1, false, false, false, false, false, false, false, false}, err
 	}
 
 	return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Bypass, config.Minimize}, nil
 }
-
-

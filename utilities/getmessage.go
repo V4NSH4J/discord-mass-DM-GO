@@ -8,12 +8,10 @@ package utilities
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 )
-
-
 
 func FindMessage(channel string, messageid string, token string) (string, error) {
 	url := "https://discord.com/api/v9/channels/" + channel + "/messages?limit=1&around=" + messageid
@@ -90,4 +88,3 @@ func GetRxn(channel string, messageid string, token string) (Message, error) {
 
 	return message[0], nil
 }
-

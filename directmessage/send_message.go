@@ -8,16 +8,14 @@ package directmessage
 
 import (
 	"encoding/json"
-	"net/http"
 	"fmt"
+	"net/http"
 	"time"
 
 	"strings"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 )
-
-
 
 // Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
 func SendMessage(authorization string, channelSnowflake string, message *utilities.Message, memberid string, i int, j int) (*http.Response, error) {
@@ -39,7 +37,7 @@ func SendMessage(authorization string, channelSnowflake string, message *utiliti
 	}
 
 	url := "https://discord.com/api/v9/channels/" + channelSnowflake + "/messages"
-	cookie, err := utilities.Cookies(i , j)
+	cookie, err := utilities.Cookies(i, j)
 	if err != nil {
 		fmt.Println("Error while getting cookie")
 		return nil, err
@@ -49,7 +47,6 @@ func SendMessage(authorization string, channelSnowflake string, message *utiliti
 		fmt.Println("Error while getting fingerprint")
 		return nil, err
 	}
-
 
 	req, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
 	req.Close = true

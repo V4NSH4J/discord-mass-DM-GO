@@ -35,7 +35,7 @@ func React(token string, channelID string, MessageID string, Emoji string, i int
 
 	var httpClient *http.Client
 	if !cfg.Minimize {
-		httpClient, err = SetProxy(i , j)
+		httpClient, err = SetProxy(i, j)
 		if err != nil {
 			return err
 		}

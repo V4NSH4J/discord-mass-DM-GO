@@ -7,16 +7,16 @@
 package utilities
 
 import (
-	"fmt"
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 )
 
 // Cookies are required for legitimate looking requests, a GET request to discord.com has these required cookies in it's response along with the website HTML
 // We can use this to get the cookies & arrange them in a string
 func Cookies(i int, j int) (string, error) {
-	
+
 	url := "https://discord.com"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -32,14 +32,13 @@ func Cookies(i int, j int) (string, error) {
 
 	var httpClient *http.Client
 	if !cfg.Minimize {
-		httpClient, err = SetProxy(i , j)
+		httpClient, err = SetProxy(i, j)
 		if err != nil {
 			return "", err
 		}
 	} else {
 		httpClient = http.DefaultClient
 	}
-
 
 	resp, err := httpClient.Do(req)
 	if err != nil {
@@ -105,8 +104,6 @@ func Fingerprint(i int, j int) (string, error) {
 		return "", m
 	}
 
-
-
 	var Response response
 
 	err = json.Unmarshal(p, &Response)
@@ -114,7 +111,6 @@ func Fingerprint(i int, j int) (string, error) {
 	if err != nil {
 		return "", err
 	}
-
 
 	return Response.Fingerprint, nil
 }

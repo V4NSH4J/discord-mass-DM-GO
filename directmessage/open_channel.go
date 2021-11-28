@@ -18,12 +18,10 @@ import (
 	"github.com/fatih/color"
 )
 
-
 func OpenChannel(authorization string, recepientUID string, i int, j int) (string, error) {
 	url := "https://discord.com/api/v9/users/@me/channels"
 
 	json_data := []byte("{\"recipients\":[\"" + recepientUID + "\"]}")
-
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(json_data))
 	if err != nil {
@@ -67,7 +65,7 @@ func OpenChannel(authorization string, recepientUID string, i int, j int) (strin
 		return "", fmt.Errorf("locked")
 	}
 	if resp.StatusCode != 200 {
-		fmt.Printf("[%v]Invalid Status Code while sending request %v \n",time.Now().Format("15:05:04"), resp.StatusCode)
+		fmt.Printf("[%v]Invalid Status Code while sending request %v \n", time.Now().Format("15:05:04"), resp.StatusCode)
 		return "", err
 	}
 	type responseBody struct {
