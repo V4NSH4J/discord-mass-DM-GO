@@ -8,9 +8,10 @@ package utilities
 
 import (
 	"bytes"
-	"github.com/andybalholm/brotli"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/andybalholm/brotli"
 )
 
 // Decoding brotli encrypted responses
