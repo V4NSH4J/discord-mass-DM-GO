@@ -109,12 +109,14 @@ Name | Type | Description
 `rate_limit_delay` | int | Duration in seconds to wait when Discord rate limits sending DMs [Usually 600 for lesser individual delay]
 `offset` | int | Duration in Miliseconds to displace the goroutines for better functionality
 `skip_completed` | bool | Set to true to skip members who were already DM'd from `completed.txt`
-`use_proxy` | bool | Wether to use proxies in proxy file or not.
+`proxy` | string | HTTP(s) Rotating proxy in format User:pass@IP:port or IP:port. Leave empty for proxyless
 `remove_dead_tokens` | bool | Setting this to true, will automatically remove tokens which get locked/disabled from `tokens.txt` and will remove completed members from `memberids.txt`
 `remove_completed_members` | bool | When set to true, would remove members who were sent DMs from the member list.
 `stop_dead_tokens` | bool | When set to true, the accounts which get locked/disabled will stop sending DMs
 `bypass_tos` | bool | When set to true, the accounts which join the server will bypass the Discord Membership screening
 `minimize_proxy_use` | bool | Helps save proxy tarrif by not using proxies for non-essential requests.
+`check_mutuals` | bool | When true, tokens will only DM if they share a mutual server. 
+
 Exame Config for `config.json` #1 
 
 ```json
