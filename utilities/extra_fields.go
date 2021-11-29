@@ -26,7 +26,6 @@ func Cookies() (string, error) {
 		return "", err
 	}
 
-
 	httpClient := http.DefaultClient
 
 	resp, err := httpClient.Do(req)

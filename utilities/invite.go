@@ -42,7 +42,7 @@ func Bypass(serverid string, token string) error {
 		return err
 	}
 	if resp.StatusCode == 201 || resp.StatusCode == 204 {
-		color.Green("Succesfully bypassed token")
+		color.Green("Successfully bypassed token")
 	} else {
 		color.Red("Failed to bypass Token %v", resp.StatusCode)
 	}
@@ -65,30 +65,31 @@ func Invite(Code string, token string) error {
 		color.Red("Error while making http request %v \n", err)
 		return err
 	}
-        fingerprint, err := Fingerprint()
-        if err != nil {
-                color.Red("Error while getting fingerprint %v \n", err)
-                return err
-        }
-
+	fingerprint, err := Fingerprint()
+	if err != nil {
+		color.Red("Error while getting fingerprint %v \n", err)
+		return err
+	}
 
 	req.Close = true
 
 	req.Header.Set("authorization", token)
 	req.Header.Set("cookie", cookie)
-        req.Header.Set("x-fingerprint", fingerprint)
+	req.Header.Set("x-fingerprint", fingerprint)
 	req.Header.Set("x-context-properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkxMzQ2MDQxNzUzMDA2OTAyMiIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MTM0NjA0MTc1MzAwNjkwMjUiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
-        httpClient := http.DefaultClient
+	httpClient := http.DefaultClient
 	resp, err := httpClient.Do(CommonHeaders(req))
 	if err != nil {
 		color.Red("Error while sending HTTP request %v \n", err)
 		return err
 	}
+
 	body, err := ReadBody(*resp)
 	if err != nil {
 		color.Red("Error while reading body %v \n", err)
 		return err
 	}
+
 	var Join joinresponse
 	err = json.Unmarshal(body, &Join)
 	if err != nil {

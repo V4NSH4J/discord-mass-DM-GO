@@ -28,8 +28,6 @@ func React(token string, channelID string, MessageID string, Emoji string) error
 	req.Header.Set("Authorization", token)
 	req.Header.Set("Cookie", cookie)
 
-
-
 	httpClient := http.DefaultClient
 
 	resp, err := httpClient.Do(req)

@@ -18,17 +18,17 @@ import (
 )
 
 type Config struct {
-	Delay     int  `json:"individual_delay"`
-	LongDelay int  `json:"rate_limit_delay"`
-	Offset    int  `json:"offset"`
-	Skip      bool `json:"skip_completed"`
+	Delay     int    `json:"individual_delay"`
+	LongDelay int    `json:"rate_limit_delay"`
+	Offset    int    `json:"offset"`
+	Skip      bool   `json:"skip_completed"`
 	Proxy     string `json:"proxy"`
-	Call      bool `json:"call"`
-	Remove    bool `json:"remove_dead_tokens"`
-	RemoveM   bool `json:"remove_completed_members"`
-	Stop      bool `json:"stop_dead_tokens"`
-	Bypass    bool `json:"bypass_tos"`
-	Mutual    bool `json:"check_mutual"`
+	Call      bool   `json:"call"`
+	Remove    bool   `json:"remove_dead_tokens"`
+	RemoveM   bool   `json:"remove_completed_members"`
+	Stop      bool   `json:"stop_dead_tokens"`
+	Bypass    bool   `json:"bypass_tos"`
+	Mutual    bool   `json:"check_mutual"`
 }
 
 func GetConfig() (Config, error) {
