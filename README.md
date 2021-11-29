@@ -68,7 +68,7 @@ DMDGO was written to test a server's security measures and improve their raid pr
 ## Usage 💻
  - Build from Source or Download from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
  - Input your tokens in `input/tokens.txt`
- - Input proxies in `input/proxy.txt` Only HTTP(s) proxies of the format user:pass@ip:port or ip:port. Use High Quality proxies for improved functionality.
+ - Input proxies in `config.json` Only HTTP(s) rotating proxies of the format user:pass@ip:port or ip:port. Use High Quality proxies for improved functionality.
  - [Scrape the UIDs](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) of a server for Multi DM mode. Make a file `users.txt` in the same directory for it to output. This code is from Discum library
  - Add UID's of discord Users who you want to message in `input/memberids.txt`
  - Decide the delay by setting your config file `config.json`
