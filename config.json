@@ -8,6 +8,6 @@
     "remove_completed_members": true,
     "stop_dead_tokens": true,
     "bypass_tos": true,
-    "check_mutual": true
+    "check_mutual": false
 
 }

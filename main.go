@@ -25,7 +25,7 @@ import (
 
 type jsonResponse struct {
 	Message string `json:"message"`
-	Code    int    `json:"code"`
+	Code    int   `json:"code"`
 }
 
 func ExitSafely() {
@@ -407,13 +407,6 @@ func Options() {
 						}
 						completed = append(completed, members[j])
 						color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:05:04"), tokens[i], user, len(completed))
-						// Case-based error, something unusual with data enterred
-					} else if resp.StatusCode == 400 {
-						err = WriteLine("input/failed.txt", members[j])
-						if err != nil {
-							fmt.Println(err)
-						}
-						color.Red("[%v] Token %v failed to DM %v Check wether the token tried to DM itself or tried sending an empty message!", time.Now().Format("15:05:04"), tokens[i], user)
 						// Forbidden - Token is being rate limited
 					} else if resp.StatusCode == 403 && response.Code == 40003 {
 						err = WriteLine("input/failed.txt", members[j])
@@ -429,14 +422,14 @@ func Options() {
 						if err != nil {
 							fmt.Println(err)
 						}
-						color.Red("[%v] Token %v failed to DM %v User has DMs closed or not present in server", time.Now().Format("15:05:04"), tokens[i], user)
+						color.Red("[%v] Token %v failed to DM %v User has DMs closed or not present in server %v", time.Now().Format("15:05:04"), tokens[i], user, string(body))
 						// Forbidden - Locked or Disabled
 					} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
 						err = WriteLine("input/failed.txt", members[j])
 						if err != nil {
 							fmt.Println(err)
 						}
-						color.Red("[%v] Token %v is locked or disabled. Stopping instance. %v %v", time.Now().Format("15:05:04"), tokens[i], resp.StatusCode, response.Message)
+						color.Red("[%v] Token %v is locked or disabled. Stopping instance. %v %v", time.Now().Format("15:05:04"), tokens[i], resp.StatusCode, string(body))
 						dead = append(dead, tokens[i])
 						// Stop token if locked or disabled
 						if cfg.Stop {
@@ -448,14 +441,14 @@ func Options() {
 						if err != nil {
 							fmt.Println(err)
 						}
-						color.Red("[%v] Token %v can't DM %v. It might not have bypassed community screening.", time.Now().Format("15:05:04"), tokens[i], user)
+						color.Red("[%v] Token %v can't DM %v. It might not have bypassed community screening. %v", time.Now().Format("15:05:04"), tokens[i], user, string(body))
 						// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
 					} else {
 						err = WriteLine("input/failed.txt", members[j])
 						if err != nil {
 							fmt.Println(err)
 						}
-						color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:05:04"), tokens[i], user, response.Code, resp.Status, response.Message)
+						color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v Info on Errors on GitHub Readme.", time.Now().Format("15:05:04"), tokens[i], user, response.Code, resp.Status, response.Message)
 					}
 					time.Sleep(time.Duration(cfg.Delay) * time.Second)
 				}
@@ -799,7 +792,7 @@ func Options() {
 		color.Green("[%v] All threads finished", time.Now().Format("15:05:04"))
 
 	case 9:
-		color.Blue("Made with <3 by github.com/V4NSH4J for free. If you were sold this program, you got scammed.")
+		color.Blue("Made with <3 by github.com/V4NSH4J for free. If you were sold this program, you got scammed. Full length documentation for this is available on the github readme.")
 	case 10:
 		// Exit without error
 		os.Exit(0)

@@ -105,7 +105,7 @@ func Invite(Code string, token string) error {
 		}
 	}
 	if resp.StatusCode != 200 {
-		color.Red("[%v] %v Failed to join guild", time.Now().Format("15:05:04"), resp.StatusCode)
+		color.Red("[%v] %v Failed to join guild %v", time.Now().Format("15:05:04"), resp.StatusCode, string(body) )
 	}
 	return nil
 
