@@ -16,7 +16,8 @@ Leave a star for updates. Read the readme file for instructions. Updates might'v
  DMDGO is a multi-threaded Discord Direct Message Spammer. It has 2 spamming modes: 
   - Single Mode: All tokens send Direct messages to one discord user
   - Multi Mode: All tokens send messages to users from a list 
- Both modes require some sort of a common link with the victim(s) [eg: mutual server/ added as friend] 
+ 
+Both modes require some sort of a common link with the victim(s) [eg: mutual server/ added as friend] 
  DMDGO also has many side features demonstrating the tools people use to perform these sort of interactions on discord. These features include - Invite joiner, Reaction adder, Token format converter, Guild remover, Getting a message object and much more! 
  DMDGO tries to imitate requests sent to Discord by an actual user to 100% accuracy to ensure the tokens get the maximum number of messages.
 
