@@ -12,15 +12,8 @@ import (
 	"net/http"
 
 	"github.com/andybalholm/brotli"
+	"compress/zlib"
 )
-
-// Decoding brotli encrypted responses
-func DecodeBr(data []byte) ([]byte, error) {
-	r := bytes.NewReader(data)
-	br := brotli.NewReader(r)
-	return ioutil.ReadAll(br)
-}
-
 // Function to handle all sorts of accepted-encryptions
 func ReadBody(resp http.Response) ([]byte, error) {
 
@@ -31,13 +24,26 @@ func ReadBody(resp http.Response) ([]byte, error) {
 		return nil, err
 	}
 
-	if resp.Header.Get("Content-Encoding") == "br" {
-		bodybr, err := DecodeBr(body)
+	if resp.Header.Get("Content-Encoding") == "gzip" {
+		gzipreader, err := zlib.NewReader(bytes.NewReader(body))
 		if err != nil {
 			return nil, err
 		}
-		return bodybr, nil
+		gzipbody, err := ioutil.ReadAll(gzipreader)
+		if err != nil {
+			return nil, err
+		}
+		return gzipbody, nil
+	}
+
+	if resp.Header.Get("Content-Encoding") == "br" {
+		brreader := brotli.NewReader(bytes.NewReader(body))
+		brbody, err := ioutil.ReadAll(brreader)
+		if err != nil {
+			return nil, err
+		}
+
+		return brbody, nil
 	}
 	return body, nil
-
 }
