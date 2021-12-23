@@ -52,41 +52,36 @@ type response struct {
 
 // Getting Fingerprint to use in our requests for more legitimate seeming requests.
 func Fingerprint() (string, error) {
-	url := "https://discord.com/api/v9/experiments"
+    url := "https://discord.com/api/v9/experiments"
 
-	req, err := http.NewRequest("GET", url, nil)
-	req.Close = true
+    req, err := http.NewRequest("GET", url, nil)
+    req.Close = true
 
-	if err != nil {
-		return "", err
-	}
+    if err != nil {
+        return "", err
+    }
 
-	httpClient := http.DefaultClient
+    httpClient := http.DefaultClient
 
-	resp, err := httpClient.Do(RegisterHeaders(req))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
+    resp, err := httpClient.Do(RegisterHeaders(req))
+    if err != nil {
+        return "", err
+    }
 
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
+    p, err := ReadBody(*resp)
+    if err != nil {
+        return "", err
+    }
 
-	p, m := DecodeBr(body)
-	if m != nil {
 
-		return "", m
-	}
+    var Response response
 
-	var Response response
+    err = json.Unmarshal(p, &Response)
 
-	err = json.Unmarshal(p, &Response)
+    if err != nil {
+        fmt.Println(string(p))
+        return "", err
+    }
 
-	if err != nil {
-		return "", err
-	}
-
-	return Response.Fingerprint, nil
+    return Response.Fingerprint, nil
 }
