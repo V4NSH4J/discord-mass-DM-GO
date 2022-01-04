@@ -1,7 +1,7 @@
 ## Quick Information
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 
-[Discord server](https://discord.gg/Rv4D5dQnqH) (temporary) 
+[Discord server](https://discord.gg/bJQSCzXkwc) (temporary) 
 
 Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
 
@@ -81,7 +81,7 @@ DMDGO was written to test a server's security measures and improve their raid pr
 
 
 ## How to get Help?
-You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/XgdN6zsTKv) I made for this, although I'm not very active on discord. 
+You can make an [Issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) Or join the temporary [discord server](https://discord.gg/bJQSCzXkwc) I made for this, although I'm not very active on discord. 
 
 ## Token Quality & Functionality (Updated: 2nd Nov)
 The number of DMs each token of your's gets depends on it's quality. Here I will break down everything related to this. 
