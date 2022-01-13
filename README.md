@@ -1,7 +1,7 @@
 ## Quick Information
 Download from [here](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 
-[Discord server](https://discord.gg/6BsEXEHuNS) (temporary) 
+Guilded server for Support: https://guilded.gg/tos
 
 Donate BTC: bc1qfmk95sqtw6sw2xc3kyaemcnltwcr5cs2phg2gh
 
