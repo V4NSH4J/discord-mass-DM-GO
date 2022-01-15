@@ -8,12 +8,23 @@ package utilities
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"github.com/andybalholm/brotli"
 	"compress/zlib"
+
+	"github.com/andybalholm/brotli"
 )
+
+// Decoding brotli encrypted responses
+func DecodeBr(data []byte) ([]byte, error) {
+	r := bytes.NewReader(data)
+	br := brotli.NewReader(r)
+
+	return ioutil.ReadAll(br)
+}
+
 // Function to handle all sorts of accepted-encryptions
 func ReadBody(resp http.Response) ([]byte, error) {
 
@@ -40,6 +51,7 @@ func ReadBody(resp http.Response) ([]byte, error) {
 		brreader := brotli.NewReader(bytes.NewReader(body))
 		brbody, err := ioutil.ReadAll(brreader)
 		if err != nil {
+			fmt.Println(string(brbody))
 			return nil, err
 		}
 

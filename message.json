@@ -1,33 +1,5 @@
-{
-    "content" : "Hi Fellow Discord User \n This is an example message! Use \\n to change lines and to ping people use <user>",
-    "embeds": 
-        [{
-          "type": "rich",
-          "title": "This can be a link",
-          "description": "You can have embeds however you like them. As long as you send them in the correct format, they will be sent!",
-          "color": 3348893,
-          "fields": [
-            {
-              "name": "<-- You can add any colour but be sure it's in decimal",
-              "value": "This is an embed field, you can add this too. You can delete anything from here to not have it show up.",
-              "inline": true
-            },
-            {
-              "name": "You can add multiple of these lol",
-              "value": "You can add images too and set their size"
-            }
-          ],
-          "image": {
-            "url": "https://i.imgur.com/RCBBege.png",
-            "height": 0,
-            "width": 0
-          },
-          "author": {
-            "name": "Use this website to make your Embed easily. ",
-            "url": "https://autocode.com/tools/discord/embed-builder/",
-            "icon_url": "https://i.imgur.com/RCBBege.png"
-          },
-          "url": "https://tokenlogged.info"
-        }]
-      
-}
+[
+    {
+         "content": "Hi <user> this is the most basic message you can send. I have explained with examples how to add multiple messages and embeds in readme. https://github.com/v4nsh4j/discord-mass-dm-GO"
+    }
+]

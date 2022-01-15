@@ -1,13 +1,18 @@
 {
-    "individual_delay": 7,
-    "rate_limit_delay": 800,
-    "offset": 300,
+    "individual_delay": 8,
+    "rate_limit_delay": 650,
+    "offset": 100,
     "skip_completed": true,
-    "proxy": "",
     "remove_dead_tokens": true,
     "remove_completed_members": true,
     "stop_dead_tokens": true,
-    "bypass_tos": true,
-    "check_mutual": false
-
+    "check_mutual": false,
+    "friend_before_DM": false,
+    "online_tokens": false,
+    "online_scraper_delay": 1000,
+    "call": false,
+    "proxy_from_file": false,
+    "max_dms_per_token": 0,
+    "receive_messages": false,
+    "use_proxy_for_gateway": false
 }
