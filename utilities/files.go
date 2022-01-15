@@ -146,13 +146,12 @@ type Reaction struct {
 	Count  int   `json:"count,omitempty"`
 }
 
-
 type Message struct {
-	Content   string        `json:"content,omitempty"`
-	Embeds    []Embed       `json:"embeds,omitempty"`
-	Reactions []Reaction    `json:"reactions,omitempty"`
-	Author    User `json:"author,omitempty"`
-	GuildID string `json:"guild_id,omitempty"`
+	Content   string     `json:"content,omitempty"`
+	Embeds    []Embed    `json:"embeds,omitempty"`
+	Reactions []Reaction `json:"reactions,omitempty"`
+	Author    User       `json:"author,omitempty"`
+	GuildID   string     `json:"guild_id,omitempty"`
 }
 
 func GetMessage() ([]Message, error) {
@@ -197,8 +196,8 @@ type Config struct {
 	SleepSc       int    `json:"online_scraper_delay"`
 	ProxyFromFile bool   `json:"proxy_from_file"`
 	MaxDMS        int    `json:"max_dms_per_token"`
-	Receive 	  bool   `json:"receive_messages"`
-	GatewayProxy bool    `json:"use_proxy_for_gateway"`
+	Receive       bool   `json:"receive_messages"`
+	GatewayProxy  bool   `json:"use_proxy_for_gateway"`
 }
 
 func GetConfig() (Config, error) {

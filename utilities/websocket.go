@@ -63,7 +63,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 		fatalHandler:  fatalHandler,
 		closeChan:     make(chan struct{}),
 	}
-	// Recieve Hello message
+	// Receive Hello message
 	interval, err := c.ReadHello()
 	if err != nil {
 		c.ws.Close()

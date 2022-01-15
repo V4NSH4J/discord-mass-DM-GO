@@ -84,7 +84,7 @@ type Data struct {
 	Channels          map[string]interface{} `json:"channels,omitempty"`
 	Ops               []Ops                  `json:"ops,omitempty"`
 	ChannelID         string                 `json:"channel_id,omitempty"`
-	Members 		 []Member               `json:"members,omitempty"`
+	Members           []Member               `json:"members,omitempty"`
 }
 type Ops struct {
 	Items []Userinfo  `json:"items,omitempty"`

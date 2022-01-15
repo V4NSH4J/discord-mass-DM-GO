@@ -88,14 +88,14 @@ func Bypass(client *http.Client, serverid string, token string) error {
 	}
 	body, err := ReadBody(*resp)
 	if err != nil {
-		color.Red("[%v] Error while reading body %v \n",time.Now().Format("15:04:05") ,err)
+		color.Red("[%v] Error while reading body %v \n", time.Now().Format("15:04:05"), err)
 		return err
 	}
 
 	if resp.StatusCode == 201 || resp.StatusCode == 204 {
 		color.Green("[%v] Successfully bypassed token %v", time.Now().Format("15:04:05"), token)
 	} else {
-		color.Red("[%v] Failed to bypass Token %v %v %v",time.Now().Format("15:04:05") ,token, resp.StatusCode, string(body))
+		color.Red("[%v] Failed to bypass Token %v %v %v", time.Now().Format("15:04:05"), token, resp.StatusCode, string(body))
 	}
 	return nil
 }

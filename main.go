@@ -20,10 +20,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strconv"
-
 	"strings"
 	"sync"
-
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
@@ -66,7 +64,7 @@ func Options() {
 			color.White("This will join your tokens from tokens.txt to a server")
 			cfg, instances, err := getEverything()
 			if err != nil {
-				color.Red("[%v] Error while getting neccessary data: %v", time.Now().Format("15:04:05"), err)
+				color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 			}
 			color.White("[%v] Enter your invite CODE (The part after discord.gg/): ", time.Now().Format("15:04:05"))
 			var invite string
@@ -128,7 +126,7 @@ func Options() {
 			color.White("This will join your tokens from tokens.txt to servers from invite.txt")
 			cfg, instances, err := getEverything()
 			if err != nil {
-				color.Red("[%v] Error while getting neccessary data: %v", time.Now().Format("15:04:05"), err)
+				color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 			}
 
 			if len(instances) == 0 {
@@ -197,7 +195,7 @@ func Options() {
 		}
 		cfg, instances, err := getEverything()
 		if err != nil {
-			color.Red("[%v] Error while getting neccessary data: %v", time.Now().Format("15:04:05"), err)
+			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		}
 		var msg utilities.Message
 		color.White("Press 1 to use messages from file or press 2 to enter a message: ")
@@ -209,9 +207,13 @@ func Options() {
 		}
 		if messagechoice == 2 {
 			color.White("Enter your message, use \\n for changing lines. To use an embed, put message in message.json: ")
-			var scan string
-			fmt.Scanln(&scan)
-			msg.Content = scan
+			scanner := bufio.NewScanner(os.Stdin)
+			var text string
+			if scanner.Scan() {
+				text = scanner.Text()
+			}
+
+			msg.Content = text
 			msg.Content = strings.Replace(msg.Content, "\\n", "\n", -1)
 			var msgs []utilities.Message
 			msgs = append(msgs, msg)
@@ -539,12 +541,12 @@ func Options() {
 							}
 							// resp, err := utilities.Ring(instances[i].Client, instances[i].Token, snowflake)
 							// if err != nil {
-							// 	color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
+							//      color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
 							// }
 							// if resp == 200 || resp == 204 {
-							// 	color.Green("[%v] %v Ringed %v", time.Now().Format("15:04:05"), instances[i].Token, user)
+							//      color.Green("[%v] %v Ringed %v", time.Now().Format("15:04:05"), instances[i].Token, user)
 							// } else {
-							// 	color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, resp)
+							//      color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, resp)
 							// }
 
 						}
@@ -1241,9 +1243,9 @@ func Options() {
 					for {
 						instances[i].ScrapeCount++
 						// Start websocket, reconnect if disconnected.
-						if instances[i].ScrapeCount % 5 == 0 {
+						if instances[i].ScrapeCount%5 == 0 {
 							instances[i].Ws.Close()
-							instances[i].Ws = nil 
+							instances[i].Ws = nil
 						}
 						if instances[i].Ws == nil {
 							err := instances[i].StartWS()
@@ -1251,12 +1253,12 @@ func Options() {
 								color.Red("[%v] Error while starting websocket: %v", time.Now().Format("15:04:05"), err)
 								continue
 							}
-							time.Sleep(3000 * time.Millisecond) 
+							time.Sleep(3000 * time.Millisecond)
 						}
 						// Get a query from the channel / Await for close response
 						select {
 						case <-quit:
-							return 
+							return
 						default:
 							query := <-queriesLeft
 							allQueries = append(allQueries, query)
@@ -1321,7 +1323,7 @@ func Options() {
 								}
 
 							}
-							
+
 						}
 
 					}
