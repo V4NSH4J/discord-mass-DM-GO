@@ -97,18 +97,6 @@ func Options() {
 				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				c.Wait()
 				go func(i int) {
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-
-						return
-					}
-					f := instances[i].SetFingerprint()
-					if f == 1 {
-						color.Red("[%v] %v Couldn't set fingerprint", time.Now().Format("15:04:05"), instances[i].Token)
-
-						return
-					}
 					err := instances[i].Invite(invite)
 					if err != nil {
 						color.Red("[%v] Error while joining: %v", time.Now().Format("15:04:05"), err)
@@ -161,16 +149,6 @@ func Options() {
 				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				c.Wait()
 				go func(i int) {
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
-					f := instances[i].SetFingerprint()
-					if f == 1 {
-						color.Red("[%v] %v Couldn't set fingerprint", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
 					for j := 0; j < len(invites); j++ {
 						err := instances[i].Invite(invites[j])
 						if err != nil {
@@ -332,17 +310,6 @@ func Options() {
 						color.Yellow("[%v] Max DMs reached for %v", time.Now().Format("15:04:05"), instances[i].Token)
 
 						break
-					}
-					// Set cookie and fingerprint
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-						continue
-					}
-					f := instances[i].SetFingerprint()
-					if f == 1 {
-						color.Red("[%v] %v Couldn't set fingerprint", time.Now().Format("15:04:05"), instances[i].Token)
-						continue
 					}
 					if cfg.Websocket && cfg.Receive {
 						go func() {
@@ -661,9 +628,13 @@ func Options() {
 		}
 		if messagechoice == 2 {
 			color.White("Enter your message, use \\n for changing lines. To use an embed, put message in message.json: ")
-			var scan string
-			fmt.Scanln(&scan)
-			msg.Content = scan
+			scanner := bufio.NewScanner(os.Stdin)
+			var text string
+			if scanner.Scan() {
+				text = scanner.Text()
+			}
+
+			msg.Content = text
 			msg.Content = strings.Replace(msg.Content, "\\n", "\n", -1)
 			var msgs []utilities.Message
 			msgs = append(msgs, msg)
@@ -692,16 +663,6 @@ func Options() {
 
 				go func(i int) {
 					defer wg.Done()
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
-					f := instances[i].SetFingerprint()
-					if f == 1 {
-						color.Red("[%v] %v Couldn't set fingerprint", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
 					snowflake, err := instances[i].OpenChannel(victim)
 					if err != nil {
 						fmt.Println(err)
@@ -728,16 +689,6 @@ func Options() {
 				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
-					f := instances[i].SetFingerprint()
-					if f == 1 {
-						color.Red("[%v] %v Couldn't set fingerprint", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
 
 					var c int
 					for {
@@ -800,11 +751,6 @@ func Options() {
 				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
 					if msg.Reactions[emoji].Emojis.ID == "" {
 						send = msg.Reactions[emoji].Emojis.Name
 
@@ -839,11 +785,6 @@ func Options() {
 				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
-					o := instances[i].SetCookie()
-					if o == 1 {
-						color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-						return
-					}
 					err := instances[i].React(channel, id, emoji)
 					if err != nil {
 						fmt.Println(err)
@@ -976,12 +917,6 @@ func Options() {
 			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 			c.Wait()
 			go func(i int) {
-				o := instances[i].SetCookie()
-				if o == 1 {
-					color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-
-					return
-				}
 				p := instances[i].Leave(serverid)
 				if p == 0 {
 					color.Red("[%v] Error while leaving", time.Now().Format("15:04:05"))
@@ -1374,12 +1309,6 @@ func Options() {
 		for i := 0; i < len(instances); i++ {
 			c.Wait()
 			go func(i int) {
-				o := instances[i].SetCookie()
-				if o == 1 {
-					color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-
-					return
-				}
 				r, err := instances[i].NameChanger(users[rand.Intn(len(users))])
 				if err != nil {
 					color.Red("[%v] %v Error while changing name: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
@@ -1441,11 +1370,6 @@ func Options() {
 			c.Wait()
 
 			go func(i int) {
-				o := instances[i].SetCookie()
-				if o == 1 {
-					color.Red("[%v] %v Couldn't set cookie", time.Now().Format("15:04:05"), instances[i].Token)
-					return
-				}
 				r, err := instances[i].AvatarChanger(avatars[rand.Intn(len(avatars))])
 				if err != nil {
 					color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].Token, err)

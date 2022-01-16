@@ -21,7 +21,8 @@ import (
 
 // Cookies are required for legitimate looking requests, a GET request to discord.com has these required cookies in it's response along with the website HTML
 // We can use this to get the cookies & arrange them in a string
-func (in *Instance) GetCookies() error {
+
+func (in *Instance) GetCookieString() (string, error) {
 
 	url := "https://discord.com"
 
@@ -29,27 +30,26 @@ func (in *Instance) GetCookies() error {
 
 	if err != nil {
 		color.Red("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("error while making request to get cookie %v", err)
+		return "", fmt.Errorf("error while making request to get cookie %v", err)
 	}
 
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		color.Red("[%v] Error while getting response from cookies request %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("error while getting response from cookie request %v", err)
+		return "", fmt.Errorf("error while getting response from cookie request %v", err)
 	}
 	defer resp.Body.Close()
 
 	if resp.Cookies() == nil {
 		color.Red("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("there are no cookies in response")
+		return "", fmt.Errorf("there are no cookies in response")
 	}
 	var cookies string
 	for _, cookie := range resp.Cookies() {
 		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
 	}
-	in.Cookie = cookies + "locale=en-US"
 
-	return nil
+	return cookies + "locale=en-US", nil
 
 }
 
@@ -58,26 +58,26 @@ type response struct {
 }
 
 // Getting Fingerprint to use in our requests for more legitimate seeming requests.
-func (in *Instance) GetFingerprint() error {
+func (in *Instance) GetFingerprintString() (string, error) {
 	url := "https://discord.com/api/v9/experiments"
 
 	req, err := http.NewRequest("GET", url, nil)
 
 	if err != nil {
 		color.Red("[%v] Error while making request to get fingerprint %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("error while making request to get fingerprint %v", err)
+		return "", fmt.Errorf("error while making request to get fingerprint %v", err)
 	}
 
 	resp, err := in.Client.Do(RegisterHeaders(req))
 	if err != nil {
 		color.Red("[%v] Error while getting response from fingerprint request %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("error while getting response from fingerprint request %v", err)
+		return "", fmt.Errorf("error while getting response from fingerprint request %v", err)
 	}
 
 	p, err := ReadBody(*resp)
 	if err != nil {
 		color.Red("[%v] Error while reading body from fingerprint request %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("error while reading body %v", err)
+		return "", fmt.Errorf("error while reading body %v", err)
 	}
 
 	var Response response
@@ -86,10 +86,10 @@ func (in *Instance) GetFingerprint() error {
 
 	if err != nil {
 		color.Red("[%v] Error while unmarshalling body from fingerprint request %v", time.Now().Format("15:04:05"), err)
-		return fmt.Errorf("error while unmarshalling response from fingerprint request %v", err)
+		return "", fmt.Errorf("error while unmarshalling response from fingerprint request %v", err)
 	}
-	in.Fingerprint = Response.Fingerprint
-	return nil
+
+	return Response.Fingerprint, nil
 }
 
 func (in *Instance) OpenChannel(recepientUID string) (string, error) {
@@ -102,10 +102,18 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 		fmt.Println("Error while making request")
 		return "", fmt.Errorf("error while making open channel request %v", err)
 	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return "", fmt.Errorf("error while getting cookie %v", err)
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return "", fmt.Errorf("error while getting fingerprint %v", err)
+	}
 
 	req.Header.Set("authorization", in.Token)
-	req.Header.Set("Cookie", in.Cookie)
-	req.Header.Set("x-fingerprint", in.Fingerprint)
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	req.Header.Set("x-context-properties", "e30=")
 	req.Header.Set("host", "discord.com")
 	req.Header.Set("origin", "https://discord.com")
@@ -171,11 +179,19 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
 	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
+	}
 
 	req.Header.Add("Authorization", in.Token)
 	req.Header.Add("referer", "https://discord.com/channels/@me/"+channelSnowflake)
-	req.Header.Set("Cookie", in.Cookie)
-	req.Header.Set("x-fingerprint", in.Fingerprint)
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	req.Header.Set("host", "discord.com")
 	req.Header.Set("origin", "https://discord.com")
 
@@ -204,10 +220,17 @@ func (in *Instance) UserInfo(userid string) (UserInf, error) {
 	if err != nil {
 		return UserInf{}, err
 	}
-
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return UserInf{}, fmt.Errorf("error while getting cookie %v", err)
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return UserInf{}, fmt.Errorf("error while getting fingerprint %v", err)
+	}
 	req.Header.Set("Authorization", in.Token)
-	req.Header.Set("Cookie", in.Cookie)
-	req.Header.Set("x-fingerprint", in.Fingerprint)
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	req.Header.Set("host", "discord.com")
 
 	resp, err := in.Client.Do(CommonHeaders(req))
@@ -280,7 +303,7 @@ func Snowflake() int64 {
 
 func CommonHeaders(req *http.Request) *http.Request {
 
-	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRmlyZWZveCIsImRldmljZSI6IiIsInN5c3RlbV9sb2NhbGUiOiJlbi1VUyIsImJyb3dzZXJfdXNlcl9hZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQ7IHJ2Ojk1LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvOTUuMCIsImJyb3dzZXJfdmVyc2lvbiI6Ijk1LjAiLCJvc192ZXJzaW9uIjoiMTAiLCJyZWZlcnJlciI6IiIsInJlZmVycmluZ19kb21haW4iOiIiLCJyZWZlcnJlcl9jdXJyZW50IjoiIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiIiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTA4ODA3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
+	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTA0OTY3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 	req.Header.Set("sec-fetch-dest", "empty")
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("accept-encoding", "gzip, deflate, br")
@@ -319,35 +342,4 @@ func RegisterHeaders(req *http.Request) *http.Request {
 
 	return req
 
-}
-
-// 0 for success, 1 for fail
-func (in *Instance) SetCookie() int {
-	p := 0
-	for {
-		if p >= 5 {
-			return 1 // failed
-		}
-		if in.Cookie == "" {
-			in.GetCookies()
-			p++
-		} else {
-			return 0 // success
-		}
-	}
-}
-
-func (in *Instance) SetFingerprint() int {
-	p := 0
-	for {
-		if p >= 5 {
-			return 1 // failed
-		}
-		if in.Fingerprint == "" {
-			in.GetFingerprint()
-			p++
-		} else {
-			return 0 // success
-		}
-	}
 }

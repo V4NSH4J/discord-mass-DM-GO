@@ -44,9 +44,13 @@ func (in *Instance) NameChanger(name string) (http.Response, error) {
 	if err != nil {
 		return http.Response{}, err
 	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	}
 
 	req.Header.Add("Authorization", in.Token)
-	req.Header.Add("cookie", in.Cookie)
+	req.Header.Add("cookie", cookie)
 
 	resp, err := in.Client.Do(CommonHeaders(req))
 	if err != nil {
@@ -82,9 +86,13 @@ func (in *Instance) AvatarChanger(avatar string) (http.Response, error) {
 	if err != nil {
 		return http.Response{}, err
 	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	}
 
 	req.Header.Add("Authorization", in.Token)
-	req.Header.Add("cookie", in.Cookie)
+	req.Header.Add("cookie", cookie)
 
 	resp, err := http.DefaultClient.Do(CommonHeaders(req))
 	if err != nil {

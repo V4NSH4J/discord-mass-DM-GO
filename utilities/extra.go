@@ -111,10 +111,17 @@ func (in *Instance) Invite(Code string) error {
 		color.Red("Error while making http request %v \n", err)
 		return err
 	}
-
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return fmt.Errorf("error while getting cookie %v", err)
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return fmt.Errorf("error while getting fingerprint %v", err)
+	}
 	req.Header.Set("authorization", in.Token)
-	req.Header.Set("cookie", in.Cookie)
-	req.Header.Set("x-fingerprint", in.Fingerprint)
+	req.Header.Set("cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	// Not constant but discord doesn't care. (yet)
 	req.Header.Set("x-context-properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkxMzQ2MDQxNzUzMDA2OTAyMiIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MTM0NjA0MTc1MzAwNjkwMjUiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
 
@@ -159,9 +166,12 @@ func (in *Instance) Leave(serverid string) int {
 		color.Red("Error: %s", err)
 		return 0
 	}
-
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return 0
+	}
 	req.Header.Set("authorization", in.Token)
-	req.Header.Set("Cookie", in.Cookie)
+	req.Header.Set("Cookie", cookie)
 	resp, errq := in.Client.Do(CommonHeaders(req))
 	if errq != nil {
 		fmt.Println(errq)
@@ -178,9 +188,12 @@ func (in *Instance) React(channelID string, MessageID string, Emoji string) erro
 	if err != nil {
 		return err
 	}
-
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return fmt.Errorf("error while getting cookie %v", err)
+	}
 	req.Header.Set("Authorization", in.Token)
-	req.Header.Set("Cookie", in.Cookie)
+	req.Header.Set("Cookie", cookie)
 
 	resp, err := in.Client.Do(req)
 	if err != nil {
@@ -212,9 +225,17 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 	if err != nil {
 		return &http.Response{}, err
 	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return &http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return &http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
+	}
 
-	req.Header.Set("Cookie", in.Cookie)
-	req.Header.Set("x-fingerprint", in.Fingerprint)
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("x-fingerprint", fingerprint)
 	req.Header.Set("Authorization", in.Token)
 
 	resp, err := in.Client.Do(CommonHeaders(req))
