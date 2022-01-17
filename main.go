@@ -9,6 +9,7 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
+	//"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -294,13 +295,13 @@ func Options() {
 			color.Green("[%v] Websocket started for all instances", time.Now().Format("15:04:05"))
 		}
 
-		wg.Add(len(instances))
+		
 
 		start := time.Now()
 		for i := 0; i < len(instances); i++ {
 			// Offset goroutines by a few milliseconds. Makes a big difference and allows for better concurrency
 			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
-
+			wg.Add(1)
 			go func(i int) {
 				//defer wg.Done()
 
@@ -603,7 +604,9 @@ func Options() {
 		}
 		if cfg.Websocket {
 			for i := 0; i < len(instances); i++ {
-				instances[i].Ws.Close()
+				if instances[i].Ws != nil {
+					instances[i].Ws.Close()
+				}
 			}
 		}
 
@@ -1137,13 +1140,13 @@ func Options() {
 			}
 			var scraped []string
 			// Input the number of tokens to be used
-			color.Green("[%v] How many tokens do you wish to use? ", time.Now().Format("15:04:05"))
+			color.Green("[%v] How many tokens do you wish to use? You have %v ", time.Now().Format("15:04:05"), len(instances))
 			var numTokens int
 			quit := make(chan bool)
 			var allQueries []string
 			fmt.Scanln(&numTokens)
 
-			chars := " 0123456789abcdefghijklmnopqrstuvwxyz"
+			chars := " !\"#$%&'()*+,-./0123456789:;<=>?@[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 			queriesLeft := make(chan string)
 			var queriesCompleted []string
 
@@ -1158,7 +1161,7 @@ func Options() {
 			} else if numTokens <= 0 {
 				color.Red("[%v] You must atleast use 1 token", time.Now().Format("15:04:05"))
 				ExitSafely()
-			} else if numTokens < len(instances) {
+			} else if numTokens <= len(instances) {
 				color.Green("[%v] You have %v tokens in your tokens.txt Using %v tokens", time.Now().Format("15:04:05"), len(instances), numTokens)
 				instances = instances[:numTokens]
 			} else {
@@ -1488,10 +1491,11 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 		} else {
 			proxy = ""
 		}
-		client, err := initClient(proxy)
+		client, err := initClient(proxy, cfg)
 		if err != nil {
 			return cfg, instances, fmt.Errorf("couldn't initialize client: %v", err)
 		}
+		// proxy is put in struct only to be used by gateway. If proxy for gateway is disabled, it will be empty
 		if !cfg.GatewayProxy {
 			proxy = ""
 		}
@@ -1589,7 +1593,7 @@ func WriteFile(filename string, items []string) error {
 	return nil
 }
 
-func initClient(proxy string) (*http.Client, error) {
+func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 	// If proxy is empty, return a default client (if proxy from file is false)
 	if proxy == "" {
 		return http.DefaultClient, nil
@@ -1603,18 +1607,21 @@ func initClient(proxy string) (*http.Client, error) {
 		return http.DefaultClient, err
 	}
 	// Creating a client and modifying the transport.
+
+
 	Client := &http.Client{
-		Timeout: time.Second * 30,
+		Timeout: time.Second * time.Duration(cfg.Timeout),
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MaxVersion:         tls.VersionTLS12,
-				CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035, 0x000a},
+				MinVersion: tls.VersionTLS12, 
+				CipherSuites: []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035}, 
 				InsecureSkipVerify: true,
+				CurvePreferences: []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
+			ForceAttemptHTTP2: true,
 			Proxy: http.ProxyURL(proxyURL),
 		},
 	}
-
 	return Client, nil
 
 }

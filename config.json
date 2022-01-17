@@ -8,11 +8,12 @@
     "stop_dead_tokens": true,
     "check_mutual": false,
     "friend_before_DM": false,
-    "online_tokens": false,
+    "online_tokens": true,
     "online_scraper_delay": 1000,
     "call": false,
-    "proxy_from_file": false,
+    "proxy_from_file": true,
     "max_dms_per_token": 0,
     "receive_messages": false,
-    "use_proxy_for_gateway": false
+    "use_proxy_for_gateway": false,
+    "timeout": 30
 }

@@ -198,6 +198,7 @@ type Config struct {
 	MaxDMS        int    `json:"max_dms_per_token"`
 	Receive       bool   `json:"receive_messages"`
 	GatewayProxy  bool   `json:"use_proxy_for_gateway"`
+	Timeout		  int    `json:"timeout"`
 }
 
 func GetConfig() (Config, error) {
@@ -205,21 +206,21 @@ func GetConfig() (Config, error) {
 	ex, err := os.Executable()
 	if err != nil {
 		color.Red("Error while finding executable")
-		return Config{-1, -1, -1, false, "", false, false, false, false, false, false, false, -1, false, -1, false, false}, err
+		return Config{-1, -1, -1, false, "", false, false, false, false, false, false, false, -1, false, -1, false, false, -1}, err
 	}
 	ex = filepath.ToSlash(ex)
 	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "config.json"))
 	if err != nil {
 		color.Red("Error while Opening config.json")
-		return Config{-1, -1, -1, false, "", false, false, false, false, false, false, false, -1, false, -1, false, false}, err
+		return Config{-1, -1, -1, false, "", false, false, false, false, false, false, false, -1, false, -1, false, false, -1}, err
 	}
 	defer file.Close()
 	bytes, _ := io.ReadAll(file)
 	errr := json.Unmarshal(bytes, &config)
 	if errr != nil {
 		fmt.Println(err)
-		return Config{-1, -1, -1, false, "", false, false, false, false, false, false, false, -1, false, -1, false, false}, err
+		return Config{-1, -1, -1, false, "", false, false, false, false, false, false, false, -1, false, -1, false, false, -1}, err
 	}
 
-	return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Mutual, config.Friend, config.Websocket, config.SleepSc, config.ProxyFromFile, config.MaxDMS, config.Receive, config.GatewayProxy}, nil
+	return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Mutual, config.Friend, config.Websocket, config.SleepSc, config.ProxyFromFile, config.MaxDMS, config.Receive, config.GatewayProxy, config.Timeout}, nil
 }
