@@ -385,7 +385,6 @@ func Options() {
 								} else {
 									if instances[i].Rejoin >= maxattempts {
 										color.Red("[%v] Stopping token %v [Max server rejoin attempts]", time.Now().Format("15:04:05"), instances[i].Token)
-
 										break
 									}
 									err := instances[i].Invite(invite)
@@ -1462,7 +1461,7 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 	if err != nil {
 		return cfg, instances, err
 	}
-	if cfg.Proxy != "" && os.Getenv("HTTPS_PROXY") != "" {
+	if cfg.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
 		os.Setenv("HTTPS_PROXY", "http://"+cfg.Proxy)
 	}
 
@@ -1605,6 +1604,7 @@ func initClient(proxy string) (*http.Client, error) {
 	}
 	// Creating a client and modifying the transport.
 	Client := &http.Client{
+		Timeout: time.Second * 30,
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MaxVersion:         tls.VersionTLS12,
