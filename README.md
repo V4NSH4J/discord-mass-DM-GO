@@ -92,6 +92,7 @@ Name | Type | Description
 `max_dms_per_token` | int | Number of maximum DMs you want your tokens to send. If set to 0 they will send DMs till they are locked or the list is completed. 
 `receive_messages` | bool | If set to true, the messages from other users will be logged on console and in `input\received.txt` 
 `use_proxy_for_gateway` | bool | If set to true, websocket connections will use proxy as well. Recommend keeping it at false unless you have very good proxies.
+`Timeout` | int | Timeout for all requests in seconds. Increase if slow connection or proxies.
 
 ### Offset 
 Offset is a duration in milliseconds. As the name suggests this offsets or displaces the goroutines (threads) by a short period of time to ensure that all accounts don't start at the exact same second. What is the recommended offset? If you have less than 100 tokens or are using short individual delays, it does not matter. You can put any offset like 50-300. But if you are running a large number of tokens, you should set your individual and rate limit delays to 60 each or higher. Your offset will come with this formula - (individual delay/number of tokens) * 1000 This ensures your tokens start evenly spread out throughout the individual delay period. 
