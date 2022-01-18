@@ -9,7 +9,6 @@ package main
 import (
 	"bufio"
 	"crypto/tls"
-	//"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -312,7 +311,7 @@ func Options() {
 							color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
 						}
 					}
-					if cfg.Websocket && cfg.Receive && instances[i].Ws.Conn != nil && !instances[i].Receiver {
+					if cfg.Websocket && cfg.Receive && instances[i].Ws != nil && !instances[i].Receiver {
 						instances[i].Receiver = true
 						go func() {
 							for {

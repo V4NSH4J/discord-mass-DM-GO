@@ -246,7 +246,9 @@ func (c *Connection) Close() error {
 		time.Now().Add(time.Second*10),
 	)
 	if err != nil {
-		c.Conn.Close()
+		if c.Conn != nil {
+			c.Conn.Close()
+		}
 	}
 	return nil
 }
