@@ -26,6 +26,7 @@ type Instance struct {
 	Rejoin      int
 	ScrapeCount int
 	ID          string
+	Receiver	bool 
 
 	Client *http.Client
 	WG     *sync.WaitGroup
@@ -43,7 +44,7 @@ func (in *Instance) StartWS() error {
 }
 
 func (in *Instance) wsFatalHandler(err error) {
-
+	in.Receiver = false
 	in.Ws, err = NewConnection(in.Token, in.wsFatalHandler, in.Proxy)
 	if err != nil {
 		in.fatal <- fmt.Errorf("failed to create websocket connection: %s", err)

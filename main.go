@@ -245,7 +245,6 @@ func Options() {
 				}
 			}
 		}
-
 		// Also initiate variables and slices for logging and counting
 		var session []string
 		var completed []string
@@ -277,42 +276,44 @@ func Options() {
 				color.Red("[%v] WARNING: Message %v is empty", time.Now().Format("15:04:05"), i)
 			}
 		}
-		var wg sync.WaitGroup
-		wg.Add(len(instances))
-		if cfg.Websocket {
-			for i := 0; i < len(instances); i++ {
-				go func(i int) {
-					err := instances[i].StartWS()
-					if err != nil {
-						color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
-					} else {
-						color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
-					}
-					wg.Done()
-				}(i)
+		// Send members to a channel 
+		mem := make(chan string , len(members))
+		go func() {
+			for i := 0; i< len(members); i++ {
+				mem <- members[i]
 			}
-			wg.Wait()
-			color.Green("[%v] Websocket started for all instances", time.Now().Format("15:04:05"))
-		}
-
-		
-
+		}()
+		var wg sync.WaitGroup
 		start := time.Now()
 		for i := 0; i < len(instances); i++ {
 			// Offset goroutines by a few milliseconds. Makes a big difference and allows for better concurrency
 			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 			wg.Add(1)
 			go func(i int) {
-				//defer wg.Done()
+				defer wg.Done()
+				for {
+					// Get a member from the channel 
+					if len(mem) == 0 {
+						break 
+					}
+					member := <-mem
 
-				for j := i * (len(members) / len(instances)); j < (i+1)*(len(members)/len(instances)); j++ {
-					// Breaking loop if max DMs are reached. If cfg.MaxDMS is at 0, means no limit.
+					// Breaking loop if maximum DMs reached
 					if cfg.MaxDMS != 0 && instances[i].Count >= cfg.MaxDMS {
-						color.Yellow("[%v] Max DMs reached for %v", time.Now().Format("15:04:05"), instances[i].Token)
-
+						color.Yellow("[%v] Maximum DMs reached for %v", time.Now().Format("15:04:05"), instances[i].Token)
 						break
 					}
-					if cfg.Websocket && cfg.Receive {
+					// Start websocket connection if not already connected and reconnect if dead
+					if (cfg.Websocket && instances[i].Ws == nil) || instances[i].Ws.Conn == nil {
+						err := instances[i].StartWS()
+						if err != nil {
+							color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+						} else {
+							color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+						}
+					}
+					if cfg.Websocket && cfg.Receive && instances[i].Ws.Conn != nil && !instances[i].Receiver {
+						instances[i].Receiver = true
 						go func() {
 							for {
 								mes := <-instances[i].Ws.Messages
@@ -343,34 +344,24 @@ func Options() {
 									}
 								}
 							}
-
 						}()
 					}
-					// Check if token is still valid at start of loop. Close instance is non-functional.
+					// Check if token is valid 
 					status := instances[i].CheckToken()
 					if status != 200 && status != 204 && status != 429 && status != -1 {
-						failedCount += (i+1)*(len(members)/len(instances)) - j
+						failedCount ++
 						color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, status, failedCount)
-						failed = append(failed, members[j:(i+1)*(len(members)/len(instances))]...)
+						failed = append(failed, member)
 						dead = append(dead, instances[i].Token)
-						err := Append("input/failed.txt", members[j:(i+1)*(len(members)/len(instances))])
+						err := utilities.WriteLines("failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
 						if cfg.Stop {
-
 							break
 						}
-
 					}
-					if cfg.Websocket && instances[i].Ws == nil {
-						err := instances[i].StartWS()
-						if err != nil {
-							color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
-						} else {
-							color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
-						}
-					}
+					// Advanced Options
 					if advancedchoice == 1 {
 						if checkchoice == 1 {
 							r, err := instances[i].ServerCheck(serverid)
@@ -398,31 +389,30 @@ func Options() {
 							}
 						}
 					}
-
-					var user string
-					user = members[j]
-					// Get user info and check for mutual servers with the victim. Continue loop if no mutual servers or error.
+					var user string 
+					user = member 
+					// Check Mutual 
 					if cfg.Mutual {
-						info, err := instances[i].UserInfo(members[j])
+						info, err := instances[i].UserInfo(member)
 						if err != nil {
 							failedCount++
 							color.Red("[%v] Error while getting user info: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
-							err = WriteLine("input/failed.txt", members[j])
+							err = WriteLine("input/failed.txt", member)
 							if err != nil {
 								fmt.Println(err)
 							}
-							failed = append(failed, members[j])
+							failed = append(failed, member)
 
 							continue
 						}
 						if len(info.Mutual) == 0 {
 							failedCount++
 							color.Red("[%v] Token %v failed to DM %v [No Mutual Server] [%v]", time.Now().Format("15:04:05"), instances[i].Token, info.User.Username+info.User.Discriminator, failedCount)
-							err = WriteLine("input/failed.txt", members[j])
+							err = WriteLine("input/failed.txt", member)
 							if err != nil {
 								fmt.Println(err)
 							}
-							failed = append(failed, members[j])
+							failed = append(failed, member)
 							continue
 						}
 						user = info.User.Username + "#" + info.User.Discriminator
@@ -444,40 +434,38 @@ func Options() {
 							}
 						}
 					}
-
-					// Send DM to victim. Continue loop if error.
-					snowflake, err := instances[i].OpenChannel(members[j])
+					// Open channel to get snowflake
+					snowflake, err := instances[i].OpenChannel(member)
 					if err != nil {
 						failedCount++
 						color.Red("[%v] Error while opening DM channel: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
-						failed = append(failed, members[j])
+						failed = append(failed, member)
 						continue
 					}
-
-					resp, err := instances[i].SendMessage(snowflake, members[j])
+					resp, err := instances[i].SendMessage(snowflake, member)
 					if err != nil {
 						failedCount++
 						color.Red("[%v] Error while sending message: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
-						failed = append(failed, members[j])
+						failed = append(failed, member)
 						continue
 					}
 					body, err := utilities.ReadBody(resp)
 					if err != nil {
 						failedCount++
 						color.Red("[%v] Error while reading body: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
-						failed = append(failed, members[j])
+						failed = append(failed, member)
 						continue
 					}
 					var response jsonResponse
@@ -485,27 +473,29 @@ func Options() {
 					if errx != nil {
 						failedCount++
 						color.Red("[%v] Error while unmarshalling body: %v [%v]", time.Now().Format("15:04:05"), errx, failedCount)
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
-						failed = append(failed, members[j])
+						failed = append(failed, member)
 						continue
 					}
 					// Everything is fine, continue as usual
 					if resp.StatusCode == 200 {
-						err = WriteLine("input/completed.txt", members[j])
+						err = WriteLine("input/completed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
-						completed = append(completed, members[j])
-						session = append(session, members[j])
+						completed = append(completed, member)
+						session = append(session, member)
 						color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, len(session))
-						if cfg.Websocket && cfg.Call {
+						if cfg.Websocket && cfg.Call && instances[i].Ws != nil {
 							err := instances[i].Call(snowflake)
 							if err != nil {
 								color.Red("[%v] %v Error while calling %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
 							}
+							// Unfriended people can't ring.
+							//
 							// resp, err := utilities.Ring(instances[i].Client, instances[i].Token, snowflake)
 							// if err != nil {
 							//      color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
@@ -520,7 +510,7 @@ func Options() {
 						// Forbidden - Token is being rate limited
 					} else if resp.StatusCode == 403 && response.Code == 40003 {
 
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
@@ -530,7 +520,7 @@ func Options() {
 						// Forbidden - DM's are closed
 					} else if resp.StatusCode == 403 && response.Code == 50007 {
 						failedCount++
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
@@ -538,7 +528,7 @@ func Options() {
 						// Forbidden - Locked or Disabled
 					} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
 						failedCount++
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
@@ -546,13 +536,12 @@ func Options() {
 						dead = append(dead, instances[i].Token)
 						// Stop token if locked or disabled
 						if cfg.Stop {
-
 							break
 						}
 						// Forbidden - Invalid token
 					} else if resp.StatusCode == 403 && response.Code == 50009 {
 						failedCount++
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
@@ -563,16 +552,14 @@ func Options() {
 						time.Sleep(10 * time.Second)
 					} else {
 						failedCount++
-						err = WriteLine("input/failed.txt", members[j])
+						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
 						}
 						color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, response.Code, resp.Status, response.Message, failedCount)
 					}
 					time.Sleep(time.Duration(cfg.Delay) * time.Second)
-					instances[i].Count++
-				}
-				wg.Done()
+				}	
 			}(i)
 		}
 		wg.Wait()

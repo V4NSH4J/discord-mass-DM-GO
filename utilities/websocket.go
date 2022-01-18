@@ -24,7 +24,7 @@ type Connection struct {
 	AllMembers    []string
 	Messages      chan []byte
 	Complete      bool
-	ws            *websocket.Conn
+	Conn            *websocket.Conn
 	sessionID     string
 	in            chan string
 	out           chan []byte
@@ -55,7 +55,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 	}
 
 	c := Connection{
-		ws:            ws,
+		Conn:            ws,
 		in:            make(chan string),
 		out:           make(chan []byte),
 		OfflineScrape: make(chan []byte),
@@ -66,11 +66,11 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 	// Receive Hello message
 	interval, err := c.ReadHello()
 	if err != nil {
-		c.ws.Close()
+		c.Conn.Close()
 		return nil, err
 	}
 	// Authenticate with Discord
-	err = c.ws.WriteJSON(&Event{
+	err = c.Conn.WriteJSON(&Event{
 		Op: OpcodeIdentify,
 		Data: Data{
 			ClientState: ClientState{
@@ -100,12 +100,12 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 			},
 		}})
 	if err != nil {
-		c.ws.Close()
+		c.Conn.Close()
 		return nil, fmt.Errorf("error while sending authentication message: %v", err)
 	}
 
 	if err = c.awaitEvent(EventNameReady); err != nil {
-		c.ws.Close()
+		c.Conn.Close()
 		return nil, fmt.Errorf("error while waiting for ready event: %v", err)
 	}
 	go c.Ping(time.Duration(interval) * time.Millisecond)
@@ -117,7 +117,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 
 // Read Hello function to read hello message from websocket return 0 if next message is not a hello message or return the heartbeat interval
 func (c *Connection) ReadHello() (int, error) {
-	_, message, err := c.ws.ReadMessage()
+	_, message, err := c.Conn.ReadMessage()
 	if err != nil {
 		return 0, err
 	}
@@ -150,7 +150,7 @@ func (c *Connection) Ping(interval time.Duration) {
 			case <-t.C:
 
 			}
-			_ = c.ws.WriteJSON(&Event{
+			_ = c.Conn.WriteJSON(&Event{
 				Op: OpcodeHeartbeat,
 			})
 		}
@@ -158,7 +158,7 @@ func (c *Connection) Ping(interval time.Duration) {
 }
 
 func (c *Connection) awaitEvent(e string) error {
-	_, b, err := c.ws.ReadMessage()
+	_, b, err := c.Conn.ReadMessage()
 	if err != nil {
 		return fmt.Errorf("error while reading message from websocket: %v", err)
 	}
@@ -174,11 +174,11 @@ func (c *Connection) awaitEvent(e string) error {
 
 func (c *Connection) listen() {
 	for {
-		_, b, err := c.ws.ReadMessage()
+		_, b, err := c.Conn.ReadMessage()
 
 		if err != nil {
 			c.closeChan <- struct{}{}
-			c.ws.Close()
+			c.Conn.Close()
 			fmt.Println(err)
 			c.fatalHandler(err)
 			break
@@ -240,23 +240,23 @@ func (c *Connection) listen() {
 func (c *Connection) Close() error {
 	c.fatalHandler = func(err error) {}
 	c.closeChan <- struct{}{}
-	err := c.ws.WriteControl(
+	err := c.Conn.WriteControl(
 		websocket.CloseMessage,
 		websocket.FormatCloseMessage(websocket.CloseGoingAway, "going away"),
 		time.Now().Add(time.Second*10),
 	)
 	if err != nil {
-		c.ws.Close()
+		c.Conn.Close()
 	}
 	return nil
 }
 
 // Send interface to websocket
 func (c *Connection) WriteRaw(e interface{}) error {
-	return c.ws.WriteJSON(e)
+	return c.Conn.WriteJSON(e)
 }
 
 // Function to write event
 func (c *Connection) WriteJSONe(e *Event) error {
-	return c.ws.WriteJSON(e)
+	return c.Conn.WriteJSON(e)
 }

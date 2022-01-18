@@ -66,14 +66,9 @@ func ScrapeOffline(c *Connection, guild string, query string) error {
 		Data: custom,
 	}
 
-	err := c.ws.WriteJSON(eventx)
+	err := c.Conn.WriteJSON(eventx)
 	if err != nil {
 		return err
 	}
-	err = c.WriteRaw(eventx)
-	if err != nil {
-		return err
-	}
-
 	return nil
 }
