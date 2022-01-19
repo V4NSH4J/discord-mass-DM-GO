@@ -275,10 +275,10 @@ func Options() {
 				color.Red("[%v] WARNING: Message %v is empty", time.Now().Format("15:04:05"), i)
 			}
 		}
-		// Send members to a channel 
-		mem := make(chan string , len(members))
+		// Send members to a channel
+		mem := make(chan string, len(members))
 		go func() {
-			for i := 0; i< len(members); i++ {
+			for i := 0; i < len(members); i++ {
 				mem <- members[i]
 			}
 		}()
@@ -291,9 +291,9 @@ func Options() {
 			go func(i int) {
 				defer wg.Done()
 				for {
-					// Get a member from the channel 
+					// Get a member from the channel
 					if len(mem) == 0 {
-						break 
+						break
 					}
 					member := <-mem
 
@@ -303,7 +303,7 @@ func Options() {
 						break
 					}
 					// Start websocket connection if not already connected and reconnect if dead
-					if (cfg.Websocket && instances[i].Ws == nil) || instances[i].Ws.Conn == nil {
+					if (cfg.Websocket && instances[i].Ws == nil) {
 						err := instances[i].StartWS()
 						if err != nil {
 							color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
@@ -345,10 +345,10 @@ func Options() {
 							}
 						}()
 					}
-					// Check if token is valid 
+					// Check if token is valid
 					status := instances[i].CheckToken()
 					if status != 200 && status != 204 && status != 429 && status != -1 {
-						failedCount ++
+						failedCount++
 						color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, status, failedCount)
 						failed = append(failed, member)
 						dead = append(dead, instances[i].Token)
@@ -388,9 +388,9 @@ func Options() {
 							}
 						}
 					}
-					var user string 
-					user = member 
-					// Check Mutual 
+					var user string
+					user = member
+					// Check Mutual
 					if cfg.Mutual {
 						info, err := instances[i].UserInfo(member)
 						if err != nil {
@@ -558,7 +558,7 @@ func Options() {
 						color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, response.Code, resp.Status, response.Message, failedCount)
 					}
 					time.Sleep(time.Duration(cfg.Delay) * time.Second)
-				}	
+				}
 			}(i)
 		}
 		wg.Wait()
@@ -1594,18 +1594,17 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 	}
 	// Creating a client and modifying the transport.
 
-
 	Client := &http.Client{
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12, 
-				CipherSuites: []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035}, 
+				MinVersion:         tls.VersionTLS12,
+				CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
 				InsecureSkipVerify: true,
-				CurvePreferences: []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
+				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
 			ForceAttemptHTTP2: true,
-			Proxy: http.ProxyURL(proxyURL),
+			Proxy:             http.ProxyURL(proxyURL),
 		},
 	}
 	return Client, nil
@@ -1618,7 +1617,7 @@ func ExitSafely() {
 	os.Exit(0)
 }
 
-const logo = "\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D \r\nDISCORD MASS DM GO V1.0.7\n"
+const logo = "\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D \r\nDISCORD MASS DM GO V1.0.7.4\n"
 
 func findNextQueries(query string, lastName string, completedQueries []string, chars string) []string {
 	if query == "" {
