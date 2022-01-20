@@ -303,7 +303,7 @@ func Options() {
 						break
 					}
 					// Start websocket connection if not already connected and reconnect if dead
-					if (cfg.Websocket && instances[i].Ws == nil) {
+					if cfg.Websocket && instances[i].Ws == nil {
 						err := instances[i].StartWS()
 						if err != nil {
 							color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
@@ -1005,7 +1005,9 @@ func Options() {
 				i++
 				time.Sleep(time.Duration(cfg.SleepSc) * time.Millisecond)
 			}
-			Is.Ws.Close()
+			if Is.Ws != nil {
+				Is.Ws.Close()
+			}
 			color.Green("[%v] Scraping finished. Scraped %v members", time.Now().Format("15:04:05"), len(Is.Ws.Members))
 			clean := utilities.RemoveDuplicateStr(Is.Ws.Members)
 			color.Green("[%v] Removed Duplicates. Scraped %v members", time.Now().Format("15:04:05"), len(clean))
@@ -1164,20 +1166,23 @@ func Options() {
 				go func(i int) {
 					instances[i].ScrapeCount = 0
 					for {
-						instances[i].ScrapeCount++
+
 						// Start websocket, reconnect if disconnected.
-						if instances[i].ScrapeCount%5 == 0 {
-							instances[i].Ws.Close()
-							instances[i].Ws = nil
-						}
-						if instances[i].Ws == nil {
+						if instances[i].ScrapeCount%5 == 0 || instances[i].LastCount%100 == 0 {
+							if instances[i].Ws != nil {
+								instances[i].Ws.Close()
+							}
+							time.Sleep(2 * time.Second)
 							err := instances[i].StartWS()
 							if err != nil {
-								color.Red("[%v] Error while starting websocket: %v", time.Now().Format("15:04:05"), err)
+								fmt.Println(err)
 								continue
 							}
-							time.Sleep(3000 * time.Millisecond)
+							time.Sleep(2 * time.Second)
+
 						}
+						instances[i].ScrapeCount++
+
 						// Get a query from the channel / Await for close response
 						select {
 						case <-quit:
@@ -1185,6 +1190,12 @@ func Options() {
 						default:
 							query := <-queriesLeft
 							allQueries = append(allQueries, query)
+							if instances[i].Ws == nil {
+								continue
+							}
+							if instances[i].Ws.Conn == nil {
+								continue
+							}
 							err := utilities.ScrapeOffline(instances[i].Ws, serverid, query)
 							if err != nil {
 								color.Red("[%v] %v Error while scraping: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
@@ -1200,12 +1211,15 @@ func Options() {
 							err = json.Unmarshal(memInfo, &MemberInfo)
 							if err != nil {
 								color.Red("[%v] Error while unmarshalling: %v", time.Now().Format("15:04:05"), err)
+								queriesLeft <- query
 								continue
 							}
 
 							if len(MemberInfo.Data.Members) == 0 {
+								instances[i].LastCount = -1
 								continue
 							}
+							instances[i].LastCount = len(MemberInfo.Data.Members)
 							for _, member := range MemberInfo.Data.Members {
 								// Avoiding Duplicates
 								if !utilities.Contains(scraped, member.User.ID) {
@@ -1233,18 +1247,6 @@ func Options() {
 								go func(i int) {
 									queriesLeft <- nextQueries[i]
 								}(i)
-							}
-							if len(MemberInfo.Data.Members) == 100 {
-								time.Sleep(500 * time.Millisecond)
-								instances[i].Ws.Close()
-								instances[i].Ws = nil
-								time.Sleep(1500 * time.Millisecond)
-								err := instances[i].StartWS()
-								if err != nil {
-									color.Red("[%v] Error while starting websocket: %v", time.Now().Format("15:04:05"), err)
-									continue
-								}
-
 							}
 
 						}
