@@ -163,7 +163,6 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 
 	body, err := json.Marshal(&map[string]interface{}{
 		"content": x,
-		"embeds":  message.Embeds,
 		"tts":     false,
 		"nonce":   Snowflake(),
 	})
@@ -306,7 +305,6 @@ func CommonHeaders(req *http.Request) *http.Request {
 	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTA0OTY3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 	req.Header.Set("sec-fetch-dest", "empty")
 	//req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("accept-encoding", "gzip, deflate, br")
 	req.Header.Set("x-debug-options", "bugReporterEnabled")
 	req.Header.Set("sec-fetch-mode", "cors")
 	req.Header.Set("X-Discord-Locale", "en-US")

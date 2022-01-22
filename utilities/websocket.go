@@ -81,7 +81,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 			Identify: Identify{
 				Token: token,
 				Properties: Properties{
-					OS:                "Linux",
+					OS:                "Windows",
 					Browser:           "Chrome",
 					BrowserUserAgent:  "Chrome/86.0.4240.75",
 					BrowserVersion:    "86.0.4240.75",

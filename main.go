@@ -16,6 +16,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"regexp"
@@ -184,7 +185,7 @@ func Options() {
 			ExitSafely()
 		}
 		if messagechoice == 2 {
-			color.White("Enter your message, use \\n for changing lines. To use an embed, put message in message.json: ")
+			color.White("Enter your message, use \\n for changing lines. You can also set a constant message in message.json")
 			scanner := bufio.NewScanner(os.Stdin)
 			var text string
 			if scanner.Scan() {
@@ -258,6 +259,14 @@ func Options() {
 		if cfg.Skip {
 			members = utilities.RemoveSubset(members, completed)
 		}
+		if cfg.SkipFailed {
+			failedSkip, err := utilities.ReadLines("failed.txt")
+			if err != nil {
+				color.Red("Error while opening failed.txt: %v", err)
+				ExitSafely()
+			}
+			members = utilities.RemoveSubset(members, failedSkip)
+		}
 		if len(instances) == 0 {
 			color.Red("[%v] Enter your tokens in tokens.txt ", time.Now().Format("15:04:05"))
 			ExitSafely()
@@ -280,6 +289,13 @@ func Options() {
 		go func() {
 			for i := 0; i < len(members); i++ {
 				mem <- members[i]
+			}
+		}()
+		// Setting information to windows titlebar by github.com/foxzsz
+		go func() {
+			for {
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %d locked, %d avg. dms, %d tokens left]`, len(session), len(dead), len(session)/len(instances), len(instances)-len(dead)))
+        		_ = cmd.Run()
 			}
 		}()
 		var wg sync.WaitGroup
@@ -315,6 +331,9 @@ func Options() {
 						instances[i].Receiver = true
 						go func() {
 							for {
+								if !instances[i].Receiver{
+									break 
+								}
 								mes := <-instances[i].Ws.Messages
 								if !strings.Contains(string(mes), "guild_id") {
 									var mar utilities.Event
@@ -978,7 +997,7 @@ func Options() {
 			t := 0
 			for {
 				if t >= 5 {
-					color.Red("[%v] Couldn't connect to websocke after retrying.", time.Now().Format("15:04:05"))
+					color.Red("[%v] Couldn't connect to websocket after retrying.", time.Now().Format("15:04:05"))
 					break
 				}
 				err := Is.StartWS()
