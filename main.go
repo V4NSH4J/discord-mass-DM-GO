@@ -1283,6 +1283,21 @@ func Options() {
 			}
 
 			color.Green("[%v] Scraping Complete. %v members scraped.", time.Now().Format("15:04:05"), len(scraped))
+			color.Green("Do you wish to write to file again? (y/n) [This will remove pre-existing IDs from memberids.txt]")
+			var choice string 
+			fmt.Scanln(&choice)
+			if choice == "y" || choice == "Y"{
+				clean := utilities.RemoveDuplicateStr(scraped)
+				err := utilities.TruncateLines("memberids.txt", clean)
+				if err != nil {
+					color.Red("[%v] Error while truncating file: %v", time.Now().Format("15:04:05"), err)
+				}
+				err = WriteFile("scraped/" + serverid, clean)
+				if err != nil {
+					color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
+				}
+			}
+
 
 		}
 	case 11:
