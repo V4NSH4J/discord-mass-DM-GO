@@ -1,19 +1,20 @@
 {
-    "individual_delay": 8,
+    "individual_delay": 6,
     "rate_limit_delay": 650,
     "offset": 100,
     "skip_completed": true,
+    "skip_failed": true,
     "remove_dead_tokens": true,
     "remove_completed_members": true,
     "stop_dead_tokens": true,
     "check_mutual": false,
     "friend_before_DM": false,
-    "online_tokens": true,
+    "online_tokens": false,
     "online_scraper_delay": 1000,
     "call": false,
     "proxy_from_file": true,
     "max_dms_per_token": 0,
-    "receive_messages": false,
+    "receive_messages": true,
     "use_proxy_for_gateway": false,
     "timeout": 30
 }
