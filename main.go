@@ -1113,7 +1113,7 @@ func Options() {
 			var write string
 			fmt.Scanln(&write)
 			if write == "y" {
-				for k := 0; k < len(allUIDS); k++ {
+				for k := 0; k < len(clean); k++ {
 					err := utilities.WriteLines("memberids.txt", clean[k])
 					if err != nil {
 						color.Red("[%v] Error while writing to memberids.txt: %v", time.Now().Format("15:04:05"), err)
