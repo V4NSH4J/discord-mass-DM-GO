@@ -33,7 +33,7 @@
 - Multi-threaded and supports high number of simultaneous accounts
 - Proxyless / HTTP(s) Proxies
 - Can ping users
-- Can send Embeds
+- ~Can send Embeds~ (can no longer send embeds after Discord update on 22nd January 2022 removing ability to send embeds completely from regular discord users)
 - Supports multiple messages, sends one randomly
 - Can receive messages from people it messaged
 - Uses safe requests to prevent phone locks
@@ -79,7 +79,8 @@ Name | Type | Description
 `rate_limit_delay` | int | Duration in seconds that the account sleeps for when rate limited. If you send 10 messages very quickly, this rate limit is of 600 seconds (10 minutes). With the recommended settings, you'd never hit it, so it's recommended to set at 60.
 `offset` | int | Duration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value like 50
 `skip_completed` | bool | Program will avoid sending DMs to IDs it has already messaged. When someone is messaged, his ID is added to `input/completed.txt`. Adding IDs to `input/completed.txt` will in a way blacklist them. 
-`proxy` | string | Not included in the default config, but can be added. It is there to ensure backward compatibility, to use DMDGO like it was in Versions 1.0.6 and before. The format is IP:Port or User:Pass@IP:Port for User-Pass Authenticated proxies. See `proxy_from_file` to use proxies the new way. To use this option, `proxy_from_file` must be false
+`skip_failed` | bool | Program will avoid sending DMs to IDs it has already attempted to message but failed. When someone is attempted to be messaged but fails, his ID is added to `input/failed.txt`.
+`proxy` | string | Not included in the default config, but can be added. It is there to ensure backward compatibility, to use DMDGO like it was in Versions 1.0.6 and before. The format is IP:Port or User:Pass@IP:Port for User-Pass Authenticated proxies. See `proxy_from_file` to use proxies the new way. To use this option, `proxy_from_file` must be false. Adding proxy here uses it for gateway events even if `use_proxy_for_gateway` may be disabled.
 `call` | bool | After a succesful DM, DMDGO will attempt to call the user. This is unnecessary as it would make no difference. The calls don't "ring" if the users are not friended which they're not in most cases. So in essence, it would be a call without a ring. Recommended is false.
 `remove_dead_tokens` | bool | After completion of Mass DM, DMDGO will attempt to remove non-working tokens from `input/tokens.txt`
 `remove_completed_members` | bool | After completion of Mass DM, DMDGO will attempt to remove completed members from `input/memberids.txt` leaving behind only the failed/unattempted IDs so the user can re-run the program to target them
@@ -122,7 +123,7 @@ You can do more interesting things with offset. Normally to bypass Anti-Raid bot
 This is the config I'd use, with ofcourse the offset calculated accordingly. 
 
 ## Message in file
-The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. You can use [this](https://glitchii.github.io/embedbuilder/?editor=json) website to make embeds and get them in JSON format or you can edit the default embed from examples. If you decide to use the website, you'd have to make a few changes. Like changing "embed" to "embeds" and adding a pair of square paranthesis ([]) around the embed parameters. This is because in Discord's Docs, Embeds is an array of Embeds. You'd also need to add a pair of square paranthesis ([]) arround the whole message as our message.json is an array of messages. If this is too much for you, try learning a little bit of JSON to edit efficiently or modify the examples or just enter message when it asks you before DMing. You may also use the "Get Message" feature in DMDGO to get a message as JSON but be sure to add it to an array by adding the square paranthesis. 
+The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. Message.json is an array of messages. Find the examples below to add multiple messages. You can use the "get message" option to get messages from discord as well. Be sure to have the [] around the whole message. The only way to change lines is adding `\n`. After discord update on 22nd January 2022; Embed support was removed from DMDGO V1.0.7.5 and higher as discord removed the capibility to send embeds completely from userbots
 
 ### Example message 1 : Single Message, No Embed
 ```json
@@ -148,31 +149,6 @@ The `input/message.json` is an array of messages from which one is chosen at ran
 ]
 ```
 
-### Example message 3: Single Message with Embed. 
-```json
-[
-  {
-    "content": "Hi TOS Followers",
-    "embeds": [
-      {
-        "title": "This is the example message",
-        "description": "You can use [links](https://discord.com) or emojis :smile: 😎 and use \\n to change lines",
-        "color": 39129,
-        "thumbnail": {
-          "url": "https://www.freepnglogos.com/uploads/discord-logo-png/concours-discord-cartes-voeux-fortnite-france-6.png"
-        },
-        "image": {
-          "url": "https://i.imgur.com/wybANM4.png"
-        },
-        "footer": {
-          "text": "Discord does not like us :( ",
-          "icon_url": "https://www.freepnglogos.com/uploads/discord-logo-png/concours-discord-cartes-voeux-fortnite-france-6.png"
-        }
-      }
-    ]
-  }
-]
-```
 Preview:
 
 <p align="center">
