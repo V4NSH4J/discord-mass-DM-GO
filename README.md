@@ -14,7 +14,7 @@
 
 [Guilded Server for Support](https://guilded.gg/tos)
 
-[Discord Community Server](https://discord.gg/7hejGpvfSp)
+[Discord Community Server](https://discord.gg/7hejGpvfSp) [Terminated by Discord]
 
 
 ## **Features** : 
@@ -148,14 +148,6 @@ The `input/message.json` is an array of messages from which one is chosen at ran
   }
 ]
 ```
-
-Preview:
-
-<p align="center">
-  <img src="https://i.imgur.com/X4usj9r.png">
-</p>
-You can ofcourse add or remove fields from the Embed as you desire. 
-
 
 ## How to Debug problems with Mass DMing / Message 
 For problems with setting the JSON files. Read this document very carefully and try understanding a bit of JSON. You can use [JSON Lint](https://jsonlint.com/) or similar to validate your JSON files and fix errors. The structure for all files is clearly defined here. 
