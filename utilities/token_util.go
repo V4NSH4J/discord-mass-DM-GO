@@ -56,7 +56,6 @@ func (in *Instance) NameChanger(name string) (http.Response, error) {
 	if err != nil {
 		return http.Response{}, err
 	}
-	defer resp.Body.Close()
 
 	return *resp, nil
 
