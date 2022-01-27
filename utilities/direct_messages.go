@@ -328,7 +328,6 @@ func RegisterHeaders(req *http.Request) *http.Request {
 	req.Header.Set("origin", "discord.com")
 	req.Header.Set("referer", "discord.com/register")
 	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("accept-encoding", "gzip, deflate, br")
 	req.Header.Set("accept-language", "en-US,en;q=0.9")
 	req.Header.Set("content-Type", "application/json")
 	// Imitating Discord Desktop Client
