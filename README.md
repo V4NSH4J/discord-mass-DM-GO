@@ -14,7 +14,7 @@
 
 [Guilded Server for Support](https://guilded.gg/tos)
 
-[Discord Community Server](https://discord.gg/7hejGpvfSp) [Terminated by Discord]
+[Discord Community Server](https://discord.gg/B589czfVKM)
 
 
 ## **Features** : 
@@ -50,12 +50,14 @@
  The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Read about Discord [Terms Of service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines)
  
 ## Tutorial / Showcase Video
-### DMDGO v1.0.5 
-[![Youtube - Click to play](https://img.youtube.com/vi/3m56RTbThbg/maxresdefault.jpg)](https://www.youtube.com/watch?v=3m56RTbThbg&t=174s)
-Click to play
 ### DMDGO v1.0.7
 [![Youtube - Click to play](https://i.imgur.com/Jx4gk54.png)](https://youtu.be/9HX64DHJYWI)
 Click to play
+
+### DMDGO v1.0.5 
+[![Youtube - Click to play](https://img.youtube.com/vi/3m56RTbThbg/maxresdefault.jpg)](https://www.youtube.com/watch?v=3m56RTbThbg&t=174s)
+Click to play
+
  
 ## Basic Usage
 1) [Build from source](https://github.com/V4NSH4J/discord-mass-DM-GO#building-from-source-) or download a pre-built version for your OS & Arch from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
