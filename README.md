@@ -14,7 +14,7 @@
 
 [Guilded Server for Support](https://guilded.gg/tos)
 
-[Discord Community Server](https://discord.gg/B589czfVKM)
+[Discord Community Server](https://discord.gg/mtW89Y7prK)
 
 
 ## **Features** : 
