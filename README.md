@@ -191,7 +191,7 @@ The Discord-Self bot market is very risky. A word of advice, don't purchase from
 Exit scams happen here all the time. Take recent incident of one of the MassDN partners Certex who exit scammed $60,000+ by ratting their customers. This is not to scare you to make purchases, this is just to warn you that you are likely to get scammed especially as a newcomer so stay vigilant. I decided to include this in the readme because everyday I see several people getting scammed.
 
 ## Support my Journey!
-Leave a star on the repository, helps out intensively! You can also buy me a cookie on these addresses if I helped you out in any way :) 
+Leave a star on the repository, helps out intensively! You can also buy me a cookie on these addresses if I helped you out in any way. DMDGO was made with <3 over a period of 3 months and 184 cans of Redbull which doesn't come cheap :)
 
 - *ETH*: 0xE01118C55963fA92174802Dae87E1C6DE1dADC07
 
