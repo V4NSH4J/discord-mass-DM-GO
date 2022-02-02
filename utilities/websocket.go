@@ -24,7 +24,7 @@ type Connection struct {
 	AllMembers    []string
 	Messages      chan []byte
 	Complete      bool
-	Conn            *websocket.Conn
+	Conn          *websocket.Conn
 	sessionID     string
 	in            chan string
 	out           chan []byte
@@ -55,7 +55,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 	}
 
 	c := Connection{
-		Conn:            ws,
+		Conn:          ws,
 		in:            make(chan string),
 		out:           make(chan []byte),
 		OfflineScrape: make(chan []byte),

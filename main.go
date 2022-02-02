@@ -1333,18 +1333,18 @@ func Options() {
 			c.Wait()
 			go func(i int) {
 				r, err := instances[i].NameChanger(users[rand.Intn(len(users))])
+				if err != nil {
+					color.Red("[%v] %v Error while changing name: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+					return
+				}
 				body, err := utilities.ReadBody(r)
 				if err != nil {
 					fmt.Println(err)
 				}
-				if err != nil {
-					color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].Token, err, string(body))
+				if r.StatusCode == 200 || r.StatusCode == 204 {
+					color.Green("[%v] %v Changed name successfully", time.Now().Format("15:04:05"), instances[i].Token)
 				} else {
-					if r.StatusCode == 200 || r.StatusCode == 204 {
-						color.Green("[%v] %v Changed name successfully", time.Now().Format("15:04:05"), instances[i].Token)
-					} else {
-						color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].Token, r.Status, string(body))
-					}
+					color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].Token, r.Status, string(body))
 				}
 				c.Done()
 			}(i)

@@ -6,7 +6,13 @@
 
 package utilities
 
+import "fmt"
+
 func Contains(s []string, e string) bool {
+	defer HandleOutOfBounds()
+	if len(s) == 0 {
+		return false
+	}
 	for _, a := range s {
 		if a == e {
 			return true
@@ -36,4 +42,10 @@ func RemoveDuplicateStr(strSlice []string) []string {
 		}
 	}
 	return list
+}
+
+func HandleOutOfBounds() {
+	if r := recover(); r != nil {
+		fmt.Printf("Recovered from Panic %v", r)
+	}
 }

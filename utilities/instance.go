@@ -24,13 +24,13 @@ type Instance struct {
 	Messages    []Message
 	Count       int
 	LastQuery   string
-	LastCount	int 
+	LastCount   int
 	Members     []User
 	AllMembers  []User
 	Rejoin      int
 	ScrapeCount int
 	ID          string
-	Receiver	bool 
+	Receiver    bool
 
 	Client *http.Client
 	WG     *sync.WaitGroup

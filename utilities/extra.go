@@ -71,22 +71,68 @@ type joinresponse struct {
 	GuildObj         guild `json:"guild"`
 }
 
-func Bypass(client *http.Client, serverid string, token string) error {
+type bypassInformation struct {
+	Version    string      `json:"version"`
+	FormFields []FormField `json:"form_fields"`
+}
+
+type FormField struct {
+	FieldType   string   `json:"field_type"`
+	Label       string   `json:"label"`
+	Description string   `json:"description"`
+	Required    bool     `json:"required"`
+	Values      []string `json:"values"`
+	Response    bool     `json:"response"`
+}
+
+func Bypass(client *http.Client, serverid string, token string, invite string) error {
+	// First we require to get all the rules to send in the request
+	site := "https://discord.com/api/v9/guilds/" + serverid + "/member-verification?with_guild=false&invite_code=" + invite
+	req, err := http.NewRequest("GET", site, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Authorization", token)
+	resp, err := client.Do(CommonHeaders(req))
+	if err != nil {
+		return err
+	}
+
+	body, err := ReadBody(*resp)
+	if err != nil {
+		return err
+	}
+	var bypassInfo bypassInformation
+	err = json.Unmarshal(body, &bypassInfo)
+	if err != nil {
+		return err
+	}
+
+	// Now we have all the rules, we can send the request along with our response
+	for i := 0; i < len(bypassInfo.FormFields); i++ {
+		// We set the response to true because we accept the terms as the good TOS followers we are
+		bypassInfo.FormFields[i].Response = true
+	}
+
+	jsonData, err := json.Marshal(bypassInfo)
+	if err != nil {
+		return err
+	}
 	url := "https://discord.com/api/v9/guilds/" + serverid + "/requests/@me"
-	json_data := "{\"response\":true}"
-	req, err := http.NewRequest("PUT", url, bytes.NewBuffer([]byte(json_data)))
+
+	req, err = http.NewRequest("PUT", url, strings.NewReader(string(jsonData)))
 	if err != nil {
 		color.Red("Error while making http request %v \n", err)
 		return err
 	}
 
 	req.Header.Set("authorization", token)
-	resp, err := client.Do(CommonHeaders(req))
+	resp, err = client.Do(CommonHeaders(req))
 	if err != nil {
 		color.Red("Error while sending HTTP request bypass %v \n", err)
 		return err
 	}
-	body, err := ReadBody(*resp)
+	body, err = ReadBody(*resp)
 	if err != nil {
 		color.Red("[%v] Error while reading body %v \n", time.Now().Format("15:04:05"), err)
 		return err
@@ -147,7 +193,7 @@ func (in *Instance) Invite(Code string) error {
 		color.Green("[%v] %v joint guild", time.Now().Format("15:04:05"), in.Token)
 		if Join.VerificationForm {
 			if len(Join.GuildObj.ID) != 0 {
-				Bypass(in.Client, Join.GuildObj.ID, in.Token)
+				Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
 			}
 		}
 	}

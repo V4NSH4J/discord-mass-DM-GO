@@ -25,7 +25,7 @@ func ReadLines(filename string) ([]string, error) {
 		return nil, err
 	}
 	ex = filepath.ToSlash(ex)
-	file, err := os.OpenFile(path.Join(path.Dir(ex) + "/input/" + filename), os.O_RDWR, 0660)
+	file, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR, 0660)
 	if err != nil {
 		return nil, err
 	}
@@ -198,7 +198,7 @@ type Config struct {
 	MaxDMS        int    `json:"max_dms_per_token"`
 	Receive       bool   `json:"receive_messages"`
 	GatewayProxy  bool   `json:"use_proxy_for_gateway"`
-	Timeout		  int    `json:"timeout"`
+	Timeout       int    `json:"timeout"`
 	SkipFailed    bool   `json:"skip_failed"`
 }
 
