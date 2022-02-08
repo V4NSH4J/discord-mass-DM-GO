@@ -239,18 +239,18 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("Error while making http request %v \n", err)
 			continue
 		}
-		XContext, err := in.ContextProperties(Code)
-		if err != nil {
-			color.Red("Error while getting context %v \n", err)
-			continue
-		}
+		// XContext, err := in.ContextProperties(Code)
+		// if err != nil {
+		// 	color.Red("Error while getting context %v \n", err)
+		// 	continue
+		// }
 		cookie, err := in.GetCookieString()
 		if err != nil {
 			color.Red("[%v] Error while Getting cookies: %v", err)
 			continue
 		}
 		req = headersInvite(req, cookie, in.Token)
-		req.Header.Set("X-Context-Properties", XContext)
+		// req.Header.Set("X-Context-Properties", XContext)
 		resp, err := in.Client.Do(req)
 		if err != nil {
 			color.Red("Error while sending HTTP request %v \n", err)
