@@ -161,17 +161,8 @@ func (in *Instance) Invite(Code string) error {
 	if err != nil {
 		return fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString()
-	if err != nil {
-		return fmt.Errorf("error while getting fingerprint %v", err)
-	}
-	req.Header.Set("authorization", in.Token)
-	req.Header.Set("cookie", cookie)
-	req.Header.Set("x-fingerprint", fingerprint)
-	// Not constant but discord doesn't care. (yet)
-	req.Header.Set("x-context-properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkxMzQ2MDQxNzUzMDA2OTAyMiIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MTM0NjA0MTc1MzAwNjkwMjUiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
-
-	resp, err := in.Client.Do(CommonHeaders(req))
+	req = headersInvite(req, cookie, in.Token)
+	resp, err := in.Client.Do(req)
 	if err != nil {
 		color.Red("Error while sending HTTP request %v \n", err)
 		return err
@@ -186,7 +177,7 @@ func (in *Instance) Invite(Code string) error {
 	var Join joinresponse
 	err = json.Unmarshal(body, &Join)
 	if err != nil {
-		color.Red("Error while unmarshalling body %v \n", err)
+		color.Red("Error while unmarshalling body %v %v\n", err, string(body))
 		return err
 	}
 	if resp.StatusCode == 200 {
@@ -391,4 +382,22 @@ func (in *Instance) ServerCheck(serverid string) (int, error) {
 	defer resp.Body.Close()
 
 	return resp.StatusCode, nil
+}
+
+func headersInvite(req *http.Request, cookie string, authorization string) *http.Request {
+	req.Header.Set("Accept-Language", "en-US,en-IN;q=0.9,zh-Hans-CN;q=0.8")
+	req.Header.Set("Authorization", authorization)
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Cookie", cookie)
+	req.Header.Set("Host", "discord.com")
+	req.Header.Set("referer", "https://discord.com/channels/@me")
+	req.Header.Set("Sec-Fetch-Dest", "empty")
+	req.Header.Set("Sec-Fetch-Mode", "cors")
+	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.1012 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36")
+	req.Header.Set("X-Debug-Options", "bugReporterEnabled")
+	req.Header.Set("X-Discord-Locale", "en-US")
+	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJwdGIiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC4xMDEyIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
+
+	return req
 }
