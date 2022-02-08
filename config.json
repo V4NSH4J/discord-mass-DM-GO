@@ -16,5 +16,9 @@
     "max_dms_per_token": 0,
     "receive_messages": true,
     "use_proxy_for_gateway": false,
-    "timeout": 30
+    "timeout": 60,
+    "captcha_api": "capmonster.cloud",
+    "captcha_api_key": "",
+    "max_attempt_invite_rejoin": 4,
+    "disable_keep_alives": false
 }

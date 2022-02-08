@@ -8,6 +8,7 @@ package utilities
 
 import (
 	"bytes"
+	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -85,6 +86,70 @@ type FormField struct {
 	Response    bool     `json:"response"`
 }
 
+func (in *Instance) ContextProperties(invite string) (string, error) {
+	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue=wnd&with_counts=true&with_expiration=true"
+	req, err := http.NewRequest("GET", site, nil)
+	if err != nil {
+		return "", err
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return "", err
+	}
+	req = headersInvite(req, cookie, in.Token)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
+	}
+	body, err := ReadBody(*resp)
+	if err != nil {
+		return "", err
+	}
+	if !strings.Contains(string(body), "guild") && !strings.Contains(string(body), "id") && !strings.Contains(string(body), "channel") {
+		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
+	}
+	var guildInfo map[string]interface{}
+	err = json.Unmarshal(body, &guildInfo)
+	if err != nil {
+		return "", err
+	}
+	guildID := (guildInfo["guild"].(map[string]interface{}))["id"].(string)
+	channelID := (guildInfo["channel"].(map[string]interface{}))["id"].(string)
+	channelType := (guildInfo["channel"].(map[string]interface{}))["type"].(float64)
+	x, err := XContextGen(guildID, channelID, channelType)
+	if err != nil {
+		return "", err
+	}
+	return x, nil
+
+}
+
+type XContext struct {
+	Location            string  `json:"location"`
+	LocationGuildID     string  `json:"location_guild_id"`
+	LocationChannelID   string  `json:"location_channel_id"`
+	LocationChannelType float64 `json:"location_channel_type"`
+}
+
+func XContextGen(guildID string, channelID string, ChannelType float64) (string, error) {
+	xcontext := XContext{
+		Location:            "Join Guild",
+		LocationGuildID:     guildID,
+		LocationChannelID:   channelID,
+		LocationChannelType: ChannelType,
+	}
+	jsonData, err := json.Marshal(xcontext)
+	if err != nil {
+		return "", err
+	}
+	Enc := b64.StdEncoding.EncodeToString(jsonData)
+	return Enc, nil
+
+}
+
 func Bypass(client *http.Client, serverid string, token string, invite string) error {
 	// First we require to get all the rules to send in the request
 	site := "https://discord.com/api/v9/guilds/" + serverid + "/member-verification?with_guild=false&invite_code=" + invite
@@ -146,52 +211,102 @@ func Bypass(client *http.Client, serverid string, token string, invite string) e
 	return nil
 }
 
+type invitePayload struct {
+	CaptchaKey string `json:"captcha_key,omitempty"`
+}
+
 func (in *Instance) Invite(Code string) error {
-	url := "https://discord.com/api/v9/invites/" + Code
-
-	var headers struct{}
-	requestBytes, _ := json.Marshal(headers)
-
-	req, err := http.NewRequest("POST", url, bytes.NewReader(requestBytes))
-	if err != nil {
-		color.Red("Error while making http request %v \n", err)
-		return err
-	}
-	cookie, err := in.GetCookieString()
-	if err != nil {
-		return fmt.Errorf("error while getting cookie %v", err)
-	}
-	req = headersInvite(req, cookie, in.Token)
-	resp, err := in.Client.Do(req)
-	if err != nil {
-		color.Red("Error while sending HTTP request %v \n", err)
-		return err
-	}
-
-	body, err := ReadBody(*resp)
-	if err != nil {
-		color.Red("Error while reading body %v \n", err)
-		return err
-	}
-
-	var Join joinresponse
-	err = json.Unmarshal(body, &Join)
-	if err != nil {
-		color.Red("Error while unmarshalling body %v %v\n", err, string(body))
-		return err
-	}
-	if resp.StatusCode == 200 {
-		color.Green("[%v] %v joint guild", time.Now().Format("15:04:05"), in.Token)
-		if Join.VerificationForm {
-			if len(Join.GuildObj.ID) != 0 {
-				Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
+	var solvedKey string
+	var payload invitePayload
+	var err error
+	for i := 0; i < in.Config.MaxInvite; i++ {
+		if solvedKey == "" || in.Config.CaptchaAPI == "" {
+			payload = invitePayload{}
+		} else {
+			payload = invitePayload{
+				CaptchaKey: solvedKey,
 			}
 		}
+		payload, err := json.Marshal(payload)
+		if err != nil {
+			color.Red("error while marshalling payload %v", err)
+			err = fmt.Errorf("error while marshalling payload %v", err)
+			continue
+		}
+		url := "https://discord.com/api/v9/invites/" + Code
+		req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
+		if err != nil {
+			color.Red("Error while making http request %v \n", err)
+			continue
+		}
+		XContext, err := in.ContextProperties(Code)
+		if err != nil {
+			color.Red("Error while getting context %v \n", err)
+			continue
+		}
+		cookie, err := in.GetCookieString()
+		if err != nil {
+			color.Red("[%v] Error while Getting cookies: %v", err)
+			continue
+		}
+		req = headersInvite(req, cookie, in.Token)
+		req.Header.Set("X-Context-Properties", XContext)
+		resp, err := in.Client.Do(req)
+		if err != nil {
+			color.Red("Error while sending HTTP request %v \n", err)
+			continue
+		}
+
+		body, err := ReadBody(*resp)
+		if err != nil {
+			color.Red("Error while reading body %v \n", err)
+			continue
+		}
+		if strings.Contains(string(body), "captcha_sitekey") {
+			if in.Config.CaptchaAPI == "" {
+				err = fmt.Errorf("[%v] Captcha detected but no API key provided", time.Now().Format("15:04:05"))
+				break
+			} else {
+				color.Green("[%v] Captcha detected, solving...", time.Now().Format("15:04:05"))
+			}
+			var resp map[string]interface{}
+			err = json.Unmarshal(body, &resp)
+			if err != nil {
+				color.Red("[%v] Error while Unmarshalling body: %v", time.Now().Format("15:04:05"), err)
+				continue
+			}
+			solvedKey, err = in.SolveCaptcha(resp["captcha_sitekey"].(string))
+			if err != nil {
+				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
+				continue
+			}
+			if i == in.Config.MaxInvite-1 {
+				i--
+			}
+			continue
+		}
+
+		var Join joinresponse
+		err = json.Unmarshal(body, &Join)
+		if err != nil {
+			color.Red("Error while unmarshalling body %v %v\n", err, string(body))
+			return err
+		}
+		if resp.StatusCode == 200 {
+			color.Green("[%v] %v joint guild", time.Now().Format("15:04:05"), in.Token)
+			if Join.VerificationForm {
+				if len(Join.GuildObj.ID) != 0 {
+					Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
+				}
+			}
+		}
+		if resp.StatusCode != 200 {
+			color.Red("[%v] %v Failed to join guild %v", time.Now().Format("15:04:05"), resp.StatusCode, string(body))
+		}
+		return nil
+
 	}
-	if resp.StatusCode != 200 {
-		color.Red("[%v] %v Failed to join guild %v", time.Now().Format("15:04:05"), resp.StatusCode, string(body))
-	}
-	return nil
+	return err
 
 }
 
@@ -388,16 +503,17 @@ func headersInvite(req *http.Request, cookie string, authorization string) *http
 	req.Header.Set("Accept-Language", "en-US,en-IN;q=0.9,zh-Hans-CN;q=0.8")
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Cookie", cookie)
-	req.Header.Set("Host", "discord.com")
+	req.Header.Set("Origin", "https://discord.com")
 	req.Header.Set("referer", "https://discord.com/channels/@me")
 	req.Header.Set("Sec-Fetch-Dest", "empty")
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.1012 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36")
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36")
 	req.Header.Set("X-Debug-Options", "bugReporterEnabled")
 	req.Header.Set("X-Discord-Locale", "en-US")
-	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJwdGIiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC4xMDEyIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
+	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 
 	return req
 }

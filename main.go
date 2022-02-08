@@ -32,6 +32,7 @@ import (
 
 func main() {
 	// Credits
+	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", ""}
 	color.Blue(logo)
 	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
 	Options()
@@ -70,7 +71,7 @@ func Options() {
 			color.White("[%v] Enter your invite CODE (The part after discord.gg/): ", time.Now().Format("15:04:05"))
 			var invite string
 			fmt.Scanln(&invite)
-			color.White("[%v] Enter number of Threads (0: Unlimited Threads. 1: For using proper delay): ", time.Now().Format("15:04:05"))
+			color.White("[%v] Enter number of Threads (0: Unlimited Threads. 1: For using proper delay. It may be a good idea to use less threads if you're looking to solve captchas): ", time.Now().Format("15:04:05"))
 			var threads int
 			fmt.Scanln(&threads)
 
@@ -1492,6 +1493,13 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 	if cfg.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
 		os.Setenv("HTTPS_PROXY", "http://"+cfg.Proxy)
 	}
+	if cfg.CaptchaAPI == "" {
+		color.Red("[!] You're not using a Captcha API, some functionality like invite joining might be unavailable")
+	}
+	if !utilities.Contains(CaptchaServices, cfg.CaptchaAPI) {
+		color.Red("[!] Captcha API %v is not supported. Please use one of the following: %v", cfg.CaptchaAPI, CaptchaServices)
+		cfg.CaptchaAPI = ""
+	}
 
 	// Load instances
 	tokens, err = utilities.ReadLines("tokens.txt")
@@ -1524,7 +1532,7 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 		if !cfg.GatewayProxy {
 			proxy = ""
 		}
-		instances = append(instances, utilities.Instance{Client: client, Token: tokens[i], Proxy: proxy})
+		instances = append(instances, utilities.Instance{Client: client, Token: tokens[i], Proxy: proxy, Config: cfg})
 	}
 	if len(instances) == 0 {
 		color.Red("[!] You may be using 0 tokens")
@@ -1649,6 +1657,7 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 				InsecureSkipVerify: true,
 				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
+			DisableKeepAlives: cfg.DisableKL,
 			ForceAttemptHTTP2: true,
 			Proxy:             http.ProxyURL(proxyURL),
 		},
@@ -1696,3 +1705,5 @@ func findNextQueries(query string, lastName string, completedQueries []string, c
 	}
 	return nextQueries
 }
+
+var CaptchaServices []string

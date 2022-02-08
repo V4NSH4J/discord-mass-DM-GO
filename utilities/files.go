@@ -200,6 +200,10 @@ type Config struct {
 	GatewayProxy  bool   `json:"use_proxy_for_gateway"`
 	Timeout       int    `json:"timeout"`
 	SkipFailed    bool   `json:"skip_failed"`
+	ClientKey     string `json:"captcha_api_key"`
+	CaptchaAPI    string `json:"captcha_api"`
+	MaxInvite     int    `json:"max_attempt_invite_rejoin"`
+	DisableKL     bool   `json:"disable_keep_alives"`
 }
 
 func GetConfig() (Config, error) {

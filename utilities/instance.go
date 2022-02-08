@@ -31,6 +31,7 @@ type Instance struct {
 	ScrapeCount int
 	ID          string
 	Receiver    bool
+	Config 	Config
 
 	Client *http.Client
 	WG     *sync.WaitGroup
