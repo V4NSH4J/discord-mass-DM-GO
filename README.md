@@ -97,10 +97,18 @@ Name | Type | Description
 `receive_messages` | bool | If set to true, the messages from other users will be logged on console and in `input\received.txt` 
 `use_proxy_for_gateway` | bool | If set to true, websocket connections will use proxy as well. Recommend keeping it at false unless you have very good proxies.
 `Timeout` | int | Timeout for all requests in seconds. Increase if slow connection or proxies.
+`captcha_api` | string | Domain of the Captcha API you wish to use. The current supported Captcha APIs are capmonster.cloud and anti-captcha.com
+`captcha_api_key` | string | Your Captcha API Key with balance loaded 
+`max_attempt_invite_rejoin` | int | Maximum attempts to rejoin token to server. Use minimum of 2. Introduced since Discord added Captchas to join servers on some tokens. 
+`disable_keep_alives` | bool | Closes the underlying TCP connection after every request. Might be helpful to change IPs on every request with rotating proxies. Only used with proxies_from_file and not with the proxy field in config. Added because older versions of DMDGO which used only rotating proxies did this by default.
 
 ### Offset 
 Offset is a duration in milliseconds. As the name suggests this offsets or displaces the goroutines (threads) by a short period of time to ensure that all accounts don't start at the exact same second. What is the recommended offset? If you have less than 100 tokens or are using short individual delays, it does not matter. You can put any offset like 50-300. But if you are running a large number of tokens, you should set your individual and rate limit delays to 60 each or higher. Your offset will come with this formula - (individual delay/number of tokens) * 1000 This ensures your tokens start evenly spread out throughout the individual delay period. 
 You can do more interesting things with offset. Normally to bypass Anti-Raid bots like Beemo or Wick, you'd have to join your tokens with high delays then wait for all of them to join to start DMing. Now with Offset you can make it so that one account joins and starts DMing, 30 seconds or any duration of your choice later the second account joins and start DMing so you save A LOT of time. How to do this? Set your offset to the duration you want your accounts to join in, like 30,000 - 60,000 (Remember offset is in milliseconds) and don't join your accounts to the server. Before Mass DMing, you'd get an option for advanced settings. Enter the server invite and serverid there. Use multiple proxies/ rotating proxies to prevent Discord server IP bans by the Anti-Raid bots. This won't work while Proxyless. 
+
+## Using Captcha APIs
+Captcha Solving APIs were introduced to DMDGO on 8th January 2022 when Discord mandated Captchas for joining servers on some tokens they deemed untrustworthy. The supported Captcha APIs right now are capmonster.cloud and anti-captcha.com 
+You can register an account there, load some balance and copy your Captcha API Key to config. Make sure to specify the service you're using as well. It is extremely inexpensive and can join thousands of accounts in a couple USD. If there is an error with the captcha APIs, You will get an error code. You can look it up on their documentation [here](https://anti-captcha.com/apidoc/errors)
 
 ### Example configuration
 ```json
@@ -109,18 +117,24 @@ You can do more interesting things with offset. Normally to bypass Anti-Raid bot
     "rate_limit_delay": 60,
     "offset": 100,
     "skip_completed": true,
+    "skip_failed": true,
     "remove_dead_tokens": true,
     "remove_completed_members": true,
     "stop_dead_tokens": true,
     "check_mutual": false,
     "friend_before_DM": false,
-    "online_tokens": true,
-    "online_scraper_delay": 1000,
+    "online_tokens": false,
+    "online_scraper_delay": 2000,
     "call": false,
-    "proxy_from_file": true,
+    "proxy_from_file": false,
     "max_dms_per_token": 0,
     "receive_messages": true,
-    "use_proxy_for_gateway": false
+    "use_proxy_for_gateway": false,
+    "timeout": 60,
+    "captcha_api": "capmonster.cloud",
+    "captcha_api_key": "your_captcha_api_key",
+    "max_attempt_invite_rejoin": 4,
+    "disable_keep_alives": false
 }
 ```
 This is the config I'd use, with ofcourse the offset calculated accordingly. 
