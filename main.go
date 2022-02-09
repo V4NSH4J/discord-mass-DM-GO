@@ -295,7 +295,7 @@ func Options() {
 		// Setting information to windows titlebar by github.com/foxzsz
 		go func() {
 			for {
-				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %d locked, %d avg. dms, %d tokens left]`, len(session), len(dead), len(session)/len(instances), len(instances)-len(dead)))
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %d avg. dms, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), len(instances)-len(dead)))
 				_ = cmd.Run()
 			}
 		}()

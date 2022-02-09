@@ -34,15 +34,15 @@ type Connection struct {
 }
 
 // Input Discord token and start a new websocket connection
-func NewConnection(token string, fatalHandler func(err error), proxy string) (*Connection, error) {
+func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, error) {
 	var dialer websocket.Dialer
-	if proxy == "" {
+	if in.Proxy == "" {
 		dialer = *websocket.DefaultDialer
 	} else {
-		if !strings.Contains(proxy, "http://") {
-			proxy = "http://" + proxy
+		if !strings.Contains(in.Proxy, "http://") {
+			in.Proxy = "http://" + in.Proxy
 		}
-		proxyURL, err := url.Parse(proxy)
+		proxyURL, err := url.Parse(in.Proxy)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +79,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 				UserGuildSettingsVersion: -1,
 			},
 			Identify: Identify{
-				Token: token,
+				Token: in.Token,
 				Properties: Properties{
 					OS:                "Windows",
 					Browser:           "Chrome",
@@ -106,6 +106,7 @@ func NewConnection(token string, fatalHandler func(err error), proxy string) (*C
 
 	if err = c.awaitEvent(EventNameReady); err != nil {
 		c.Conn.Close()
+		in.wsFatalHandler(err)
 		return nil, fmt.Errorf("error while waiting for ready event: %v", err)
 	}
 	go c.Ping(time.Duration(interval) * time.Millisecond)
@@ -183,7 +184,7 @@ func (c *Connection) listen() {
 			c.fatalHandler(err)
 			break
 		}
-
+		fmt.Println(string(b))
 		var body Event
 		if err := json.Unmarshal(b, &body); err != nil {
 			// All messages which don't decode properly are likely caused by the

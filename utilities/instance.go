@@ -40,7 +40,7 @@ type Instance struct {
 }
 
 func (in *Instance) StartWS() error {
-	ws, err := NewConnection(in.Token, in.wsFatalHandler, in.Proxy)
+	ws, err := in.NewConnection(in.wsFatalHandler)
 	if err != nil {
 		return fmt.Errorf("failed to create websocket connection: %s", err)
 	}
@@ -55,13 +55,12 @@ func (in *Instance) wsFatalHandler(err error) {
 	}
 	color.Red("Websocket closed %v %v", err, in.Token)
 	in.Receiver = false
-	in.Ws, err = NewConnection(in.Token, in.wsFatalHandler, in.Proxy)
+	in.Ws, err = in.NewConnection(in.wsFatalHandler)
 	if err != nil {
 		in.fatal <- fmt.Errorf("failed to create websocket connection: %s", err)
 		return
 	}
 	color.Green("Reconnected To Websocket")
-
 }
 
 type CallEvent struct {
