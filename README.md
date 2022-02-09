@@ -302,5 +302,7 @@ A: I will not, this program is just a Proof of Concept. Using it to actually lau
 #### Q: Channel verification too high?
 A: This happens in a few scenerios. You're trying to use unverified tokens to DM in a server which needs Phone/Email verification OR you're trying to use email verified tokens in a server which requires phone verification. This may also happen if the server has a 10 minute wait time before you can interact in it, to verify, login into a token and see. It may also happen if for some reason, DMDGO failed to bypass the token which it does automatically.
 
+#### Q: Invalid character `e` looking for beginning of value error code: 1015 
+A: Cloudflare Error 1015 is an IP Based Rate limit. You have to use proxies/ VPN to get around it
 
 
