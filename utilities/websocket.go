@@ -184,7 +184,6 @@ func (c *Connection) listen() {
 			c.fatalHandler(err)
 			break
 		}
-		fmt.Println(string(b))
 		var body Event
 		if err := json.Unmarshal(b, &body); err != nil {
 			// All messages which don't decode properly are likely caused by the
