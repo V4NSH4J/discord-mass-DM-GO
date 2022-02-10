@@ -12,7 +12,7 @@
 
 ## Community 
 
-[Telegram Server for Support](https://t.me/@todviolators)
+[Telegram Server for Support](https://t.me/@tosviolators)
 
 [Discord Community Server](https://discord.gg/mtW89Y7prK)
 
