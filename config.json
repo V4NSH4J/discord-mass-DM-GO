@@ -17,7 +17,7 @@
     "receive_messages": true,
     "use_proxy_for_gateway": false,
     "timeout": 60,
-    "captcha_api": "2captcha.com",
+    "captcha_api": "anti-captcha.com",
     "captcha_api_key": "",
     "proxy_for_captcha": false,
     "max_attempt_invite_rejoin": 4,
