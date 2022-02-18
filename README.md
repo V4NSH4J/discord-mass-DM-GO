@@ -12,7 +12,7 @@
 
 ## Community 
 
-[Guilded Server for Support](https://guilded.gg/tos)
+[Telegram Server for Support](https://t.me/tosviolators)
 
 [Discord Community Server](https://discord.gg/mtW89Y7prK)
 
