@@ -15,6 +15,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -153,3 +154,44 @@ func GetFiles(dir string) ([]string, error) {
 	}
 	return paths, nil
 }
+
+func (in *Instance) BioChanger(bios []string) error {
+	chosenOne := bios[rand.Intn(len(bios))]
+	site := "https://discord.com/api/v9/users/@me"
+	req, err := http.NewRequest(http.MethodPatch, site, strings.NewReader(`{"bio": "` + chosenOne + `"}`))
+	if err != nil {
+		return fmt.Errorf("error while making request: %v", err)
+	}
+	req.Header.Set("Authorization", in.Token)
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return fmt.Errorf("error while getting cookie: %v", err)
+	}
+	req.Header.Set("Cookie", cookie)
+	resp, err := in.Client.Do(CommonHeaders(req))
+	if err != nil {
+		return fmt.Errorf("error while sending request: %v", err)
+	}
+	body, err := ReadBody(*resp)
+	if err != nil {
+		return fmt.Errorf("error while reading body: %v", err)
+	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error while changing bio %v %v", resp.StatusCode, string(body))
+	}
+
+	return nil
+}
+
+func ValidateBios(bios []string) []string {
+	var validBios []string 
+	for i:= 0; i < len(bios); i++ {
+		if len(bios[i]) > 190 {
+			continue 
+		}
+		validBios = append(validBios, bios[i])
+	}
+	return validBios
+}
+

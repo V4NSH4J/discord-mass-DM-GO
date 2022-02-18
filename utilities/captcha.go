@@ -5,22 +5,58 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
+	api2captcha "github.com/2captcha/2captcha-go"
 	"github.com/fatih/color"
 )
 
-// Function to use a captcha solving service and return a solved captcha key
 func (in *Instance) SolveCaptcha(sitekey string) (string, error) {
-	jsonx := Pload{
-		ClientKey: in.Config.ClientKey,
-		Task: Task{
-			Type:       "HCaptchaTaskProxyless",
-			WebsiteURL: "https://discord.com/channels/@me",
-			WebsiteKey: sitekey,
-			UserAgent:  "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36",
-		},
+	if Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaAPI) {
+		return in.SolveCaptchaCapmonster(sitekey)
+	} else if in.Config.CaptchaAPI == "2captcha.com" {
+		return in.SolveCaptcha2Captcha(sitekey)
+	} else {
+		return "", fmt.Errorf("unsuppored Captcha Solver API %s", in.Config.CaptchaAPI)
+	}
+}
+
+// Function to use a captcha solving service and return a solved captcha key
+func (in *Instance) SolveCaptchaCapmonster(sitekey string) (string, error) {
+	var jsonx Pload
+	if !in.Config.ProxyForCaptcha {
+		jsonx = Pload{
+			ClientKey: in.Config.ClientKey,
+			Task: Task{
+				Type:       "HCaptchaTaskProxyless",
+				WebsiteURL: "https://discord.com/channels/@me",
+				WebsiteKey: sitekey,
+				UserAgent:  "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36",
+			},
+		}
+	} else {
+		proxyParts := strings.Split(in.Proxy, "@")
+		proxyPort, err := strconv.Atoi(strings.Split(proxyParts[1], ":")[1])
+		if err != nil {
+			return "", fmt.Errorf("error while converting proxy port %v %v", proxyPort, err)
+		}
+		proxyPwd := strings.Split(proxyParts[0], ":")[1]
+		jsonx = Pload{
+			ClientKey: in.Config.ClientKey,
+			Task: Task{
+				Type:          "HCaptchaTask",
+				WebsiteURL:    "https://discord.com/channels/@me",
+				WebsiteKey:    sitekey,
+				UserAgent:     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36",
+				ProxyType:     "http",
+				ProxyAddress:  strings.Split(proxyParts[1], ":")[0],
+				ProxyPort:     proxyPort,
+				ProxyLogin:    strings.Split(proxyParts[0], ":")[0],
+				ProxyPassword: proxyPwd,
+			},
+		}
 	}
 
 	bytes, err := json.Marshal(jsonx)
@@ -91,6 +127,8 @@ func (in *Instance) SolveCaptcha(sitekey string) (string, error) {
 
 		}
 		return "", fmt.Errorf("max captcha retries reached [%v]", err)
+	case 1:
+		return "", fmt.Errorf("No captcha API key or Incorrect Captcha API key (Can happen if you've specified a different service but using a different service's key)")
 	case 2:
 		color.Red("No Available Captcha Workers - Increase your Maximum Bid in your Captcha API settings. Also try reducing the number of threads. Sleeping 10 seconds")
 		time.Sleep(10 * time.Second)
@@ -117,10 +155,15 @@ type Pload struct {
 }
 
 type Task struct {
-	Type       string `json:"type"`
-	WebsiteURL string `json:"websiteURL"`
-	WebsiteKey string `json:"websiteKey"`
-	UserAgent  string `json:"userAgent"`
+	Type          string `json:"type"`
+	WebsiteURL    string `json:"websiteURL"`
+	WebsiteKey    string `json:"websiteKey"`
+	ProxyType     string `json:"proxyType"`
+	ProxyAddress  string `json:"proxyAddress"`
+	ProxyPort     int    `json:"proxyPort"`
+	ProxyLogin    string `json:"proxyLogin"`
+	ProxyPassword string `json:"proxyPassword"`
+	UserAgent     string `json:"userAgent"`
 }
 
 type Resp struct {
@@ -132,4 +175,35 @@ type Resp struct {
 
 type Sol struct {
 	Ans string `json:"gRecaptchaResponse"`
+}
+
+func (in *Instance) SolveCaptcha2Captcha(sitekey string) (string, error) {
+	client := api2captcha.NewClient(in.Config.ClientKey)
+	client.DefaultTimeout = 120
+	client.PollingInterval = 22
+
+	cap := api2captcha.HCaptcha{
+		SiteKey: sitekey,
+		Url:     "https://discord.com/channels/@me",
+	}
+	req := cap.ToRequest()
+	if in.Config.ProxyForCaptcha {
+		req.SetProxy("HTTPS", in.Proxy)
+	}
+	req.Params["userAgent"] = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36"
+
+	code, err := client.Solve(req)
+	if err != nil {
+		if err == api2captcha.ErrTimeout {
+			return "", fmt.Errorf("Timeout")
+		} else if err == api2captcha.ErrApi {
+			return "", fmt.Errorf("API error")
+		} else if err == api2captcha.ErrNetwork {
+			return "", fmt.Errorf("Network error")
+		} else {
+			return "", fmt.Errorf("Unknown error %v", err)
+		}
+	}
+
+	return code, nil
 }

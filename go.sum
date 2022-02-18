@@ -1,3 +1,5 @@
+github.com/2captcha/2captcha-go v1.0.0 h1:znUFTmhcPDSENbbJwaeRlyC2oHiV4AYt72ql3NK4QhY=
+github.com/2captcha/2captcha-go v1.0.0/go.mod h1:hYOq+KVOq/0zAG6OTYW7Y313qDkHv58CcaOyjdBQSco=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=

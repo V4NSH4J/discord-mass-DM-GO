@@ -32,6 +32,7 @@ type Instance struct {
 	ID          string
 	Receiver    bool
 	Config      Config
+	GatewayProxy string
 
 	Client *http.Client
 	WG     *sync.WaitGroup

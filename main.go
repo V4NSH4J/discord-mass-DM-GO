@@ -32,7 +32,7 @@ import (
 
 func main() {
 	// Credits
-	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", ""}
+	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", ""}
 	color.Blue(logo)
 	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
 	Options()
@@ -41,7 +41,7 @@ func main() {
 // Options menu
 func Options() {
 	reg := regexp.MustCompile(`(.+):(.+):(.+)`)
-	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Credits & Info\n |- 15) Exit")
+	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) Haven't thought of anything\n |- 16) Credits & Info\n |- 17) Exit")
 	color.White("\nEnter your choice: ")
 	var choice int
 	fmt.Scanln(&choice)
@@ -51,6 +51,14 @@ func Options() {
 		Options()
 	case 0:
 		color.Cyan("Debug Mode")
+		var tk string
+		fmt.Scanln(&tk)
+		in := utilities.Instance{
+			Token: tk,
+		}
+		in.StartWS()
+		fmt.Scanln()
+
 	case 1:
 		var invitechoice int
 		color.White("Invite Menu:\n1) Single Invite\n2) Multiple Invites from file")
@@ -525,6 +533,30 @@ func Options() {
 							//      color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, resp)
 							// }
 
+						}
+						if cfg.Block {
+							r, err := instances[i].BlockUser(member)
+							if err != nil {
+								color.Red("[%v] Error while blocking user: %v", time.Now().Format("15:04:05"), err)
+							} else {
+								if r == 204 {
+									color.Green("[%v] Blocked %v", time.Now().Format("15:04:05"), user)
+								} else {
+									color.Red("[%v] Error while blocking user: %v", time.Now().Format("15:04:05"), r)
+								}
+							}
+						}
+						if cfg.Close {
+							r, err := instances[i].CloseDMS(snowflake)
+							if err != nil {
+								color.Red("[%v] Error while closing DM: %v", time.Now().Format("15:04:05"), err)
+							} else {
+								if r == 200 {
+									color.Green("[%v] Succesfully closed DM %v", time.Now().Format("15:04:05"), user)
+								} else {
+									color.Red("[%v] Failed to close DM %v", time.Now().Format("15:04:05"), user)
+								}
+							}
 						}
 						// Forbidden - Token is being rate limited
 					} else if resp.StatusCode == 403 && response.Code == 40003 {
@@ -1181,6 +1213,8 @@ func Options() {
 			fmt.Scanln(&serverid)
 			color.Green("[%v] Press ENTER to START and STOP scraping", time.Now().Format("15:04:05"))
 			bufio.NewReader(os.Stdin).ReadBytes('\n')
+			var namesScraped []string
+			var avatarsScraped []string
 			// Starting the instances as GOroutines
 			for i := 0; i < len(instances); i++ {
 				go func(i int) {
@@ -1255,6 +1289,26 @@ func Options() {
 									color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
 									continue
 								}
+								if cfg.ScrapeUsernames {
+									nom := MemberInfo.Data.Members[i].User.Username
+									if !utilities.Contains(namesScraped, nom) {
+										err := utilities.WriteLines("names.txt", nom)
+										if err != nil {
+											color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
+											continue
+										}
+									}
+								}
+								if cfg.ScrapeAvatars {
+									av := MemberInfo.Data.Members[i].User.Avatar
+									if !utilities.Contains(avatarsScraped, av) {
+										err := utilities.ProcessAvatar(av, id)
+										if err != nil {
+											color.Red("[%v] Error while processing avatar: %v", time.Now().Format("15:04:05"), err)
+											continue
+										}
+									}
+								}
 							}
 							if len(MemberInfo.Data.Members) < 100 {
 								time.Sleep(time.Duration(cfg.SleepSc) * time.Millisecond)
@@ -1315,7 +1369,7 @@ func Options() {
 			instances[i].Token = strings.Split(fullz, ":")[2]
 			instances[i].Password = strings.Split(fullz, ":")[1]
 		}
-		color.Red("NOTE: Profile pictures are changed randomly from the file.")
+		color.Red("NOTE: Names are changed randomly from the file.")
 		users, err := utilities.ReadLines("names.txt")
 		if err != nil {
 			color.Red("[%v] Error while reading names.txt: %v", time.Now().Format("15:04:05"), err)
@@ -1459,10 +1513,44 @@ func Options() {
 				color.Green("[%v] Tokens saved to tokens.txt", time.Now().Format("15:04:05"))
 			}
 		}
-
 	case 14:
+		color.Blue("Bio changer")
+		bios, err := utilities.ReadLines("bios.txt")
+		if err != nil {
+			color.Red("[%v] Error while reading bios.txt: %v", time.Now().Format("15:04:05"), err)
+			ExitSafely()
+		}
+		_, instances, err := getEverything()
+		if err != nil {
+			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
+			ExitSafely()
+		}
+		bios = utilities.ValidateBios(bios)
+		color.Green("[%v] Loaded %v bios, %v instances", time.Now().Format("15:04:05"), len(bios), len(instances))
+		color.Green("[%v] Enter number of threads: (0 for unlimited)", time.Now().Format("15:04:05"))
+		var threads int
+		fmt.Scanln(&threads)
+		if threads > len(instances) || threads == 0 {
+			threads = len(instances)
+		}
+		c := goccm.New(threads)
+		for i := 0; i < len(instances); i++ {
+			c.Wait()
+			go func(i int) {
+				err := instances[i].BioChanger(bios)
+				if err != nil {
+					color.Red("[%v] %v Error while changing bio: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+				} else {
+					color.Green("[%v] %v Bio changed successfully", time.Now().Format("15:04:05"), instances[i].Token)
+				}
+				c.Done()
+			}(i)
+		}
+		c.WaitAllDone()
+
+	case 16:
 		color.Blue("Made with <3 by github.com/V4NSH4J for free. If you were sold this program, you got scammed. Full length documentation for this is available on the github readme.")
-	case 15:
+	case 17:
 		// Exit without error
 		os.Exit(0)
 
@@ -1518,9 +1606,11 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 			return cfg, instances, fmt.Errorf("no proxies found in proxies.txt")
 		}
 	}
+	var Gproxy string
 	for i := 0; i < len(tokens); i++ {
 		if cfg.ProxyFromFile {
 			proxy = proxies[rand.Intn(len(proxies))]
+			Gproxy = proxy
 		} else {
 			proxy = ""
 		}
@@ -1530,9 +1620,9 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 		}
 		// proxy is put in struct only to be used by gateway. If proxy for gateway is disabled, it will be empty
 		if !cfg.GatewayProxy {
-			proxy = ""
+			Gproxy = ""
 		}
-		instances = append(instances, utilities.Instance{Client: client, Token: tokens[i], Proxy: proxy, Config: cfg})
+		instances = append(instances, utilities.Instance{Client: client, Token: tokens[i], Proxy: proxy, Config: cfg, GatewayProxy: Gproxy})
 	}
 	if len(instances) == 0 {
 		color.Red("[!] You may be using 0 tokens")
@@ -1672,7 +1762,7 @@ func ExitSafely() {
 	os.Exit(0)
 }
 
-const logo = "\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D \r\nDISCORD MASS DM GO V1.7.9\n"
+const logo = "\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D \r\nDISCORD MASS DM GO V1.8.0\n"
 
 func findNextQueries(query string, lastName string, completedQueries []string, chars string) []string {
 	if query == "" {

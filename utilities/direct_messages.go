@@ -340,3 +340,55 @@ func RegisterHeaders(req *http.Request) *http.Request {
 	return req
 
 }
+
+func (in *Instance) CloseDMS(snowflake string) (int, error) {
+	site := "https://discord.com/api/v9/channels/" + snowflake 
+	req, err := http.NewRequest("DELETE", site, nil)
+	if err != nil {
+		return -1, err
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return -1, err
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return -1, err
+	}
+	req.Header.Set("cookie", cookie)
+	req.Header.Set("X-Fingerprint", fingerprint)
+	req.Header.Set("Authorization", in.Token)
+	req = CommonHeaders(req)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	return resp.StatusCode, nil
+}
+
+func (in *Instance) BlockUser(userid string) (int, error) {
+	site := "https://discord.com/api/v9/users/@me/relationships/" + userid
+	payload := `{"type":2}`
+	req, err := http.NewRequest("PUT", site, strings.NewReader(payload))
+	if err != nil {
+		return -1, err
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return -1, err
+	}
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return -1, err
+	}
+	req.Header.Set("cookie", cookie)
+	req.Header.Set("X-Fingerprint", fingerprint)
+	req.Header.Set("Authorization", in.Token)
+	req = CommonHeaders(req)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	return resp.StatusCode, nil
+}
+

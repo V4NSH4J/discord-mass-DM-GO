@@ -96,7 +96,11 @@ func (in *Instance) ContextProperties(invite string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	req = headersInvite(req, cookie, in.Token)
+	fingerprint, err := in.GetFingerprintString()
+	if err != nil {
+		return "", err
+	}
+	req = headersInvite(req, cookie, in.Token, fingerprint)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", err
@@ -246,10 +250,15 @@ func (in *Instance) Invite(Code string) error {
 		// }
 		cookie, err := in.GetCookieString()
 		if err != nil {
-			color.Red("[%v] Error while Getting cookies: %v", err)
+			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
 			continue
 		}
-		req = headersInvite(req, cookie, in.Token)
+		fingerprint, err := in.GetFingerprintString()
+		if err != nil {
+			color.Red("[%v] Error while Getting fingerprint: %v", err)
+			continue
+		}
+		req = headersInvite(req, cookie, in.Token, fingerprint)
 		// req.Header.Set("X-Context-Properties", XContext)
 		resp, err := in.Client.Do(req)
 		if err != nil {
@@ -284,6 +293,10 @@ func (in *Instance) Invite(Code string) error {
 				i--
 			}
 			continue
+		}
+		if strings.Contains(string(body), "1015") {
+			err = fmt.Errorf("Cloudflare Error 1015 - Your IP is being Rate Limited. Use proxies. If you already are, make sure proxy_from_file is enabled in your config")
+			break
 		}
 
 		var Join joinresponse
@@ -499,8 +512,9 @@ func (in *Instance) ServerCheck(serverid string) (int, error) {
 	return resp.StatusCode, nil
 }
 
-func headersInvite(req *http.Request, cookie string, authorization string) *http.Request {
-	req.Header.Set("Accept-Language", "en-US,en-IN;q=0.9,zh-Hans-CN;q=0.8")
+func headersInvite(req *http.Request, cookie string, authorization string, fingerprint string) *http.Request {
+	req.Header.Set("Accept-Language", "en-GB,en;q=0.9")
+	req.Header.Set("Accept", "*/*")
 	req.Header.Set("Authorization", authorization)
 	req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("Content-Type", "application/json")
@@ -510,10 +524,16 @@ func headersInvite(req *http.Request, cookie string, authorization string) *http
 	req.Header.Set("Sec-Fetch-Dest", "empty")
 	req.Header.Set("Sec-Fetch-Mode", "cors")
 	req.Header.Set("Sec-Fetch-Site", "same-origin")
+	req.Header.Set("Sec-ch-ua-mobile", "?0")
+	req.Header.Set("sec-ch-ua-platform", `"Windows"`)
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36")
 	req.Header.Set("X-Debug-Options", "bugReporterEnabled")
 	req.Header.Set("X-Discord-Locale", "en-US")
+	req.Header.Set("X-Fingerprint", fingerprint)
+	// Constant Context properties
+	req.Header.Set("X-Context-Properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6Ijk0NDI2ODQ5MzczMjMyMzM3OCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5NDQyNjg0OTM3MzIzMjMzODEiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
 	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 
 	return req
 }
+

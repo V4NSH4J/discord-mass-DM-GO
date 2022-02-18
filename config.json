@@ -12,13 +12,18 @@
     "online_tokens": false,
     "online_scraper_delay": 2000,
     "call": false,
-    "proxy_from_file": false,
+    "proxy_from_file": true,
     "max_dms_per_token": 0,
     "receive_messages": true,
     "use_proxy_for_gateway": false,
     "timeout": 60,
-    "captcha_api": "capmonster.cloud",
+    "captcha_api": "2captcha.com",
     "captcha_api_key": "",
+    "proxy_for_captcha": false,
     "max_attempt_invite_rejoin": 4,
-    "disable_keep_alives": false
+    "disable_keep_alives": false,
+    "scrape_usernames": false, 
+    "scrape_avatars": false,
+    "block_after_dm": false,
+    "close_dm_after_message": false
 }

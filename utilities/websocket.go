@@ -36,13 +36,13 @@ type Connection struct {
 // Input Discord token and start a new websocket connection
 func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, error) {
 	var dialer websocket.Dialer
-	if in.Proxy == "" {
+	if in.GatewayProxy == "" {
 		dialer = *websocket.DefaultDialer
 	} else {
 		if !strings.Contains(in.Proxy, "http://") {
-			in.Proxy = "http://" + in.Proxy
+			in.Proxy = "http://" + in.GatewayProxy
 		}
-		proxyURL, err := url.Parse(in.Proxy)
+		proxyURL, err := url.Parse(in.GatewayProxy)
 		if err != nil {
 			return nil, err
 		}
@@ -176,7 +176,6 @@ func (c *Connection) awaitEvent(e string) error {
 func (c *Connection) listen() {
 	for {
 		_, b, err := c.Conn.ReadMessage()
-
 		if err != nil {
 			c.closeChan <- struct{}{}
 			c.Conn.Close()
