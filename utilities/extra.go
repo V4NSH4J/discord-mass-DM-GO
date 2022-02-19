@@ -284,7 +284,7 @@ func (in *Instance) Invite(Code string) error {
 				color.Red("[%v] Error while Unmarshalling body: %v", time.Now().Format("15:04:05"), err)
 				continue
 			}
-			solvedKey, err = in.SolveCaptcha(resp["captcha_sitekey"].(string))
+			solvedKey, err = in.SolveCaptcha(resp["captcha_sitekey"].(string), cookie)
 			if err != nil {
 				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue

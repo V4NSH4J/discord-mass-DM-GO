@@ -13,9 +13,9 @@ import (
 	"github.com/fatih/color"
 )
 
-func (in *Instance) SolveCaptcha(sitekey string) (string, error) {
+func (in *Instance) SolveCaptcha(sitekey string, cookie string) (string, error) {
 	if Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaAPI) {
-		return in.SolveCaptchaCapmonster(sitekey)
+		return in.SolveCaptchaCapmonster(sitekey, cookie)
 	} else if in.Config.CaptchaAPI == "2captcha.com" {
 		return in.SolveCaptcha2Captcha(sitekey)
 	} else {
@@ -24,7 +24,7 @@ func (in *Instance) SolveCaptcha(sitekey string) (string, error) {
 }
 
 // Function to use a captcha solving service and return a solved captcha key
-func (in *Instance) SolveCaptchaCapmonster(sitekey string) (string, error) {
+func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (string, error) {
 	var jsonx Pload
 	if !in.Config.ProxyForCaptcha {
 		jsonx = Pload{
@@ -33,28 +33,45 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string) (string, error) {
 				Type:       "HCaptchaTaskProxyless",
 				WebsiteURL: "https://discord.com/channels/@me",
 				WebsiteKey: sitekey,
-				UserAgent:  "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36",
+				Cookies: cookies,
+				UserAgent:  Useragent,
 			},
 		}
 	} else {
-		proxyParts := strings.Split(in.Proxy, "@")
-		proxyPort, err := strconv.Atoi(strings.Split(proxyParts[1], ":")[1])
-		if err != nil {
-			return "", fmt.Errorf("error while converting proxy port %v %v", proxyPort, err)
+		var address string
+		var port int 
+		var username string 
+		var password string 
+		var err error
+		// Proxies with user-pass AUTH
+		if strings.Contains(in.Proxy, "@") {
+			proxyParts := strings.Split(in.Proxy, "@")
+			username, password, address = strings.Split(proxyParts[0], ":")[0], strings.Split(proxyParts[0], ":")[1], strings.Split(proxyParts[1], ":")[0]
+			port, err = strconv.Atoi(strings.Split(proxyParts[1], ":")[1])
+			if err != nil {
+				return "", fmt.Errorf("could not parse proxy port %v", err)
+			}
+		} else {
+			// IP AUTH proxies
+			address = strings.Split(in.Proxy, ":")[0]
+			port, err = strconv.Atoi(strings.Split(in.Proxy, ":")[1])
+			if err != nil {
+				return "", fmt.Errorf("could not parse proxy port %v", err)
+			}
 		}
-		proxyPwd := strings.Split(proxyParts[0], ":")[1]
 		jsonx = Pload{
 			ClientKey: in.Config.ClientKey,
 			Task: Task{
 				Type:          "HCaptchaTask",
 				WebsiteURL:    "https://discord.com/channels/@me",
 				WebsiteKey:    sitekey,
-				UserAgent:     "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36",
+				UserAgent:     Useragent,
 				ProxyType:     "http",
-				ProxyAddress:  strings.Split(proxyParts[1], ":")[0],
-				ProxyPort:     proxyPort,
-				ProxyLogin:    strings.Split(proxyParts[0], ":")[0],
-				ProxyPassword: proxyPwd,
+				ProxyAddress:  address,
+				ProxyPort:     port,
+				ProxyLogin:    username,
+				ProxyPassword: password,
+				Cookies: cookies,
 			},
 		}
 	}
@@ -164,6 +181,7 @@ type Task struct {
 	ProxyLogin    string `json:"proxyLogin"`
 	ProxyPassword string `json:"proxyPassword"`
 	UserAgent     string `json:"userAgent"`
+	Cookies string `json:"cookies`
 }
 
 type Resp struct {

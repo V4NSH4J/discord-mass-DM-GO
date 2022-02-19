@@ -72,7 +72,7 @@ func Options() {
 		case 1:
 			color.Cyan("Single Invite Mode")
 			color.White("This will join your tokens from tokens.txt to a server")
-			cfg, instances, err := getEverything()
+			_, instances, err := getEverything()
 			if err != nil {
 				color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 			}
@@ -104,13 +104,12 @@ func Options() {
 			}
 			c := goccm.New(threads)
 			for i := 0; i < len(instances); i++ {
-				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 				c.Wait()
 				go func(i int) {
 					err := instances[i].Invite(invite)
 					if err != nil {
 						color.Red("[%v] Error while joining: %v", time.Now().Format("15:04:05"), err)
-					}
+					} 
 					time.Sleep(time.Duration(delay) * time.Second)
 					c.Done()
 
@@ -888,7 +887,7 @@ func Options() {
 	case 7:
 		// Basic token checker
 		color.Cyan("Token checker")
-		cfg, instances, err := getEverything()
+		_, instances, err := getEverything()
 		if err != nil {
 			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 			ExitSafely()
@@ -905,7 +904,6 @@ func Options() {
 		c := goccm.New(threads)
 		var working []string
 		for i := 0; i < len(instances); i++ {
-			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
 			c.Wait()
 			go func(i int) {
 				err := instances[i].CheckToken()
