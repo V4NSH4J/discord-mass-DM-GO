@@ -197,6 +197,7 @@ type Config struct {
 	Websocket       bool   `json:"online_tokens"`
 	SleepSc         int    `json:"online_scraper_delay"`
 	ProxyFromFile   bool   `json:"proxy_from_file"`
+	ProxyProtocol   string `json:"proxy_protocol"`
 	MaxDMS          int    `json:"max_dms_per_token"`
 	Receive         bool   `json:"receive_messages"`
 	GatewayProxy    bool   `json:"use_proxy_for_gateway"`

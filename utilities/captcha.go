@@ -33,15 +33,15 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (stri
 				Type:       "HCaptchaTaskProxyless",
 				WebsiteURL: "https://discord.com/channels/@me",
 				WebsiteKey: sitekey,
-				Cookies: cookies,
+				Cookies:    cookies,
 				UserAgent:  Useragent,
 			},
 		}
 	} else {
 		var address string
-		var port int 
-		var username string 
-		var password string 
+		var port int
+		var username string
+		var password string
 		var err error
 		// Proxies with user-pass AUTH
 		if strings.Contains(in.Proxy, "@") {
@@ -66,12 +66,12 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (stri
 				WebsiteURL:    "https://discord.com/channels/@me",
 				WebsiteKey:    sitekey,
 				UserAgent:     Useragent,
-				ProxyType:     "http",
+				ProxyType:     in.Config.ProxyProtocol,
 				ProxyAddress:  address,
 				ProxyPort:     port,
 				ProxyLogin:    username,
 				ProxyPassword: password,
-				Cookies: cookies,
+				Cookies:       cookies,
 			},
 		}
 	}
@@ -181,7 +181,7 @@ type Task struct {
 	ProxyLogin    string `json:"proxyLogin"`
 	ProxyPassword string `json:"proxyPassword"`
 	UserAgent     string `json:"userAgent"`
-	Cookies string `json:"cookies`
+	Cookies       string `json:"cookies`
 }
 
 type Resp struct {
@@ -204,9 +204,18 @@ func (in *Instance) SolveCaptcha2Captcha(sitekey string) (string, error) {
 		SiteKey: sitekey,
 		Url:     "https://discord.com/channels/@me",
 	}
+	var proxyType string
+	if in.Config.ProxyProtocol == "socks5" {
+		proxyType = "SOCKS5"
+	} else if in.Config.ProxyProtocol == "socks4" {
+		proxyType = "SOCKS4"
+	} else if in.Config.ProxyProtocol == "http" {
+		proxyType = "HTTPS"
+	}
+
 	req := cap.ToRequest()
 	if in.Config.ProxyForCaptcha {
-		req.SetProxy("HTTPS", in.Proxy)
+		req.SetProxy(proxyType, in.Proxy)
 	}
 	req.Params["userAgent"] = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36"
 
@@ -224,4 +233,57 @@ func (in *Instance) SolveCaptcha2Captcha(sitekey string) (string, error) {
 	}
 
 	return code, nil
+}
+
+// Incomplete
+func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey string) (string, error) {
+	// Authentication can be a user:pass combination or with a 2fa key.
+	var username string
+	var password string
+	var authtoken string
+	var proxy string
+	var proxytype string
+
+	if strings.Contains(in.Config.ClientKey, ":") {
+		credentials := strings.Split(in.Config.ClientKey, ":")
+		username, password = credentials[0], credentials[1]
+	} else {
+		authtoken = in.Config.ClientKey
+	}
+	captchaPostEndpoint := "http://api.dbcapi.me/api/captcha"
+	// captchaGetEndpoint := func (captchaID string) string {
+	// 	return fmt.Sprintf("http://api.dbcapi.me/api/captcha/%s", captchaID)
+	// }
+	fmt.Println(authtoken)
+	payload := fmt.Sprintf(
+		`{
+			"username": "%s",
+			"password": "%s",
+			"type": 7, 
+			"token_params": {
+				"proxy": "%s",
+				"proxytype": "%s",
+				"pageurl": "http://discord.com",
+				"sitekey": "%s"
+			}
+		}`, username, password, proxy, proxytype, sitekey)
+	fmt.Println(payload)
+	req, err := http.NewRequest(http.MethodPost, captchaPostEndpoint, strings.NewReader(payload))
+	if err != nil {
+		return "", fmt.Errorf("error creating request [%v]", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response [%v]", err)
+	}
+	fmt.Println(string(body))
+	fmt.Println(resp.StatusCode)
+
+	return "", nil
+
 }

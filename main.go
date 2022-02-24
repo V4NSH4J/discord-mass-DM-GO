@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -31,10 +32,11 @@ import (
 )
 
 func main() {
-	// Credits
+	version := "1.8.2"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", ""}
-	color.Blue(logo)
+	color.Blue(logo + " v" + version + "\n")
 	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
+	versionCheck(version)
 	Options()
 }
 
@@ -51,13 +53,6 @@ func Options() {
 		Options()
 	case 0:
 		color.Cyan("Debug Mode")
-		var tk string
-		fmt.Scanln(&tk)
-		in := utilities.Instance{
-			Token: tk,
-		}
-		in.StartWS()
-		fmt.Scanln()
 
 	case 1:
 		var invitechoice int
@@ -1576,11 +1571,23 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 	if err != nil {
 		return cfg, instances, err
 	}
-	if cfg.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
-		os.Setenv("HTTPS_PROXY", "http://"+cfg.Proxy)
+	supportedProtocols := []string{"http", "https", "socks4", "socks5"}
+	if cfg.ProxyProtocol != "" && !utilities.Contains(supportedProtocols, cfg.ProxyProtocol) {
+		color.Red("[!] You're using an unsupported proxy protocol. Assuming http by default")
+		cfg.ProxyProtocol = "http"
+	}
+	if cfg.ProxyProtocol == "https" {
+		cfg.ProxyProtocol = "http"
 	}
 	if cfg.CaptchaAPI == "" {
 		color.Red("[!] You're not using a Captcha API, some functionality like invite joining might be unavailable")
+	}
+	if cfg.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
+		os.Setenv("HTTPS_PROXY", cfg.ProxyProtocol+"://"+cfg.Proxy)
+	}
+	if !cfg.ProxyFromFile && cfg.ProxyForCaptcha {
+		color.Red("[!] You must enabe proxy_from_file to use proxy_for_captcha")
+		cfg.ProxyForCaptcha = false
 	}
 	if !utilities.Contains(CaptchaServices, cfg.CaptchaAPI) {
 		color.Red("[!] Captcha API %v is not supported. Please use one of the following: %v", cfg.CaptchaAPI, CaptchaServices)
@@ -1726,8 +1733,19 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 	if proxy == "" {
 		return http.DefaultClient, nil
 	}
-	if !strings.Contains(proxy, "http://") {
-		proxy = "http://" + proxy
+	switch cfg.ProxyProtocol {
+	case "http":
+		if !strings.Contains(proxy, "http://") {
+			proxy = "http://" + proxy
+		}
+	case "socks5":
+		if !strings.Contains(proxy, "socks5://") {
+			proxy = "socks5://" + proxy
+		}
+	case "socks4":
+		if !strings.Contains(proxy, "socks4://") {
+			proxy = "socks4://" + proxy
+		}
 	}
 	// Error while converting proxy string to url.url would result in default client being returned
 	proxyURL, err := url.Parse(proxy)
@@ -1740,13 +1758,12 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS12,
-				CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
+				MinVersion: tls.VersionTLS12,
+				//CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
 				InsecureSkipVerify: true,
-				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
+				//CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
 			DisableKeepAlives: cfg.DisableKL,
-			ForceAttemptHTTP2: true,
 			Proxy:             http.ProxyURL(proxyURL),
 		},
 	}
@@ -1760,7 +1777,7 @@ func ExitSafely() {
 	os.Exit(0)
 }
 
-const logo = "\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D \r\nDISCORD MASS DM GO V1.8.1\n"
+const logo = "\r\n\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2557   \u2588\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557  \u2588\u2588\u2588\u2588\u2588\u2588\u2557 \r\n\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2588\u2588\u2557 \u2588\u2588\u2588\u2588\u2551\u2588\u2588\u2554\u2550\u2550\u2588\u2588\u2557\u2588\u2588\u2554\u2550\u2550\u2550\u2550\u255D \u2588\u2588\u2554\u2550\u2550\u2550\u2588\u2588\u2557\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2554\u2588\u2588\u2588\u2588\u2554\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2588\u2557\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551\u255A\u2588\u2588\u2554\u255D\u2588\u2588\u2551\u2588\u2588\u2551  \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\u2588\u2588\u2551   \u2588\u2588\u2551\r\n\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u2588\u2588\u2551 \u255A\u2550\u255D \u2588\u2588\u2551\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\u255A\u2588\u2588\u2588\u2588\u2588\u2588\u2554\u255D\r\n\u255A\u2550\u2550\u2550\u2550\u2550\u255D \u255A\u2550\u255D     \u255A\u2550\u255D\u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D  \u255A\u2550\u2550\u2550\u2550\u2550\u255D \r\nDISCORD MASS DM GO"
 
 func findNextQueries(query string, lastName string, completedQueries []string, chars string) []string {
 	if query == "" {
@@ -1795,3 +1812,34 @@ func findNextQueries(query string, lastName string, completedQueries []string, c
 }
 
 var CaptchaServices []string
+
+func versionCheck(version string) {
+	link := "https://pastebin.com/raw/CCaVBSPv"
+	resp, err := http.Get(link)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 && resp.StatusCode != 204 {
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	var response map[string]interface{}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return
+	}
+	v := response["version"].(string)
+	message := response["message"].(string)
+	if v != version {
+		color.Red("[!] You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
+	} else {
+		color.Green("[O] You're Up-to-Date! You're using DMDGO V%v", version)
+	}
+	if message != "" {
+		color.Yellow("[!] %v", message)
+	}
+}

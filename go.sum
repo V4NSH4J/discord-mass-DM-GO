@@ -2,6 +2,8 @@ github.com/2captcha/2captcha-go v1.0.0 h1:znUFTmhcPDSENbbJwaeRlyC2oHiV4AYt72ql3N
 github.com/2captcha/2captcha-go v1.0.0/go.mod h1:hYOq+KVOq/0zAG6OTYW7Y313qDkHv58CcaOyjdBQSco=
 github.com/andybalholm/brotli v1.0.4 h1:V7DdXeJtZscaqfNuAdSRuRFzuiKlHSC/Zh3zl9qY3JY=
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
+github.com/antonyho/go-deathbycaptcha v0.0.0-20141207155119-078f4102521d h1:3QWrpztJRUN0hTOCI6r/I36AJMTjnVMHIYD/899Yo2o=
+github.com/antonyho/go-deathbycaptcha v0.0.0-20141207155119-078f4102521d/go.mod h1:o6UfCWadw0t6d4VkChoZD803mjtZO9cehQaZd0/q5X0=
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
 github.com/gorilla/websocket v1.4.2 h1:+/TMaTYc4QFitKJxsQ7Yye35DkWvkdLcvGKqM+x0Ufc=

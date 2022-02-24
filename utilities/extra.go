@@ -96,7 +96,7 @@ func (in *Instance) ContextProperties(invite string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return "", err
 	}
@@ -253,7 +253,7 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
 			continue
 		}
-		fingerprint, err := in.GetFingerprintString()
+		fingerprint, err := in.GetFingerprintString(cookie)
 		if err != nil {
 			color.Red("[%v] Error while Getting fingerprint: %v", err)
 			continue
@@ -276,7 +276,7 @@ func (in *Instance) Invite(Code string) error {
 				err = fmt.Errorf("[%v] Captcha detected but no API key provided", time.Now().Format("15:04:05"))
 				break
 			} else {
-				color.Green("[%v] Captcha detected, solving...", time.Now().Format("15:04:05"))
+				color.Yellow("[%v] Captcha detected %v", time.Now().Format("15:04:05"), in.Token)
 			}
 			var resp map[string]interface{}
 			err = json.Unmarshal(body, &resp)
@@ -394,7 +394,7 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 	if err != nil {
 		return &http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return &http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
 	}
@@ -536,4 +536,3 @@ func headersInvite(req *http.Request, cookie string, authorization string, finge
 
 	return req
 }
-

@@ -32,7 +32,7 @@ func (in *Instance) GetCookieString() (string, error) {
 		color.Red("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("error while making request to get cookie %v", err)
 	}
-
+	req = in.cookieHeaders(req)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		color.Red("[%v] Error while getting response from cookies request %v", time.Now().Format("15:04:05"), err)
@@ -48,8 +48,83 @@ func (in *Instance) GetCookieString() (string, error) {
 	for _, cookie := range resp.Cookies() {
 		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
 	}
+	// CfRay := resp.Header.Get("cf-ray")
+	// if strings.Contains(CfRay, "-BOM") {
+	// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
+	// }
+	// fmt.Println(CfRay)
 
-	return cookies + "locale=en-US", nil
+	// if CfRay != "" {
+	// 	body, err := ioutil.ReadAll(resp.Body)
+	// 	if err != nil {
+	// 		color.Red("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
+	// 		return cookies + "locale:en-US", nil
+	// 	}
+	// 	m := regexp.MustCompile(`m:'(.+)'`)
+	// 	match := m.FindStringSubmatch(string(body))
+	// 	if match == nil {
+	// 		return cookies + "locale:en-US", nil
+	// 	}
+	// 	finalCookies, err := in.GetCfBm(match[1], CfRay, cookies)
+	// 	if err != nil {
+	// 		return cookies + "locale:en-US", nil
+	// 	}
+	// 	return finalCookies, nil
+	// }
+
+	return cookies + "locale:en-US", nil
+
+}
+func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
+	site := fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, r)
+	payload := fmt.Sprintf(
+		`
+		{
+			"m":"%s",
+			"results":["%s","%s"],
+			"timing":95,
+			"fp":
+				{
+					"id":3,
+					"e":{"r":[1920,1080],
+					"ar":[1032,1920],
+					"pr":1,
+					"cd":24,
+					"wb":true,
+					"wp":false,
+					"wn":false,
+					"ch":false,
+					"ws":false,
+					"wd":false
+				}
+			}
+		}
+		`, m, randomString(32), randomString(32),
+	)
+	req, err := http.NewRequest("POST", site, strings.NewReader(payload))
+	if err != nil {
+		fmt.Println(err)
+		return "", fmt.Errorf("error while making request to get cf-bm %v", err)
+	}
+	req = in.cfBmHeaders(req, cookies)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error while getting response from cf-bm request %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.Cookies() == nil {
+		color.Red("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
+		return "", fmt.Errorf("there are no cookies in response")
+	}
+
+	cookies = cookies + "; "
+	for _, cookie := range resp.Cookies() {
+		if cookie.Name == "" {
+			return cookies, nil
+		}
+		cookies = cookies + cookie.Name + "=" + cookie.Value
+	}
+	return cookies, nil
 
 }
 
@@ -58,7 +133,7 @@ type response struct {
 }
 
 // Getting Fingerprint to use in our requests for more legitimate seeming requests.
-func (in *Instance) GetFingerprintString() (string, error) {
+func (in *Instance) GetFingerprintString(cookie string) (string, error) {
 	url := "https://discord.com/api/v9/experiments"
 
 	req, err := http.NewRequest("GET", url, nil)
@@ -67,8 +142,8 @@ func (in *Instance) GetFingerprintString() (string, error) {
 		color.Red("[%v] Error while making request to get fingerprint %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("error while making request to get fingerprint %v", err)
 	}
-
-	resp, err := in.Client.Do(RegisterHeaders(req))
+	req = in.fingerprintHeaders(req, cookie)
+	resp, err := in.Client.Do(req)
 	if err != nil {
 		color.Red("[%v] Error while getting response from fingerprint request %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("error while getting response from fingerprint request %v", err)
@@ -106,7 +181,7 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return "", fmt.Errorf("error while getting fingerprint %v", err)
 	}
@@ -182,7 +257,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
 	}
@@ -223,7 +298,7 @@ func (in *Instance) UserInfo(userid string) (UserInf, error) {
 	if err != nil {
 		return UserInf{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return UserInf{}, fmt.Errorf("error while getting fingerprint %v", err)
 	}
@@ -342,7 +417,7 @@ func RegisterHeaders(req *http.Request) *http.Request {
 }
 
 func (in *Instance) CloseDMS(snowflake string) (int, error) {
-	site := "https://discord.com/api/v9/channels/" + snowflake 
+	site := "https://discord.com/api/v9/channels/" + snowflake
 	req, err := http.NewRequest("DELETE", site, nil)
 	if err != nil {
 		return -1, err
@@ -351,7 +426,7 @@ func (in *Instance) CloseDMS(snowflake string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return -1, err
 	}
@@ -377,7 +452,7 @@ func (in *Instance) BlockUser(userid string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	fingerprint, err := in.GetFingerprintString()
+	fingerprint, err := in.GetFingerprintString(cookie)
 	if err != nil {
 		return -1, err
 	}
@@ -391,4 +466,3 @@ func (in *Instance) BlockUser(userid string) (int, error) {
 	}
 	return resp.StatusCode, nil
 }
-

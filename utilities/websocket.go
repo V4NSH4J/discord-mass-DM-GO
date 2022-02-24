@@ -39,9 +39,19 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	if in.GatewayProxy == "" {
 		dialer = *websocket.DefaultDialer
 	} else {
-		if !strings.Contains(in.Proxy, "http://") {
-			in.Proxy = "http://" + in.GatewayProxy
-		}
+		if in.Config.ProxyProtocol == "http" {
+			if !strings.Contains(in.GatewayProxy, "http://") {
+				in.GatewayProxy = "http://" + in.GatewayProxy
+			}
+		} else if in.Config.ProxyProtocol == "socks5" {
+			if !strings.Contains(in.GatewayProxy, "socks5://") {
+				in.GatewayProxy = "socks5://" + in.GatewayProxy
+			}
+		} else if in.Config.ProxyProtocol == "socks4" {
+			if !strings.Contains(in.GatewayProxy, "socks4://") {
+				in.GatewayProxy = "socks4://" + in.GatewayProxy
+			}
+		} 
 		proxyURL, err := url.Parse(in.GatewayProxy)
 		if err != nil {
 			return nil, err
@@ -237,7 +247,6 @@ func (c *Connection) listen() {
 }
 
 func (c *Connection) Close() error {
-	c.fatalHandler = func(err error) {}
 	c.closeChan <- struct{}{}
 	err := c.Conn.WriteControl(
 		websocket.CloseMessage,
