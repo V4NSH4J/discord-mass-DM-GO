@@ -582,12 +582,14 @@ func Options() {
 						if err != nil {
 							fmt.Println(err)
 						}
+						failed = append(failed, member)
 						color.Yellow("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:04:05"), instances[i].Token, int(cfg.LongDelay/60))
 						time.Sleep(time.Duration(cfg.LongDelay) * time.Second)
 						color.Yellow("[%v] Token %v continuing!", time.Now().Format("15:04:05"), instances[i].Token)
 						// Forbidden - DM's are closed
 					} else if resp.StatusCode == 403 && response.Code == 50007 {
 						failedCount++
+						failed = append(failed, member)
 						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
@@ -596,6 +598,7 @@ func Options() {
 						// Forbidden - Locked or Disabled
 					} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
 						failedCount++
+						failed = append(failed, member)
 						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
@@ -609,6 +612,7 @@ func Options() {
 						// Forbidden - Invalid token
 					} else if resp.StatusCode == 403 && response.Code == 50009 {
 						failedCount++
+						failed = append(failed, member)
 						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
@@ -616,10 +620,12 @@ func Options() {
 						color.Red("[%v] Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, string(body), failedCount)
 						// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
 					} else if resp.StatusCode == 429 {
+						failed = append(failed, member)
 						color.Red("[%v] Token %v is being rate limited. Sleeping for 10 seconds", time.Now().Format("15:04:05"), instances[i].Token)
 						time.Sleep(10 * time.Second)
 					} else {
 						failedCount++
+						failed = append(failed, member)
 						err = WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
