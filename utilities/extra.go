@@ -86,21 +86,13 @@ type FormField struct {
 	Response    bool     `json:"response"`
 }
 
-func (in *Instance) ContextProperties(invite string) (string, error) {
+func (in *Instance) ContextProperties(invite, cookie, fingerprint string) (string, error) {
 	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue=wnd&with_counts=true&with_expiration=true"
 	req, err := http.NewRequest("GET", site, nil)
 	if err != nil {
 		return "", err
 	}
-	cookie, err := in.GetCookieString()
-	if err != nil {
-		return "", err
-	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return "", err
-	}
-	req = headersInvite(req, cookie, in.Token, fingerprint)
+	req = in.xContextHeaders(req, cookie, fingerprint)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", err
@@ -242,11 +234,7 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("Error while making http request %v \n", err)
 			continue
 		}
-		// XContext, err := in.ContextProperties(Code)
-		// if err != nil {
-		// 	color.Red("Error while getting context %v \n", err)
-		// 	continue
-		// }
+
 		cookie, err := in.GetCookieString()
 		if err != nil {
 			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
@@ -257,6 +245,10 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("[%v] Error while Getting fingerprint: %v", err)
 			continue
 		}
+		// XContext, err := in.ContextProperties(Code, cookie, fingerprint)
+		// if err != nil {
+		// 	XContext = "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkyNTA2NjE3MjM0MzM5ODQyMCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MjUwNjYxNzIzNDMzOTg0MjMiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9"
+		// }
 		req = headersInvite(req, cookie, in.Token, fingerprint)
 		// req.Header.Set("X-Context-Properties", XContext)
 		resp, err := in.Client.Do(req)
@@ -531,7 +523,7 @@ func headersInvite(req *http.Request, cookie string, authorization string, finge
 	req.Header.Set("X-Discord-Locale", "en-US")
 	req.Header.Set("X-Fingerprint", fingerprint)
 	// Constant Context properties
-	req.Header.Set("X-Context-Properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6Ijk0NDI2ODQ5MzczMjMyMzM3OCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5NDQyNjg0OTM3MzIzMjMzODEiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
+	//req.Header.Set("X-Context-Properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6Ijk0NDI2ODQ5MzczMjMyMzM3OCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5NDQyNjg0OTM3MzIzMjMzODEiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
 	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 
 	return req

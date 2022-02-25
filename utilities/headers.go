@@ -66,7 +66,7 @@ func (in *Instance) cfBmHeaders(req *http.Request, cookie string) *http.Request 
 	return req
 }
 
-func (in *Instance) inviteHeaders(req *http.Request, cookie string, fingerprint string) *http.Request {
+func (in *Instance) inviteHeaders(req *http.Request, cookie string, fingerprint string, contextProperties string) *http.Request {
 
 	for k, v := range map[string]string{
 		"Host":                 "discord.com",
@@ -76,7 +76,7 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie string, fingerprint 
 		"Authorization":        in.Token,
 		"X-Super-Properties":   XSuper,
 		"X-Fingerprint":        fingerprint,
-		"X-Context-Properties": "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkyNTA2NjE3MjM0MzM5ODQyMCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MjUwNjYxNzIzNDMzOTg0MjMiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9",
+		"X-Context-Properties": contextProperties,
 		"X-Discord-Locale":     "en-US",
 		"X-Debug-Options":      "bugReporterEnabled",
 		"Referer":              "https://discord.com/channels/@me",
