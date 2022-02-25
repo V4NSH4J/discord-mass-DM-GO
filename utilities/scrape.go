@@ -6,7 +6,6 @@
 
 package utilities
 
-
 func Scrape(ws *Connection, Guild string, Channel string, index int) error {
 	var x []interface{}
 	if index == 0 {
@@ -73,4 +72,3 @@ func ScrapeOffline(c *Connection, guild string, query string) error {
 	}
 	return nil
 }
-

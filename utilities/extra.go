@@ -234,7 +234,6 @@ func (in *Instance) Invite(Code string) error {
 		payload, err := json.Marshal(payload)
 		if err != nil {
 			color.Red("error while marshalling payload %v", err)
-			err = fmt.Errorf("error while marshalling payload %v", err)
 			continue
 		}
 		url := "https://discord.com/api/v9/invites/" + Code
@@ -272,19 +271,20 @@ func (in *Instance) Invite(Code string) error {
 			continue
 		}
 		if strings.Contains(string(body), "captcha_sitekey") {
-			if in.Config.CaptchaAPI == "" {
-				err = fmt.Errorf("[%v] Captcha detected but no API key provided", time.Now().Format("15:04:05"))
-				break
-			} else {
-				color.Yellow("[%v] Captcha detected %v", time.Now().Format("15:04:05"), in.Token)
-			}
 			var resp map[string]interface{}
 			err = json.Unmarshal(body, &resp)
 			if err != nil {
 				color.Red("[%v] Error while Unmarshalling body: %v", time.Now().Format("15:04:05"), err)
 				continue
 			}
-			solvedKey, err = in.SolveCaptcha(resp["captcha_sitekey"].(string), cookie)
+			cap := resp["captcha_sitekey"].(string)
+			if in.Config.CaptchaAPI == "" {
+				color.Red("[%v] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
+				break
+			} else {
+				color.Yellow("[%v] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.Token, cap, i)
+			}
+			solvedKey, err = in.SolveCaptcha(cap, cookie)
 			if err != nil {
 				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue
@@ -295,7 +295,7 @@ func (in *Instance) Invite(Code string) error {
 			continue
 		}
 		if strings.Contains(string(body), "1015") {
-			err = fmt.Errorf("Cloudflare Error 1015 - Your IP is being Rate Limited. Use proxies. If you already are, make sure proxy_from_file is enabled in your config")
+			color.Red("Cloudflare Error 1015 - Your IP is being Rate Limited. Use proxies. If you already are, make sure proxy_from_file is enabled in your config")
 			break
 		}
 

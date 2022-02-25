@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	version := "1.8.2"
+	version := "1.8.3"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", ""}
 	color.Blue(logo + " v" + version + "\n")
 	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
@@ -53,6 +53,29 @@ func Options() {
 		Options()
 	case 0:
 		color.Cyan("Debug Mode")
+		var inv string
+		fmt.Scanln(&inv)
+		_, instances, err := getEverything()
+		if err != nil {
+			color.Red(err.Error())
+			ExitSafely()
+		}
+		var wg sync.WaitGroup
+		for i := 0; i < len(instances); i++ {
+			wg.Add(1)
+			go func(i int) {
+				defer wg.Done()
+				a, b, c, err := instances[i].Inviter(inv, 0, "", "")
+				if err != nil {
+					color.Red(err.Error())
+				}
+				if a == -1 {
+					instances[i].Inviter(inv, a, b, c)
+				}
+				fmt.Println(a, b, c)
+			}(i)
+		}
+		wg.Wait()
 
 	case 1:
 		var invitechoice int
@@ -1758,10 +1781,10 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 		Timeout: time.Second * time.Duration(cfg.Timeout),
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion: tls.VersionTLS12,
-				//CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
+				MinVersion:         tls.VersionTLS12,
+				CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
 				InsecureSkipVerify: true,
-				//CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
+				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
 			DisableKeepAlives: cfg.DisableKL,
 			Proxy:             http.ProxyURL(proxyURL),

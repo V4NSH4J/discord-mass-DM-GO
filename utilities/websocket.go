@@ -51,7 +51,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 			if !strings.Contains(in.GatewayProxy, "socks4://") {
 				in.GatewayProxy = "socks4://" + in.GatewayProxy
 			}
-		} 
+		}
 		proxyURL, err := url.Parse(in.GatewayProxy)
 		if err != nil {
 			return nil, err

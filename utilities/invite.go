@@ -3,6 +3,7 @@ package utilities
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,7 +16,7 @@ import (
 )
 
 const Useragent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.1013 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36"
-const XSuper = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJwdGIiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC4xMDEzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTE1NjMzLCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
+const XSuperProp = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJwdGIiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC4xMDEzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTE1NjMzLCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
 
 // New Invite joiner
 func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fingerprint string) (int, string, string, error) {
@@ -87,7 +88,7 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		if err != nil {
 			return -3, cookie, fingerprint, fmt.Errorf("error while making request for joining server %v", err)
 		}
-		req = in.inviteHeaders(req, cookie, fingerprint, contextProperties)
+		req = in.inviteHeaders2(req, cookie, fingerprint, contextProperties)
 		resp, err := in.Client.Do(req)
 		if err != nil {
 			return -3, cookie, fingerprint, fmt.Errorf("error while getting response for joining server %v", err)
@@ -204,7 +205,7 @@ func (in *Instance) xContextHeaders(req *http.Request, cookie, fingerprint strin
 	return req
 }
 
-func (in *Instance) inviteHeaders(req *http.Request, cookie string, fingerprint string, xcontext string) *http.Request {
+func (in *Instance) inviteHeaders2(req *http.Request, cookie string, fingerprint string, xcontext string) *http.Request {
 
 	for k, v := range map[string]string{
 		"Host":                 "ptb.discord.com",
@@ -286,4 +287,14 @@ func randomIntegerString(length int) string {
 func generateXContext(channelID string, channelType float64, guildID string) string {
 	dec := fmt.Sprintf(`{"location":"Join Guild","location_guild_id":"%s","location_channel_id":"%s","location_channel_type":%s}`, guildID, channelID, channelType)
 	return base64.StdEncoding.EncodeToString([]byte(dec))
+}
+
+func RandomResult() []string {
+	var Res []string
+	for i := 0; i < 2; i++ {
+		bytes := make([]byte, 16)
+		_, _ = rand.Read(bytes)
+		Res = append(Res, hex.EncodeToString(bytes))
+	}
+	return Res
 }

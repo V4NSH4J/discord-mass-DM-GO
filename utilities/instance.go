@@ -16,27 +16,27 @@ import (
 )
 
 type Instance struct {
-	Token       string
-	Password    string
-	Proxy       string
-	Cookie      string
-	Fingerprint string
-	Messages    []Message
-	Count       int
-	LastQuery   string
-	LastCount   int
-	Members     []User
-	AllMembers  []User
-	Rejoin      int
-	ScrapeCount int
-	ID          string
-	Receiver    bool
-	Config      Config
+	Token        string
+	Password     string
+	Proxy        string
+	Cookie       string
+	Fingerprint  string
+	Messages     []Message
+	Count        int
+	LastQuery    string
+	LastCount    int
+	Members      []User
+	AllMembers   []User
+	Rejoin       int
+	ScrapeCount  int
+	ID           string
+	Receiver     bool
+	Config       Config
 	GatewayProxy string
-	Client *http.Client
-	WG     *sync.WaitGroup
-	Ws     *Connection
-	fatal  chan error
+	Client       *http.Client
+	WG           *sync.WaitGroup
+	Ws           *Connection
+	fatal        chan error
 }
 
 func (in *Instance) StartWS() error {

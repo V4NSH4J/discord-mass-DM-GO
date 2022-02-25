@@ -158,7 +158,7 @@ func GetFiles(dir string) ([]string, error) {
 func (in *Instance) BioChanger(bios []string) error {
 	chosenOne := bios[rand.Intn(len(bios))]
 	site := "https://discord.com/api/v9/users/@me"
-	req, err := http.NewRequest(http.MethodPatch, site, strings.NewReader(`{"bio": "` + chosenOne + `"}`))
+	req, err := http.NewRequest(http.MethodPatch, site, strings.NewReader(`{"bio": "`+chosenOne+`"}`))
 	if err != nil {
 		return fmt.Errorf("error while making request: %v", err)
 	}
@@ -185,13 +185,12 @@ func (in *Instance) BioChanger(bios []string) error {
 }
 
 func ValidateBios(bios []string) []string {
-	var validBios []string 
-	for i:= 0; i < len(bios); i++ {
+	var validBios []string
+	for i := 0; i < len(bios); i++ {
 		if len(bios[i]) > 190 {
-			continue 
+			continue
 		}
 		validBios = append(validBios, bios[i])
 	}
 	return validBios
 }
-
