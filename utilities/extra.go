@@ -92,7 +92,7 @@ func (in *Instance) ContextProperties(invite, cookie, fingerprint string) (strin
 	if err != nil {
 		return "", err
 	}
-	req = in.xContextHeaders(req, cookie, fingerprint)
+	req = in.xContextPropertiesHeaders(req, cookie, fingerprint)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", err
@@ -214,7 +214,6 @@ type invitePayload struct {
 func (in *Instance) Invite(Code string) error {
 	var solvedKey string
 	var payload invitePayload
-	var err error
 	for i := 0; i < in.Config.MaxInvite; i++ {
 		if solvedKey == "" || in.Config.CaptchaAPI == "" {
 			payload = invitePayload{}
@@ -245,12 +244,12 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("[%v] Error while Getting fingerprint: %v", err)
 			continue
 		}
-		// XContext, err := in.ContextProperties(Code, cookie, fingerprint)
-		// if err != nil {
-		// 	XContext = "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkyNTA2NjE3MjM0MzM5ODQyMCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MjUwNjYxNzIzNDMzOTg0MjMiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9"
-		// }
-		req = headersInvite(req, cookie, in.Token, fingerprint)
-		// req.Header.Set("X-Context-Properties", XContext)
+		XContext, err := in.ContextProperties(Code, cookie, fingerprint)
+		if err != nil {
+			XContext = "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkyNTA2NjE3MjM0MzM5ODQyMCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MjUwNjYxNzIzNDMzOTg0MjMiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9"
+		}
+		req = in.inviteHeaders(req, cookie, fingerprint, XContext)
+
 		resp, err := in.Client.Do(req)
 		if err != nil {
 			color.Red("Error while sending HTTP request %v \n", err)
@@ -281,9 +280,6 @@ func (in *Instance) Invite(Code string) error {
 				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue
 			}
-			if i == in.Config.MaxInvite-1 {
-				i--
-			}
 			continue
 		}
 		if strings.Contains(string(body), "1015") {
@@ -311,7 +307,7 @@ func (in *Instance) Invite(Code string) error {
 		return nil
 
 	}
-	return err
+	return fmt.Errorf("max retries exceeded")
 
 }
 

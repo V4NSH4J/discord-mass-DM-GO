@@ -45,7 +45,7 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		if err != nil {
 			return -2, cookie, fingerprint, fmt.Errorf("error while making request for getting x-context-properties %v", err)
 		}
-		req = in.xContextHeaders(req, cookie, fingerprint)
+		req = in.xContextPropertiesHeaders(req, cookie, fingerprint)
 		resp, err := in.Client.Do(req)
 		if err != nil {
 			return -2, cookie, fingerprint, fmt.Errorf("error while getting response for x-context-properties %v", err)
@@ -88,7 +88,7 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		if err != nil {
 			return -3, cookie, fingerprint, fmt.Errorf("error while making request for joining server %v", err)
 		}
-		req = in.inviteHeaders2(req, cookie, fingerprint, contextProperties)
+		req = in.inviteHeaders(req, cookie, fingerprint, contextProperties)
 		resp, err := in.Client.Do(req)
 		if err != nil {
 			return -3, cookie, fingerprint, fmt.Errorf("error while getting response for joining server %v", err)
@@ -178,59 +178,6 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		}
 	}
 	return -6, "", "", fmt.Errorf("captcha max retries exceeded")
-}
-
-func (in *Instance) xContextHeaders(req *http.Request, cookie, fingerprint string) *http.Request {
-
-	for k, v := range map[string]string{
-		"Host":               "ptb.discord.com",
-		"Connection":         "keep-alive",
-		"X-Super-Properties": XSuper,
-		"X-Discord-Locale":   "en-US",
-		"X-Debug-Options":    "bugReporterEnabled",
-		"X-Fingerprint":      fingerprint,
-		"Accept-Language":    "en-US,en-IN;q=0.9,zh-Hans-CN;q=0.8",
-		"Authorization":      in.Token,
-		"User-Agent":         Useragent,
-		"Accept":             "*/*",
-		"Sec-Fetch-Site":     "same-origin",
-		"Sec-Fetch-Mode":     "cors",
-		"Sec-Fetch-Dest":     "empty",
-		"Referer":            "https://ptb.discord.com/channels/@me",
-		"Cookie":             fmt.Sprintf(cookie+"%s%s", fakeStripeMid(), fakeCFruid()),
-		//"Cookie": "__dcfduid=23b89500957e11eca6dff1afbbb1a2bb; __sdcfduid=23b89501957e11eca6dff1afbbb1a2bbec44de1e329adfb0cd13bb8fb79436d8682a43efa5b029585307695946cda945",
-	} {
-		req.Header.Set(k, v)
-	}
-	return req
-}
-
-func (in *Instance) inviteHeaders2(req *http.Request, cookie string, fingerprint string, xcontext string) *http.Request {
-
-	for k, v := range map[string]string{
-		"Host":                 "ptb.discord.com",
-		"Connection":           "keep-alive",
-		"X-Super-Properties":   XSuper,
-		"X-Context-Properties": xcontext,
-		"X-Debug-Options":      "bugReporterEnabled",
-		"X-Fingerprint":        fingerprint,
-		"Accept-Language":      "en-US,en-IN;q=0.9,zh-Hans-CN;q=0.8",
-		"Authorization":        in.Token,
-		"Content-Type":         "application/json",
-		"User-Agent":           Useragent,
-		"X-Discord-Locale":     "en-US",
-		"Accept":               "*/*",
-		"Origin":               "https://ptb.discord.com",
-		"Sec-Fetch-Site":       "same-origin",
-		"Sec-Fetch-Mode":       "cors",
-		"Sec-Fetch-Dest":       "empty",
-		"Referer":              "https://ptb.discord.com/channels/@me",
-		"Cookie":               fmt.Sprintf(cookie+"%s%s", fakeStripeMid(), fakeCFruid()),
-		//"Cookie": "__dcfduid=23b89500957e11eca6dff1afbbb1a2bb; __sdcfduid=23b89501957e11eca6dff1afbbb1a2bbec44de1e329adfb0cd13bb8fb79436d8682a43efa5b029585307695946cda945",
-	} {
-		req.Header.Set(k, v)
-	}
-	return req
 }
 
 func (in *Instance) headersRules(req *http.Request, cookie string, fingerprint string, serverID string, channelID string) *http.Request {

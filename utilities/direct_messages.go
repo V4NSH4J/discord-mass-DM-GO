@@ -10,10 +10,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+
+	// "io/ioutil"
 	"math/rand"
 	"net/http"
-	"regexp"
+
+	// "regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -51,28 +53,29 @@ func (in *Instance) GetCookieString() (string, error) {
 		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
 	}
 	cookies = cookies + "locale=en-US"
-	CfRay := resp.Header.Get("cf-ray")
-	if strings.Contains(CfRay, "-BOM") {
-		CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
-	}
+	// CfRay := resp.Header.Get("cf-ray")
+	// if strings.Contains(CfRay, "-BOM") {
+	// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
+	// }
 
-	if CfRay != "" {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			color.Red("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
-			return cookies + "locale:en-US", nil
-		}
-		m := regexp.MustCompile(`m:'(.+)'`)
-		match := m.FindStringSubmatch(string(body))
-		if match == nil {
-			return cookies + "locale:en-US", nil
-		}
-		finalCookies, err := in.GetCfBm(match[1], CfRay, cookies)
-		if err != nil {
-			return cookies + "locale:en-US", nil
-		}
-		return finalCookies, nil
-	}
+	// if CfRay != "" {
+	// 	body, err := ioutil.ReadAll(resp.Body)
+	// 	if err != nil {
+	// 		color.Red("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
+	// 		return cookies + "locale:en-US", nil
+	// 	}
+	// 	m := regexp.MustCompile(`m:'(.+)'`)
+	// 	match := m.FindStringSubmatch(string(body))
+	// 	if match == nil {
+	// 		return cookies + "locale:en-US", nil
+	// 	}
+	// 	finalCookies, err := in.GetCfBm(match[1], CfRay, cookies)
+	// 	if err != nil {
+	// 		return cookies + "locale:en-US", nil
+	// 	}
+	// 	fmt.Println(finalCookies)
+	// 	return finalCookies, nil
+	// }
 
 	return cookies + "locale:en-US", nil
 
@@ -85,7 +88,7 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 		{
 			"m":"%s",
 			"results":["%s","%s"],
-			"timing":95,
+			"timing":%v,
 			"fp":
 				{
 					"id":3,
@@ -102,7 +105,7 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 				}
 			}
 		}
-		`, m, res[0], res[1],
+		`, m, res[0], res[1], 60+rand.Intn(60),
 	)
 	req, err := http.NewRequest("POST", site, strings.NewReader(payload))
 	if err != nil {

@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	version := "1.8.3"
+	version := "1.8.4"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", ""}
 	color.Blue(logo + " v" + version + "\n")
 	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
@@ -1793,6 +1793,7 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
 			DisableKeepAlives: cfg.DisableKL,
+			ForceAttemptHTTP2: true,
 			Proxy:             http.ProxyURL(proxyURL),
 		},
 	}

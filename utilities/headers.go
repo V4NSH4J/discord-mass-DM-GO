@@ -66,19 +66,20 @@ func (in *Instance) cfBmHeaders(req *http.Request, cookie string) *http.Request 
 	return req
 }
 
-func (in *Instance) inviteHeaders(req *http.Request, cookie string, fingerprint string, contextProperties string) *http.Request {
-
+func (in *Instance) inviteHeaders(req *http.Request, cookie, fingerprint, xcontext string) *http.Request {
 	for k, v := range map[string]string{
 		"Host":                 "discord.com",
 		"User-Agent":           UserAgent,
 		"Accept":               "*/*",
 		"Accept-Language":      "en-US,en;q=0.5",
+		"Content-Type":         "application/json",
+		"X-Context-Properties": xcontext,
 		"Authorization":        in.Token,
 		"X-Super-Properties":   XSuper,
 		"X-Fingerprint":        fingerprint,
-		"X-Context-Properties": contextProperties,
 		"X-Discord-Locale":     "en-US",
 		"X-Debug-Options":      "bugReporterEnabled",
+		"Origin":               "https://discord.com",
 		"Referer":              "https://discord.com/channels/@me",
 		"Cookie":               cookie,
 		"Sec-Fetch-Dest":       "empty",
@@ -87,5 +88,29 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie string, fingerprint 
 	} {
 		req.Header.Set(k, v)
 	}
+
+	return req
+}
+
+func (in *Instance) xContextPropertiesHeaders(req *http.Request, cookie, fingerprint string) *http.Request {
+	for k, v := range map[string]string{
+		"Host":               `discord.com`,
+		"User-Agent":         UserAgent,
+		"Accept":             `*/*`,
+		"Accept-Language":    `en-US,en;q=0.5`,
+		"Authorization":      in.Token,
+		"X-Super-Properties": XSuper,
+		"X-Fingerprint":      fingerprint,
+		"X-Discord-Locale":   `en-US`,
+		"X-Debug-Options":    `bugReporterEnabled`,
+		"Referer":            `https://discord.com/channels/@me`,
+		"Cookie":             cookie,
+		"Sec-Fetch-Dest":     `empty`,
+		"Sec-Fetch-Mode":     `cors`,
+		"Sec-Fetch-Site":     `same-origin`,
+	} {
+		req.Header.Set(k, v)
+	}
+
 	return req
 }
