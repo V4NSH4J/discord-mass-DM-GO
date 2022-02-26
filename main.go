@@ -32,8 +32,9 @@ import (
 )
 
 func main() {
-	version := "1.8.4"
-	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", ""}
+	version := "1.8.5"
+	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
+	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
 	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
 	versionCheck(version)
