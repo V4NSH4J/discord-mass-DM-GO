@@ -19,6 +19,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	
+	"gopkg.in/yaml.v2"
 )
 
 func ReadLines(filename string) ([]string, error) {
@@ -182,7 +184,7 @@ func GetMessage() ([]Message, error) {
 	return messages, nil
 }
 
-type Config struct {
+type ConfigJSON struct {
 	Delay           int    `json:"individual_delay"`
 	LongDelay       int    `json:"rate_limit_delay"`
 	Offset          int    `json:"offset"`
@@ -214,8 +216,71 @@ type Config struct {
 	Close           bool   `json:"close_dm_after_message"`
 }
 
+type Config struct {
+	Delay           int    
+	LongDelay       int    
+	Offset          int    
+	Skip            bool   
+	Proxy           string 
+	Call            bool   
+	Remove          bool   
+	RemoveM         bool   
+	Stop            bool   
+	Mutual          bool   
+	Friend          bool   
+	Websocket       bool   
+	SleepSc         int    
+	ProxyFromFile   bool   
+	ProxyProtocol   string 
+	MaxDMS          int    
+	Receive         bool   
+	GatewayProxy    bool   
+	Timeout         int    
+	SkipFailed      bool   
+	ClientKey       string 
+	CaptchaAPI      string 
+	MaxInvite       int    
+	DisableKL       bool   
+	ScrapeUsernames bool   
+	ScrapeAvatars   bool   
+	ProxyForCaptcha bool   
+	Block           bool   
+	Close           bool   
+}
+
+type ConfigYML struct {
+	Delay           int    `yaml:"individual_delay"`
+	LongDelay       int    `yaml:"rate_limit_delay"`
+	Offset          int    `yaml:"offset"`
+	Skip            bool   `yaml:"skip_completed"`
+	Proxy           string `yaml:"proxy"`
+	Call            bool   `yaml:"call"`
+	Remove          bool   `yaml:"remove_dead_tokens"`
+	RemoveM         bool   `yaml:"remove_completed_members"`
+	Stop            bool   `yaml:"stop_dead_tokens"`
+	Mutual          bool   `yaml:"check_mutual"`
+	Friend          bool   `yaml:"friend_before_DM"`
+	Websocket       bool   `yaml:"online_tokens"`
+	SleepSc         int    `yaml:"online_scraper_delay"`
+	ProxyFromFile   bool   `yaml:"proxy_from_file"`
+	ProxyProtocol   string `yaml:"proxy_protocol"`
+	MaxDMS          int    `yaml:"max_dms_per_token"`
+	Receive         bool   `yaml:"receive_messages"`
+	GatewayProxy    bool   `yaml:"use_proxy_for_gateway"`
+	Timeout         int    `yaml:"timeout"`
+	SkipFailed      bool   `yaml:"skip_failed"`
+	ClientKey       string `yaml:"captcha_api_key"`
+	CaptchaAPI      string `yaml:"captcha_api"`
+	MaxInvite       int    `yaml:"max_attempt_invite_rejoin"`
+	DisableKL       bool   `yaml:"disable_keep_alives"`
+	ScrapeUsernames bool   `yaml:"scrape_usernames"`
+	ScrapeAvatars   bool   `yaml:"scrape_avatars"`
+	ProxyForCaptcha bool   `yaml:"proxy_for_captcha"`
+	Block           bool   `yaml:"block_after_dm"`
+	Close           bool   `yaml:"close_dm_after_message"`
+}
+
 func GetConfig() (Config, error) {
-	var config Config
 	ex, err := os.Executable()
 	if err != nil {
 		color.Red("Error while finding executable")
@@ -224,18 +289,32 @@ func GetConfig() (Config, error) {
 	ex = filepath.ToSlash(ex)
 	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "config.json"))
 	if err != nil {
-		color.Red("Error while Opening config.json")
-		return Config{}, err
+		file, err1 := os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
+		if err1 != nil {
+			color.Red("Error while Opening Config (tried .json + .yml)")
+			return Config{}, err
+		} else {
+			defer file.Close()
+			var config ConfigYML
+			bytes, _ := io.ReadAll(file)
+			errr := yaml.Unmarshal(bytes, &config)
+			if errr != nil {
+				fmt.Println(err)
+				return Config{}, err
+			}
+			return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Mutual, config.Friend, config.Websocket, config.SleepSc, config.ProxyFromFile, config.ProxyProtocol, config.MaxDMS, config.Receive, config.GatewayProxy, config.Timeout, config.SkipFailed, config.ClientKey, config.CaptchaAPI, config.MaxInvite, config.DisableKL, config.ScrapeUsernames, config.ScrapeAvatars, config.ProxyForCaptcha, config.Block, config.Close}, nil
+		}
+	} else {
+		defer file.Close()
+		var config ConfigJSON
+		bytes, _ := io.ReadAll(file)
+		errr := json.Unmarshal(bytes, &config)
+		if errr != nil {
+			fmt.Println(err)
+			return Config{},  errr
+		}
+		return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Mutual, config.Friend, config.Websocket, config.SleepSc, config.ProxyFromFile, config.ProxyProtocol, config.MaxDMS, config.Receive, config.GatewayProxy, config.Timeout, config.SkipFailed, config.ClientKey, config.CaptchaAPI, config.MaxInvite, config.DisableKL, config.ScrapeUsernames, config.ScrapeAvatars, config.ProxyForCaptcha, config.Block, config.Close}, nil
 	}
-	defer file.Close()
-	bytes, _ := io.ReadAll(file)
-	errr := json.Unmarshal(bytes, &config)
-	if errr != nil {
-		fmt.Println(err)
-		return Config{}, err
-	}
-
-	return config, nil
 }
 
 func ProcessAvatar(av string, memberid string) error {
