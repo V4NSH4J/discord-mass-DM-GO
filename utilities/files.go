@@ -184,71 +184,7 @@ func GetMessage() ([]Message, error) {
 	return messages, nil
 }
 
-type ConfigJSON struct {
-	Delay           int    `json:"individual_delay"`
-	LongDelay       int    `json:"rate_limit_delay"`
-	Offset          int    `json:"offset"`
-	Skip            bool   `json:"skip_completed"`
-	Proxy           string `json:"proxy"`
-	Call            bool   `json:"call"`
-	Remove          bool   `json:"remove_dead_tokens"`
-	RemoveM         bool   `json:"remove_completed_members"`
-	Stop            bool   `json:"stop_dead_tokens"`
-	Mutual          bool   `json:"check_mutual"`
-	Friend          bool   `json:"friend_before_DM"`
-	Websocket       bool   `json:"online_tokens"`
-	SleepSc         int    `json:"online_scraper_delay"`
-	ProxyFromFile   bool   `json:"proxy_from_file"`
-	ProxyProtocol   string `json:"proxy_protocol"`
-	MaxDMS          int    `json:"max_dms_per_token"`
-	Receive         bool   `json:"receive_messages"`
-	GatewayProxy    bool   `json:"use_proxy_for_gateway"`
-	Timeout         int    `json:"timeout"`
-	SkipFailed      bool   `json:"skip_failed"`
-	ClientKey       string `json:"captcha_api_key"`
-	CaptchaAPI      string `json:"captcha_api"`
-	MaxInvite       int    `json:"max_attempt_invite_rejoin"`
-	DisableKL       bool   `json:"disable_keep_alives"`
-	ScrapeUsernames bool   `json:"scrape_usernames"`
-	ScrapeAvatars   bool   `json:"scrape_avatars"`
-	ProxyForCaptcha bool   `json:"proxy_for_captcha"`
-	Block           bool   `json:"block_after_dm"`
-	Close           bool   `json:"close_dm_after_message"`
-}
-
 type Config struct {
-	Delay           int    
-	LongDelay       int    
-	Offset          int    
-	Skip            bool   
-	Proxy           string 
-	Call            bool   
-	Remove          bool   
-	RemoveM         bool   
-	Stop            bool   
-	Mutual          bool   
-	Friend          bool   
-	Websocket       bool   
-	SleepSc         int    
-	ProxyFromFile   bool   
-	ProxyProtocol   string 
-	MaxDMS          int    
-	Receive         bool   
-	GatewayProxy    bool   
-	Timeout         int    
-	SkipFailed      bool   
-	ClientKey       string 
-	CaptchaAPI      string 
-	MaxInvite       int    
-	DisableKL       bool   
-	ScrapeUsernames bool   
-	ScrapeAvatars   bool   
-	ProxyForCaptcha bool   
-	Block           bool   
-	Close           bool   
-}
-
-type ConfigYML struct {
 	Delay           int    `yaml:"individual_delay"`
 	LongDelay       int    `yaml:"rate_limit_delay"`
 	Offset          int    `yaml:"offset"`
@@ -287,33 +223,20 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	ex = filepath.ToSlash(ex)
-	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "config.json"))
-	if err != nil {
-		file, err1 := os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
-		if err1 != nil {
-			color.Red("Error while Opening Config (tried .json + .yml)")
-			return Config{}, err
-		} else {
-			defer file.Close()
-			var config ConfigYML
-			bytes, _ := io.ReadAll(file)
-			errr := yaml.Unmarshal(bytes, &config)
-			if errr != nil {
-				fmt.Println(err)
-				return Config{}, err
-			}
-			return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Mutual, config.Friend, config.Websocket, config.SleepSc, config.ProxyFromFile, config.ProxyProtocol, config.MaxDMS, config.Receive, config.GatewayProxy, config.Timeout, config.SkipFailed, config.ClientKey, config.CaptchaAPI, config.MaxInvite, config.DisableKL, config.ScrapeUsernames, config.ScrapeAvatars, config.ProxyForCaptcha, config.Block, config.Close}, nil
-		}
+	file, err1 := os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
+	if err1 != nil {
+		color.Red("Error while Opening Config (tried .json + .yml)")
+		return Config{}, err
 	} else {
 		defer file.Close()
-		var config ConfigJSON
+		var config Config
 		bytes, _ := io.ReadAll(file)
-		errr := json.Unmarshal(bytes, &config)
+		errr := yaml.Unmarshal(bytes, &config)
 		if errr != nil {
 			fmt.Println(err)
-			return Config{},  errr
+			return Config{}, err
 		}
-		return Config{config.Delay, config.LongDelay, config.Offset, config.Skip, config.Proxy, config.Call, config.Remove, config.RemoveM, config.Stop, config.Mutual, config.Friend, config.Websocket, config.SleepSc, config.ProxyFromFile, config.ProxyProtocol, config.MaxDMS, config.Receive, config.GatewayProxy, config.Timeout, config.SkipFailed, config.ClientKey, config.CaptchaAPI, config.MaxInvite, config.DisableKL, config.ScrapeUsernames, config.ScrapeAvatars, config.ProxyForCaptcha, config.Block, config.Close}, nil
+		return config, nil
 	}
 }
 
