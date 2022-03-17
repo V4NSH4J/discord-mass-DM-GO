@@ -485,6 +485,7 @@ func Options() {
 									color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), string(body))
 									continue
 								}
+								color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
 								continue
 							} else {
 								color.Green("[%v] Added friend %v", time.Now().Format("15:04:05"), info.User.Username+"#"+info.User.Discriminator)
