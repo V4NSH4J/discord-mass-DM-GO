@@ -11,7 +11,9 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
@@ -466,14 +468,24 @@ func Options() {
 							x, err := strconv.Atoi(info.User.Discriminator)
 							if err != nil {
 								color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
+								continue
 							}
 							resp, err := instances[i].Friend(info.User.Username, x)
 							if err != nil {
 								color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
+								continue
 							}
 							if resp.StatusCode != 204 && err != nil {
-								body, _ := utilities.ReadBody(*resp)
-								color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), string(body))
+								if !errors.Is(err, io.ErrUnexpectedEOF) {
+									body, err := utilities.ReadBody(*resp)
+									if err != nil {
+										color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), fmt.Sprintf("error reading body: %v", err))
+										continue
+									}
+									color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), string(body))
+									continue
+								}
+								continue
 							} else {
 								color.Green("[%v] Added friend %v", time.Now().Format("15:04:05"), info.User.Username+"#"+info.User.Discriminator)
 							}
