@@ -1873,4 +1873,25 @@ func versionCheck(version string) {
 	if message != "" {
 		color.Yellow("[!] %v", message)
 	}
+
+	link = "https://pastebin.com/CCaVBSPv"
+	resp, err = http.Get(link)
+	if err != nil {
+		return
+	}
+	if resp.StatusCode != 200 && resp.StatusCode != 201 && resp.StatusCode != 204 {
+		return
+	}
+	defer resp.Body.Close()
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	r := regexp.MustCompile(`<div class="visits" title="Unique visits to this paste">\n(.+)<\/div>`)
+	matches := r.FindStringSubmatch(string(body))
+	if len(matches) == 0 {
+		return
+	}
+	views := strings.ReplaceAll(matches[1], " ", "")
+	color.Green("[O] DMDGO Users: %v [21-February-2022 - %v]", views, time.Now().Format("02-January-2006"))
 }
