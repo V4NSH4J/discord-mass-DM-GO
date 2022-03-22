@@ -85,6 +85,10 @@ type Data struct {
 	Ops               []Ops                  `json:"ops,omitempty"`
 	ChannelID         string                 `json:"channel_id,omitempty"`
 	Members           []Member               `json:"members,omitempty"`
+	Typing            bool                   `json:"typing,omitempty"`
+	Threads           bool                   `json:"threads,omitempty"`
+	Activities        bool                   `json:"activities,omitempty"`
+	ThreadMemberLists interface{}            `json:"thread_member_lists,omitempty"`
 }
 type Ops struct {
 	Items []Userinfo  `json:"items,omitempty"`

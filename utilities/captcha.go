@@ -13,13 +13,11 @@ import (
 	"github.com/fatih/color"
 )
 
-func (in *Instance) SolveCaptcha(sitekey string, cookie string) (string, error) {
+func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string) (string, error) {
 	if Contains([]string{"capmonster.cloud", "anti-captcha.com", "anycaptcha.com"}, in.Config.CaptchaAPI) {
 		return in.SolveCaptchaCapmonster(sitekey, cookie)
-	} else if in.Config.CaptchaAPI == "2captcha.com" {
-		return in.SolveCaptcha2Captcha(sitekey)
-	} else if Contains([]string{"rucaptcha.com", "azcaptcha.com", "solvecaptcha.com"}, in.Config.CaptchaAPI) {
-		return in.SolveCaptchaRucaptcha(sitekey)
+	} else if Contains([]string{"rucaptcha.com", "azcaptcha.com", "solvecaptcha.com", "2captcha.com"}, in.Config.CaptchaAPI) {
+		return in.SolveCaptchaRucaptcha(sitekey, rqData, rqToken)
 	} else if in.Config.CaptchaAPI == "deathbycaptcha.com" {
 		return in.SolveCaptchaDeathByCaptcha(sitekey)
 	} else {
@@ -134,16 +132,16 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (stri
 			if err != nil {
 				return "", fmt.Errorf("error unmarshalling the response body [%v]", err)
 			}
-			if response.ErrorID == 16 {
-				// The captcha being requested no longer exists in the active captchas
-				return "", fmt.Errorf("error getting captcha [%v]", response.ErrorID)
-			}
 			if response.Status == "ready" {
 				return response.Solution.Ans, nil
 
 			} else if response.Status == "processing" {
 				p++ // Incrementing the counter
 				time.Sleep(3 * time.Second)
+				continue 
+			}
+			if response.ErrorID != 0 {
+				return "", fmt.Errorf("ErrorID: %s, ErrorCode: %s, ErrorDescription: %s", response.ErrorID, response.ErrorCode, response.ErrorDesc)
 			}
 
 		}
@@ -189,10 +187,12 @@ type Task struct {
 }
 
 type Resp struct {
-	TaskID   int    `json:"taskID"`
-	ErrorID  int    `json:"ErrorId"`
-	Status   string `json:"status"`
-	Solution Sol    `json:"solution"`
+	TaskID    int    `json:"taskID"`
+	ErrorID   int    `json:"ErrorId"`
+	Status    string `json:"status"`
+	Solution  Sol    `json:"solution"`
+	ErrorCode string `json:"errorCode"`
+	ErrorDesc string `json:"errorDescription"`
 }
 
 type Sol struct {
@@ -268,7 +268,7 @@ func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey string) (string, error) {
 				"pageurl": "http://discord.com",
 				"sitekey": "%s"
 			}
-		}`, username, password ,proxy, proxytype, sitekey)
+		}`, username, password, proxy, proxytype, sitekey)
 	fmt.Println(payload)
 	req, err := http.NewRequest(http.MethodPost, captchaPostEndpoint, strings.NewReader(payload))
 	if err != nil {
@@ -290,10 +290,16 @@ func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey string) (string, error) {
 
 }
 
-func (in *Instance) SolveCaptchaRucaptcha(sitekey string) (string, error) {
+func (in *Instance) SolveCaptchaRucaptcha(sitekey string, rqData string, rqToken string) (string, error) {
+	encUa := `Mozilla%2F5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%3B%20rv%3A83.0%29%20Gecko%2F20100101%20Firefox%2F83.0`
 	var submitEndpoint string
 	if !in.Config.ProxyForCaptcha {
-		submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=1&json=1&soft_id=13615286", in.Config.CaptchaAPI ,in.Config.ClientKey, sitekey, "https://discord.com/channels/@me")
+		if in.Config.CaptchaAPI == "2captcha.com" {
+			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&json=1&soft_id=12368652", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa)
+		} else {
+			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%sjson=1&soft_id=13615286", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa)
+		}
+
 	} else {
 		var proxyType string
 		if in.Config.ProxyProtocol == "socks5" {
@@ -303,8 +309,16 @@ func (in *Instance) SolveCaptchaRucaptcha(sitekey string) (string, error) {
 		} else if in.Config.ProxyProtocol == "http" {
 			proxyType = "HTTPS"
 		}
-		submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=1&proxy=%s&proxy_type=%s&json=1", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", in.Proxy, proxyType)
+		if in.Config.CaptchaAPI == "2captcha.com" {
+			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=12368652", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa,in.Proxy, proxyType)
+		} else {
+			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=13615286", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa,in.Proxy, proxyType)
+		}	
 	}
+	if rqData != "" {
+		submitEndpoint = fmt.Sprintf("%s&data=%s", submitEndpoint, rqData)
+	}
+	fmt.Println(submitEndpoint)
 	req, err := http.NewRequest(http.MethodGet, submitEndpoint, nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating request [%v]", err)
@@ -332,21 +346,21 @@ func (in *Instance) SolveCaptchaRucaptcha(sitekey string) (string, error) {
 		return "", fmt.Errorf("error %v", response["request"])
 	}
 	var captchaIDfloat int
-	var captchaIDString string 
-	var captchaGetEndpoint string 
+	var captchaIDString string
+	var captchaGetEndpoint string
 	if in.Config.CaptchaAPI == "azcaptcha.com" {
 		captchaIDfloat = int(response["request"].(float64))
 		fmt.Println(captchaIDfloat)
-		captchaGetEndpoint = fmt.Sprintf("http://%s/res.php?key=%s&action=get&action=get&id=%s&json=1", in.Config.CaptchaAPI,in.Config.ClientKey, strconv.Itoa(captchaIDfloat))
+		captchaGetEndpoint = fmt.Sprintf("https://%s/res.php?key=%s&action=get&action=get&id=%s&json=1", in.Config.CaptchaAPI, in.Config.ClientKey, strconv.Itoa(captchaIDfloat))
 	} else {
 		captchaIDString = response["request"].(string)
-		captchaGetEndpoint = fmt.Sprintf("http://%s/res.php?key=%s&action=get&action=get&id=%s&json=1", in.Config.CaptchaAPI,in.Config.ClientKey, captchaIDString)
+		captchaGetEndpoint = fmt.Sprintf("https://%s/res.php?key=%s&action=get&action=get&id=%s&json=1", in.Config.CaptchaAPI, in.Config.ClientKey, captchaIDString)
 	}
 	fmt.Println(captchaGetEndpoint)
 	// time recommended in rucaptcha documentation
 	time.Sleep(15 * time.Second)
-	
-	for i := 0; i < 100; i ++ {
+
+	for i := 0; i < 100; i++ {
 		req, err := http.NewRequest(http.MethodGet, captchaGetEndpoint, nil)
 		if err != nil {
 			return "", fmt.Errorf("error creating request [%v]", err)

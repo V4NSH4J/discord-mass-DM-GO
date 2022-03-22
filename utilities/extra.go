@@ -269,13 +269,21 @@ func (in *Instance) Invite(Code string) error {
 				continue
 			}
 			cap := resp["captcha_sitekey"].(string)
+			var rqData string 
+			var rqToken string 
+			if strings.Contains(string(body), "captcha_rqdata") {
+				rqData = resp["captcha_rqdata"].(string)
+			}
+			if strings.Contains(string(body), "captcha_rqtoken") {
+				rqToken = resp["captcha_rqdata"].(string)
+			}
 			if in.Config.CaptchaAPI == "" {
 				color.Red("[%v] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
 				break
 			} else {
 				color.Yellow("[%v] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.Token, cap, i)
 			}
-			solvedKey, err = in.SolveCaptcha(cap, cookie)
+			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken)
 			if err != nil {
 				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue

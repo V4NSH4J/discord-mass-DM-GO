@@ -110,7 +110,7 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 			if in.Config.ClientKey == "" {
 				return -3, cookie, fingerprint, fmt.Errorf("captcha detected but no api provided")
 			}
-			captchaKey, err = in.SolveCaptcha(captchaSitekey, cookie)
+			captchaKey, err = in.SolveCaptcha(captchaSitekey, cookie, "", "")
 			if err != nil {
 				color.Yellow("[%v] Token %v error while solving captcha %v Retrying", time.Now().Format("15:04:05"), in.Token, err)
 			}
