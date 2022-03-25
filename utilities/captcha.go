@@ -15,7 +15,7 @@ import (
 
 func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string) (string, error) {
 	if Contains([]string{"capmonster.cloud", "anti-captcha.com", "anycaptcha.com"}, in.Config.CaptchaAPI) {
-		return in.SolveCaptchaCapmonster(sitekey, cookie)
+		return in.SolveCaptchaCapmonster(sitekey, cookie, rqData)
 	} else if Contains([]string{"rucaptcha.com", "azcaptcha.com", "solvecaptcha.com", "2captcha.com"}, in.Config.CaptchaAPI) {
 		return in.SolveCaptchaRucaptcha(sitekey, rqData, rqToken)
 	} else if in.Config.CaptchaAPI == "deathbycaptcha.com" {
@@ -26,7 +26,7 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 }
 
 // Function to use a captcha solving service and return a solved captcha key
-func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (string, error) {
+func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdata string) (string, error) {
 	var jsonx Pload
 	if !in.Config.ProxyForCaptcha || in.Config.CaptchaAPI == "anycaptcha.com" {
 		jsonx = Pload{
@@ -37,6 +37,7 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (stri
 				WebsiteKey: sitekey,
 				Cookies:    cookies,
 				UserAgent:  Useragent,
+				Data:       rqdata,
 			},
 		}
 	} else {
@@ -74,6 +75,7 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (stri
 				ProxyLogin:    username,
 				ProxyPassword: password,
 				Cookies:       cookies,
+				Data:          rqdata,
 			},
 		}
 	}
@@ -138,7 +140,7 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string) (stri
 			} else if response.Status == "processing" {
 				p++ // Incrementing the counter
 				time.Sleep(3 * time.Second)
-				continue 
+				continue
 			}
 			if response.ErrorID != 0 {
 				return "", fmt.Errorf("ErrorID: %s, ErrorCode: %s, ErrorDescription: %s", response.ErrorID, response.ErrorCode, response.ErrorDesc)
@@ -181,6 +183,7 @@ type Task struct {
 	ProxyAddress  string `json:"proxyAddress"`
 	ProxyPort     int    `json:"proxyPort"`
 	ProxyLogin    string `json:"proxyLogin"`
+	Data          string `json:"data"`
 	ProxyPassword string `json:"proxyPassword"`
 	UserAgent     string `json:"userAgent"`
 	Cookies       string `json:"cookies`
@@ -235,7 +238,6 @@ func (in *Instance) SolveCaptcha2Captcha(sitekey string) (string, error) {
 			return "", fmt.Errorf("Unknown error %v", err)
 		}
 	}
-
 	return code, nil
 }
 
@@ -310,15 +312,14 @@ func (in *Instance) SolveCaptchaRucaptcha(sitekey string, rqData string, rqToken
 			proxyType = "HTTPS"
 		}
 		if in.Config.CaptchaAPI == "2captcha.com" {
-			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=12368652", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa,in.Proxy, proxyType)
+			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=12368652", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa, in.Proxy, proxyType)
 		} else {
-			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=13615286", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa,in.Proxy, proxyType)
-		}	
+			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=13615286", in.Config.CaptchaAPI, in.Config.ClientKey, sitekey, "https://discord.com/channels/@me", encUa, in.Proxy, proxyType)
+		}
 	}
 	if rqData != "" {
 		submitEndpoint = fmt.Sprintf("%s&data=%s", submitEndpoint, rqData)
 	}
-	fmt.Println(submitEndpoint)
 	req, err := http.NewRequest(http.MethodGet, submitEndpoint, nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating request [%v]", err)

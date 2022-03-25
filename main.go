@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	version := "1.8.5"
+	version := "1.8.6"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
@@ -1410,6 +1410,12 @@ func Options() {
 		for i := 0; i < len(instances); i++ {
 			c.Wait()
 			go func(i int) {
+				err := instances[i].StartWS()
+				if err != nil {
+					color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				}
 				r, err := instances[i].NameChanger(users[rand.Intn(len(users))])
 				if err != nil {
 					color.Red("[%v] %v Error while changing name: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
@@ -1423,6 +1429,12 @@ func Options() {
 					color.Green("[%v] %v Changed name successfully", time.Now().Format("15:04:05"), instances[i].Token)
 				} else {
 					color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].Token, r.Status, string(body))
+				}
+				err = instances[i].Ws.Close()
+				if err != nil {
+					color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].Token)
 				}
 				c.Done()
 			}(i)
@@ -1473,8 +1485,13 @@ func Options() {
 		c := goccm.New(threads)
 		for i := 0; i < len(instances); i++ {
 			c.Wait()
-
 			go func(i int) {
+				err := instances[i].StartWS()
+				if err != nil {
+					color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				}
 				r, err := instances[i].AvatarChanger(avatars[rand.Intn(len(avatars))])
 				if err != nil {
 					color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
@@ -1485,7 +1502,12 @@ func Options() {
 						color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].Token, r.StatusCode)
 					}
 				}
-
+				err = instances[i].Ws.Close()
+				if err != nil {
+					color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].Token)
+				}
 				c.Done()
 			}(i)
 		}
@@ -1560,11 +1582,23 @@ func Options() {
 		for i := 0; i < len(instances); i++ {
 			c.Wait()
 			go func(i int) {
-				err := instances[i].BioChanger(bios)
+				err := instances[i].StartWS()
+				if err != nil {
+					color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				}
+				err = instances[i].BioChanger(bios)
 				if err != nil {
 					color.Red("[%v] %v Error while changing bio: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
 				} else {
 					color.Green("[%v] %v Bio changed successfully", time.Now().Format("15:04:05"), instances[i].Token)
+				}
+				err = instances[i].Ws.Close()
+				if err != nil {
+					color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].Token)
 				}
 				c.Done()
 			}(i)
