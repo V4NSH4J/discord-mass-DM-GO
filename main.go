@@ -32,7 +32,7 @@ import (
 )
 
 func main() {
-	version := "1.8.6"
+	version := "1.8.7"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
