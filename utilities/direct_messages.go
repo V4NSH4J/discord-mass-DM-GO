@@ -48,11 +48,11 @@ func (in *Instance) GetCookieString() (string, error) {
 		color.Red("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("there are no cookies in response")
 	}
-	var cookies string
+	cookies := ""
 	for _, cookie := range resp.Cookies() {
-		cookies = cookies + cookie.Name + "=" + cookie.Value + "; "
+		cookies += fmt.Sprintf(`%s=%s;`, cookie.Name, cookie.Value)
 	}
-	cookies = cookies + "locale=en-US"
+	cookies += "locale=en-US"
 	// CfRay := resp.Header.Get("cf-ray")
 	// if strings.Contains(CfRay, "-BOM") {
 	// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
