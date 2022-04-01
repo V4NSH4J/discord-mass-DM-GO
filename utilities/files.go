@@ -19,6 +19,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
+	
+	"gopkg.in/yaml.v2"
 )
 
 func ReadLines(filename string) ([]string, error) {
@@ -183,59 +185,59 @@ func GetMessage() ([]Message, error) {
 }
 
 type Config struct {
-	Delay           int    `json:"individual_delay"`
-	LongDelay       int    `json:"rate_limit_delay"`
-	Offset          int    `json:"offset"`
-	Skip            bool   `json:"skip_completed"`
-	Proxy           string `json:"proxy"`
-	Call            bool   `json:"call"`
-	Remove          bool   `json:"remove_dead_tokens"`
-	RemoveM         bool   `json:"remove_completed_members"`
-	Stop            bool   `json:"stop_dead_tokens"`
-	Mutual          bool   `json:"check_mutual"`
-	Friend          bool   `json:"friend_before_DM"`
-	Websocket       bool   `json:"online_tokens"`
-	SleepSc         int    `json:"online_scraper_delay"`
-	ProxyFromFile   bool   `json:"proxy_from_file"`
-	ProxyProtocol   string `json:"proxy_protocol"`
-	MaxDMS          int    `json:"max_dms_per_token"`
-	Receive         bool   `json:"receive_messages"`
-	GatewayProxy    bool   `json:"use_proxy_for_gateway"`
-	Timeout         int    `json:"timeout"`
-	SkipFailed      bool   `json:"skip_failed"`
-	ClientKey       string `json:"captcha_api_key"`
-	CaptchaAPI      string `json:"captcha_api"`
-	MaxInvite       int    `json:"max_attempt_invite_rejoin"`
-	DisableKL       bool   `json:"disable_keep_alives"`
-	ScrapeUsernames bool   `json:"scrape_usernames"`
-	ScrapeAvatars   bool   `json:"scrape_avatars"`
-	ProxyForCaptcha bool   `json:"proxy_for_captcha"`
-	Block           bool   `json:"block_after_dm"`
-	Close           bool   `json:"close_dm_after_message"`
+	Delay           int    `yaml:"individual_delay"`
+	LongDelay       int    `yaml:"rate_limit_delay"`
+	Offset          int    `yaml:"offset"`
+	Skip            bool   `yaml:"skip_completed"`
+	Proxy           string `yaml:"proxy"`
+	Call            bool   `yaml:"call"`
+	Remove          bool   `yaml:"remove_dead_tokens"`
+	RemoveM         bool   `yaml:"remove_completed_members"`
+	Stop            bool   `yaml:"stop_dead_tokens"`
+	Mutual          bool   `yaml:"check_mutual"`
+	Friend          bool   `yaml:"friend_before_DM"`
+	Websocket       bool   `yaml:"online_tokens"`
+	SleepSc         int    `yaml:"online_scraper_delay"`
+	ProxyFromFile   bool   `yaml:"proxy_from_file"`
+	ProxyProtocol   string `yaml:"proxy_protocol"`
+	MaxDMS          int    `yaml:"max_dms_per_token"`
+	Receive         bool   `yaml:"receive_messages"`
+	GatewayProxy    bool   `yaml:"use_proxy_for_gateway"`
+	Timeout         int    `yaml:"timeout"`
+	SkipFailed      bool   `yaml:"skip_failed"`
+	ClientKey       string `yaml:"captcha_api_key"`
+	CaptchaAPI      string `yaml:"captcha_api"`
+	MaxInvite       int    `yaml:"max_attempt_invite_rejoin"`
+	DisableKL       bool   `yaml:"disable_keep_alives"`
+	ScrapeUsernames bool   `yaml:"scrape_usernames"`
+	ScrapeAvatars   bool   `yaml:"scrape_avatars"`
+	ProxyForCaptcha bool   `yaml:"proxy_for_captcha"`
+	Block           bool   `yaml:"block_after_dm"`
+	Close           bool   `yaml:"close_dm_after_message"`
 }
 
 func GetConfig() (Config, error) {
-	var config Config
 	ex, err := os.Executable()
 	if err != nil {
 		color.Red("Error while finding executable")
 		return Config{}, err
 	}
 	ex = filepath.ToSlash(ex)
-	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "config.json"))
-	if err != nil {
-		color.Red("Error while Opening config.json")
+	file, err1 := os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
+	if err1 != nil {
+		color.Red("Error while Opening Config (tried .json + .yml)")
 		return Config{}, err
+	} else {
+		defer file.Close()
+		var config Config
+		bytes, _ := io.ReadAll(file)
+		errr := yaml.Unmarshal(bytes, &config)
+		if errr != nil {
+			fmt.Println(err)
+			return Config{}, err
+		}
+		return config, nil
 	}
-	defer file.Close()
-	bytes, _ := io.ReadAll(file)
-	errr := json.Unmarshal(bytes, &config)
-	if errr != nil {
-		fmt.Println(err)
-		return Config{}, err
-	}
-
-	return config, nil
 }
 
 func ProcessAvatar(av string, memberid string) error {
