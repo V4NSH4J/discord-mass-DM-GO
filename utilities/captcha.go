@@ -14,14 +14,15 @@ import (
 )
 
 func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string) (string, error) {
-	if Contains([]string{"capmonster.cloud", "anti-captcha.com", "anycaptcha.com"}, in.Config.CaptchaAPI) {
+	switch true {
+	case Contains([]string{"capmonster.cloud", "anti-captcha.com", "anycaptcha.com"}, in.Config.CaptchaAPI):
 		return in.SolveCaptchaCapmonster(sitekey, cookie, rqData)
-	} else if Contains([]string{"rucaptcha.com", "azcaptcha.com", "solvecaptcha.com", "2captcha.com"}, in.Config.CaptchaAPI) {
+	case Contains([]string{"rucaptcha.com", "azcaptcha.com", "solvecaptcha.com", "2captcha.com"}, in.Config.CaptchaAPI):
 		return in.SolveCaptchaRucaptcha(sitekey, rqData, rqToken)
-	} else if in.Config.CaptchaAPI == "deathbycaptcha.com" {
+	case in.Config.CaptchaAPI == "deathbycaptcha.com":
 		return in.SolveCaptchaDeathByCaptcha(sitekey)
-	} else {
-		return "", fmt.Errorf("unsuppored Captcha Solver API %s", in.Config.CaptchaAPI)
+	default:
+		return "", fmt.Errorf("unsupported captcha api: %s", in.Config.CaptchaAPI)
 	}
 }
 
