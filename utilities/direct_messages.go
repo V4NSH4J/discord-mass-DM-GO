@@ -191,14 +191,8 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 		return "", fmt.Errorf("error while getting fingerprint %v", err)
 	}
 
-	req.Header.Set("authorization", in.Token)
-	req.Header.Set("Cookie", cookie)
-	req.Header.Set("x-fingerprint", fingerprint)
-	req.Header.Set("x-context-properties", "e30=")
-	req.Header.Set("host", "discord.com")
-	req.Header.Set("origin", "https://discord.com")
 
-	resp, err := in.Client.Do(CommonHeaders(req))
+	resp, err := in.Client.Do(in.OpenChannelHeaders(req, cookie, fingerprint))
 
 	if err != nil {
 		return "", fmt.Errorf("error while getting response from open channel request %v", err)
@@ -267,14 +261,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		return http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
 	}
 
-	req.Header.Add("Authorization", in.Token)
-	req.Header.Add("referer", "https://discord.com/channels/@me/"+channelSnowflake)
-	req.Header.Set("Cookie", cookie)
-	req.Header.Set("x-fingerprint", fingerprint)
-	req.Header.Set("host", "discord.com")
-	req.Header.Set("origin", "https://discord.com")
-
-	res, err := in.Client.Do(CommonHeaders(req))
+	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, fingerprint, channelSnowflake))
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)
 		return http.Response{}, fmt.Errorf("error while getting send message response %v", err)
