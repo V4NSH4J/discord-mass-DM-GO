@@ -39,15 +39,15 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	if in.GatewayProxy == "" {
 		dialer = *websocket.DefaultDialer
 	} else {
-		if in.Config.ProxyProtocol == "http" {
+		if in.Config.ProxySettings.ProxyProtocol == "http" {
 			if !strings.Contains(in.GatewayProxy, "http://") {
 				in.GatewayProxy = "http://" + in.GatewayProxy
 			}
-		} else if in.Config.ProxyProtocol == "socks5" {
+		} else if in.Config.ProxySettings.ProxyProtocol == "socks5" {
 			if !strings.Contains(in.GatewayProxy, "socks5://") {
 				in.GatewayProxy = "socks5://" + in.GatewayProxy
 			}
-		} else if in.Config.ProxyProtocol == "socks4" {
+		} else if in.Config.ProxySettings.ProxyProtocol == "socks4" {
 			if !strings.Contains(in.GatewayProxy, "socks4://") {
 				in.GatewayProxy = "socks4://" + in.GatewayProxy
 			}

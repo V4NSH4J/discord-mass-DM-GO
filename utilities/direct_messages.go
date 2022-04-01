@@ -10,6 +10,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	// "io/ioutil"
 	"math/rand"
@@ -191,7 +192,6 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 		return "", fmt.Errorf("error while getting fingerprint %v", err)
 	}
 
-
 	resp, err := in.Client.Do(in.OpenChannelHeaders(req, cookie, fingerprint))
 
 	if err != nil {
@@ -265,6 +265,22 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)
 		return http.Response{}, fmt.Errorf("error while getting send message response %v", err)
+	}
+	if res.StatusCode == 400 {
+		msgid, err := in.greet(channelSnowflake, cookie, fingerprint)
+		if err != nil {
+			return http.Response{}, fmt.Errorf("error while opening DM %v", err)
+		}
+		resp, err := in.SendMessage(channelSnowflake, memberid)
+		if err != nil {
+			return http.Response{}, fmt.Errorf("error while sending message %v", err)
+		}
+		err = in.ungreet(channelSnowflake, cookie, fingerprint, msgid)
+		if err != nil {
+			return http.Response{}, fmt.Errorf("error while opening DM %v", err)
+		}
+		in.Count++
+		return resp, nil
 	}
 	in.Count++
 	return *res, nil
@@ -457,4 +473,54 @@ func (in *Instance) BlockUser(userid string) (int, error) {
 		return -1, err
 	}
 	return resp.StatusCode, nil
+}
+
+func (in *Instance) greet(channelid, cookie, fingerprint string) (string, error) {
+	site := fmt.Sprintf(`https://discord.com/api/v9/channels/%s/greet`, channelid)
+	payload := `{"sticker_ids":["749054660769218631"]}`
+	req, err := http.NewRequest("POST", site, strings.NewReader(payload))
+	if err != nil {
+		return "", err
+	}
+	req = in.SendMessageHeaders(req, cookie, fingerprint, channelid)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf(`invalid status code while sending dm %v`, resp.StatusCode)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	var response map[string]interface{}
+	err = json.Unmarshal(body, &response)
+	if err != nil {
+		return "", err
+	}
+	var msgid string
+	if strings.Contains(string(body), "id") {
+		msgid = response["id"].(string)
+	} else {
+		return "", fmt.Errorf(`invalid response %v`, string(body))
+	}
+	return msgid, nil
+}
+
+func (in *Instance) ungreet(channelid, cookie, fingerprint, msgid string) error {
+	site := fmt.Sprintf(`https://discord.com/api/v9/channels/%s/messages/%s`, channelid, msgid)
+	req, err := http.NewRequest("DELETE", site, nil)
+	if err != nil {
+		return err
+	}
+	req = in.SendMessageHeaders(req, cookie, fingerprint, channelid)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 204 {
+		return fmt.Errorf(`invalid status code while sending dm%v`, resp.StatusCode)
+	}
+	return nil
 }

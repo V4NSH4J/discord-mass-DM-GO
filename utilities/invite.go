@@ -73,12 +73,12 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		contextProperties = generateXContext(channelID, channelType, guildID)
 	}
 	site = fmt.Sprintf(`https://ptb.discord.com/api/v10/invites/%v`, invitationCode)
-	if in.Config.MaxInvite < 2 {
-		in.Config.MaxInvite = 2
+	if in.Config.OtherSettings.MaxInvite < 2 {
+		in.Config.OtherSettings.MaxInvite = 2
 	}
 	var captchaKey string
 	var req *http.Request
-	for i := 0; i < in.Config.MaxInvite; i++ {
+	for i := 0; i < in.Config.OtherSettings.MaxInvite; i++ {
 		if captchaKey == "" {
 			req, err = http.NewRequest(http.MethodPost, site, strings.NewReader(`{}`))
 		} else {
@@ -107,7 +107,7 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		if strings.Contains(string(body), "captcha_sitekey") {
 			captchaSitekey := response["captcha_sitekey"].(string)
 			color.Yellow("[%v] Token %v Captcha Detected [%v] [%v]", time.Now().Format("15:04:05"), in.Token, captchaSitekey, i)
-			if in.Config.ClientKey == "" {
+			if in.Config.CaptchaSettings.ClientKey == "" {
 				return -3, cookie, fingerprint, fmt.Errorf("captcha detected but no api provided")
 			}
 			captchaKey, err = in.SolveCaptcha(captchaSitekey, cookie, "", "")

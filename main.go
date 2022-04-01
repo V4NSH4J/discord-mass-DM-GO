@@ -34,7 +34,7 @@ import (
 )
 
 func main() {
-	version := "1.8.7"
+	version := "1.8.8"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
@@ -58,27 +58,8 @@ func Options() {
 		color.Cyan("Debug Mode")
 		var inv string
 		fmt.Scanln(&inv)
-		_, instances, err := getEverything()
-		if err != nil {
-			color.Red(err.Error())
-			ExitSafely()
-		}
-		var wg sync.WaitGroup
-		for i := 0; i < len(instances); i++ {
-			wg.Add(1)
-			go func(i int) {
-				defer wg.Done()
-				a, b, c, err := instances[i].Inviter(inv, 0, "", "")
-				if err != nil {
-					color.Red(err.Error())
-				}
-				if a == -1 {
-					instances[i].Inviter(inv, a, b, c)
-				}
-				fmt.Println(a, b, c)
-			}(i)
-		}
-		wg.Wait()
+		cfg, _, _ := getEverything()
+		fmt.Println(cfg)
 
 	case 1:
 		var invitechoice int
@@ -176,7 +157,7 @@ func Options() {
 			}
 			c := goccm.New(threads)
 			for i := 0; i < len(instances); i++ {
-				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 				c.Wait()
 				go func(i int) {
 					for j := 0; j < len(invites); j++ {
@@ -285,10 +266,10 @@ func Options() {
 			color.Red("Error while opening completed.txt: %v", err)
 			ExitSafely()
 		}
-		if cfg.Skip {
+		if cfg.DirectMessage.Skip {
 			members = utilities.RemoveSubset(members, completed)
 		}
-		if cfg.SkipFailed {
+		if cfg.DirectMessage.SkipFailed {
 			failedSkip, err := utilities.ReadLines("failed.txt")
 			if err != nil {
 				color.Red("Error while opening failed.txt: %v", err)
@@ -331,7 +312,7 @@ func Options() {
 		start := time.Now()
 		for i := 0; i < len(instances); i++ {
 			// Offset goroutines by a few milliseconds. Makes a big difference and allows for better concurrency
-			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+			time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
@@ -343,12 +324,12 @@ func Options() {
 					member := <-mem
 
 					// Breaking loop if maximum DMs reached
-					if cfg.MaxDMS != 0 && instances[i].Count >= cfg.MaxDMS {
+					if cfg.DirectMessage.MaxDMS != 0 && instances[i].Count >= cfg.DirectMessage.MaxDMS {
 						color.Yellow("[%v] Maximum DMs reached for %v", time.Now().Format("15:04:05"), instances[i].Token)
 						break
 					}
 					// Start websocket connection if not already connected and reconnect if dead
-					if cfg.Websocket && instances[i].Ws == nil {
+					if cfg.DirectMessage.Websocket && instances[i].Ws == nil {
 						err := instances[i].StartWS()
 						if err != nil {
 							color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
@@ -356,7 +337,7 @@ func Options() {
 							color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
 						}
 					}
-					if cfg.Websocket && cfg.Receive && instances[i].Ws != nil && !instances[i].Receiver {
+					if cfg.DirectMessage.Websocket && cfg.DirectMessage.Receive && instances[i].Ws != nil && !instances[i].Receiver {
 						instances[i].Receiver = true
 						go func() {
 							for {
@@ -404,7 +385,7 @@ func Options() {
 						if err != nil {
 							fmt.Println(err)
 						}
-						if cfg.Stop {
+						if cfg.DirectMessage.Stop {
 							break
 						}
 					}
@@ -439,7 +420,7 @@ func Options() {
 					var user string
 					user = member
 					// Check Mutual
-					if cfg.Mutual {
+					if cfg.DirectMessage.Mutual {
 						info, err := instances[i].UserInfo(member)
 						if err != nil {
 							failedCount++
@@ -464,7 +445,7 @@ func Options() {
 						}
 						user = info.User.Username + "#" + info.User.Discriminator
 						// Used only if Websocket is enabled as Unwebsocketed Tokens get locked if they attempt to send friend requests.
-						if cfg.Friend && cfg.Websocket {
+						if cfg.DirectMessage.Friend && cfg.DirectMessage.Websocket {
 							x, err := strconv.Atoi(info.User.Discriminator)
 							if err != nil {
 								color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
@@ -503,6 +484,9 @@ func Options() {
 						}
 						failed = append(failed, member)
 						continue
+					}
+					if cfg.SuspicionAvoidance.RandomDelayOpenChannel != 0 {
+						time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomDelayOpenChannel)) * time.Second)
 					}
 					resp, err := instances[i].SendMessage(snowflake, member)
 					if err != nil {
@@ -547,7 +531,7 @@ func Options() {
 						completed = append(completed, member)
 						session = append(session, member)
 						color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, len(session))
-						if cfg.Websocket && cfg.Call && instances[i].Ws != nil {
+						if cfg.DirectMessage.Websocket && cfg.DirectMessage.Call && instances[i].Ws != nil {
 							err := instances[i].Call(snowflake)
 							if err != nil {
 								color.Red("[%v] %v Error while calling %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
@@ -565,7 +549,7 @@ func Options() {
 							// }
 
 						}
-						if cfg.Block {
+						if cfg.DirectMessage.Block {
 							r, err := instances[i].BlockUser(member)
 							if err != nil {
 								color.Red("[%v] Error while blocking user: %v", time.Now().Format("15:04:05"), err)
@@ -577,7 +561,7 @@ func Options() {
 								}
 							}
 						}
-						if cfg.Close {
+						if cfg.DirectMessage.Close {
 							r, err := instances[i].CloseDMS(snowflake)
 							if err != nil {
 								color.Red("[%v] Error while closing DM: %v", time.Now().Format("15:04:05"), err)
@@ -596,9 +580,12 @@ func Options() {
 						if err != nil {
 							fmt.Println(err)
 						}
-						failed = append(failed, member)
-						color.Yellow("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:04:05"), instances[i].Token, int(cfg.LongDelay/60))
-						time.Sleep(time.Duration(cfg.LongDelay) * time.Second)
+						mem <- member
+						color.Yellow("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:04:05"), instances[i].Token, int(cfg.DirectMessage.LongDelay/60))
+						time.Sleep(time.Duration(cfg.DirectMessage.LongDelay) * time.Second)
+						if cfg.SuspicionAvoidance.RandomRateLimitDelay != 0 {
+							time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomRateLimitDelay)) * time.Second)
+						}
 						color.Yellow("[%v] Token %v continuing!", time.Now().Format("15:04:05"), instances[i].Token)
 						// Forbidden - DM's are closed
 					} else if resp.StatusCode == 403 && response.Code == 50007 {
@@ -620,7 +607,7 @@ func Options() {
 						color.Red("[%v] Token %v is locked or disabled. Stopping instance. %v %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, resp.StatusCode, string(body), failedCount)
 						dead = append(dead, instances[i].Token)
 						// Stop token if locked or disabled
-						if cfg.Stop {
+						if cfg.DirectMessage.Stop {
 							break
 						}
 						// Forbidden - Invalid token
@@ -646,7 +633,10 @@ func Options() {
 						}
 						color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, response.Code, resp.Status, response.Message, failedCount)
 					}
-					time.Sleep(time.Duration(cfg.Delay) * time.Second)
+					time.Sleep(time.Duration(cfg.DirectMessage.Delay) * time.Second)
+					if cfg.SuspicionAvoidance.RandomIndividualDelay != 0 {
+						time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomIndividualDelay)) * time.Second)
+					}
 				}
 			}(i)
 		}
@@ -656,7 +646,7 @@ func Options() {
 
 		elapsed := time.Since(start)
 		color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(completed), len(failed), len(dead), len(instances)-len(dead))
-		if cfg.Remove {
+		if cfg.DirectMessage.Remove {
 			var tokens []string
 			for i := 0; i < len(instances); i++ {
 				tokens = append(tokens, instances[i].Token)
@@ -668,7 +658,7 @@ func Options() {
 			}
 			color.Green("Updated tokens.txt")
 		}
-		if cfg.RemoveM {
+		if cfg.DirectMessage.RemoveM {
 			m := utilities.RemoveSubset(members, completed)
 			err := Truncate("input/memberids.txt", m)
 			if err != nil {
@@ -677,7 +667,7 @@ func Options() {
 			color.Green("Updated memberids.txt")
 
 		}
-		if cfg.Websocket {
+		if cfg.DirectMessage.Websocket {
 			for i := 0; i < len(instances); i++ {
 				if instances[i].Ws != nil {
 					instances[i].Ws.Close()
@@ -736,7 +726,7 @@ func Options() {
 		wg.Add(len(instances))
 		if choice == 0 {
 			for i := 0; i < len(instances); i++ {
-				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 
 				go func(i int) {
 					defer wg.Done()
@@ -763,7 +753,7 @@ func Options() {
 		}
 		if choice == 1 {
 			for i := 0; i < len(instances); i++ {
-				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
 
@@ -825,7 +815,7 @@ func Options() {
 			var send string
 			fmt.Scanln(&emoji)
 			for i := 0; i < len(instances); i++ {
-				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
 					if msg.Reactions[emoji].Emojis.ID == "" {
@@ -859,7 +849,7 @@ func Options() {
 			var emoji string
 			fmt.Scanln(&emoji)
 			for i := 0; i < len(instances); i++ {
-				time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+				time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 				go func(i int) {
 					defer wg.Done()
 					err := instances[i].React(channel, id, emoji)
@@ -990,7 +980,7 @@ func Options() {
 		fmt.Scanln(&serverid)
 		c := goccm.New(threads)
 		for i := 0; i < len(instances); i++ {
-			time.Sleep(time.Duration(cfg.Offset) * time.Millisecond)
+			time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
 			c.Wait()
 			go func(i int) {
 				p := instances[i].Leave(serverid)
@@ -1091,7 +1081,7 @@ func Options() {
 					break
 				}
 				i++
-				time.Sleep(time.Duration(cfg.SleepSc) * time.Millisecond)
+				time.Sleep(time.Duration(cfg.ScraperSettings.SleepSc) * time.Millisecond)
 			}
 			if Is.Ws != nil {
 				Is.Ws.Close()
@@ -1325,7 +1315,7 @@ func Options() {
 									color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
 									continue
 								}
-								if cfg.ScrapeUsernames {
+								if cfg.ScraperSettings.ScrapeUsernames {
 									nom := MemberInfo.Data.Members[i].User.Username
 									if !utilities.Contains(namesScraped, nom) {
 										err := utilities.WriteLines("names.txt", nom)
@@ -1335,7 +1325,7 @@ func Options() {
 										}
 									}
 								}
-								if cfg.ScrapeAvatars {
+								if cfg.ScraperSettings.ScrapeAvatars {
 									av := MemberInfo.Data.Members[i].User.Avatar
 									if !utilities.Contains(avatarsScraped, av) {
 										err := utilities.ProcessAvatar(av, id)
@@ -1347,7 +1337,7 @@ func Options() {
 								}
 							}
 							if len(MemberInfo.Data.Members) < 100 {
-								time.Sleep(time.Duration(cfg.SleepSc) * time.Millisecond)
+								time.Sleep(time.Duration(cfg.ScraperSettings.SleepSc) * time.Millisecond)
 								continue
 							}
 							lastName := MemberInfo.Data.Members[len(MemberInfo.Data.Members)-1].User.Username
@@ -1649,26 +1639,26 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 		return cfg, instances, err
 	}
 	supportedProtocols := []string{"http", "https", "socks4", "socks5"}
-	if cfg.ProxyProtocol != "" && !utilities.Contains(supportedProtocols, cfg.ProxyProtocol) {
+	if cfg.ProxySettings.ProxyProtocol != "" && !utilities.Contains(supportedProtocols, cfg.ProxySettings.ProxyProtocol) {
 		color.Red("[!] You're using an unsupported proxy protocol. Assuming http by default")
-		cfg.ProxyProtocol = "http"
+		cfg.ProxySettings.ProxyProtocol = "http"
 	}
-	if cfg.ProxyProtocol == "https" {
-		cfg.ProxyProtocol = "http"
+	if cfg.ProxySettings.ProxyProtocol == "https" {
+		cfg.ProxySettings.ProxyProtocol = "http"
 	}
-	if cfg.CaptchaAPI == "" {
+	if cfg.CaptchaSettings.CaptchaAPI == "" {
 		color.Red("[!] You're not using a Captcha API, some functionality like invite joining might be unavailable")
 	}
-	if cfg.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
-		os.Setenv("HTTPS_PROXY", cfg.ProxyProtocol+"://"+cfg.Proxy)
+	if cfg.ProxySettings.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
+		os.Setenv("HTTPS_PROXY", cfg.ProxySettings.ProxyProtocol+"://"+cfg.ProxySettings.Proxy)
 	}
-	if !cfg.ProxyFromFile && cfg.ProxyForCaptcha {
+	if !cfg.ProxySettings.ProxyFromFile && cfg.ProxySettings.ProxyForCaptcha {
 		color.Red("[!] You must enabe proxy_from_file to use proxy_for_captcha")
-		cfg.ProxyForCaptcha = false
+		cfg.ProxySettings.ProxyForCaptcha = false
 	}
-	if !utilities.Contains(CaptchaServices, cfg.CaptchaAPI) {
-		color.Red("[!] Captcha API %v is not supported. Please use one of the following: %v", cfg.CaptchaAPI, CaptchaServices)
-		cfg.CaptchaAPI = ""
+	if !utilities.Contains(CaptchaServices, cfg.CaptchaSettings.CaptchaAPI) {
+		color.Red("[!] Captcha API %v is not supported. Please use one of the following: %v", cfg.CaptchaSettings.CaptchaAPI, CaptchaServices)
+		cfg.CaptchaSettings.CaptchaAPI = ""
 	}
 
 	// Load instances
@@ -1679,7 +1669,7 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 	if len(tokens) == 0 {
 		return cfg, instances, fmt.Errorf("no tokens found in tokens.txt")
 	}
-	if cfg.ProxyFromFile {
+	if cfg.ProxySettings.ProxyFromFile {
 		proxies, err = utilities.ReadLines("proxies.txt")
 		if err != nil {
 			return cfg, instances, err
@@ -1690,7 +1680,7 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 	}
 	var Gproxy string
 	for i := 0; i < len(tokens); i++ {
-		if cfg.ProxyFromFile {
+		if cfg.ProxySettings.ProxyFromFile {
 			proxy = proxies[rand.Intn(len(proxies))]
 			Gproxy = proxy
 		} else {
@@ -1701,7 +1691,7 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 			return cfg, instances, fmt.Errorf("couldn't initialize client: %v", err)
 		}
 		// proxy is put in struct only to be used by gateway. If proxy for gateway is disabled, it will be empty
-		if !cfg.GatewayProxy {
+		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
 		instances = append(instances, utilities.Instance{Client: client, Token: tokens[i], Proxy: proxy, Config: cfg, GatewayProxy: Gproxy})
@@ -1810,7 +1800,7 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 	if proxy == "" {
 		return http.DefaultClient, nil
 	}
-	switch cfg.ProxyProtocol {
+	switch cfg.ProxySettings.ProxyProtocol {
 	case "http":
 		if !strings.Contains(proxy, "http://") {
 			proxy = "http://" + proxy
@@ -1832,7 +1822,7 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 	// Creating a client and modifying the transport.
 
 	Client := &http.Client{
-		Timeout: time.Second * time.Duration(cfg.Timeout),
+		Timeout: time.Second * time.Duration(cfg.ProxySettings.Timeout),
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
 				MinVersion:         tls.VersionTLS12,
@@ -1840,7 +1830,7 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 				InsecureSkipVerify: true,
 				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
 			},
-			DisableKeepAlives: cfg.DisableKL,
+			DisableKeepAlives: cfg.OtherSettings.DisableKL,
 			ForceAttemptHTTP2: true,
 			Proxy:             http.ProxyURL(proxyURL),
 		},

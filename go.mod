@@ -10,4 +10,5 @@ require (
 	github.com/gorilla/websocket v1.4.2 // direct
 	github.com/zenthangplus/goccm v0.0.0-20211005163543-2f2e522aca15
 	golang.org/x/sys v0.0.0-20211015200801-69063c4bb744 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )

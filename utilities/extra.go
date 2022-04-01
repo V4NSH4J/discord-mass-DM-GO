@@ -214,8 +214,8 @@ type invitePayload struct {
 func (in *Instance) Invite(Code string) error {
 	var solvedKey string
 	var payload invitePayload
-	for i := 0; i < in.Config.MaxInvite; i++ {
-		if solvedKey == "" || in.Config.CaptchaAPI == "" {
+	for i := 0; i < in.Config.OtherSettings.MaxInvite; i++ {
+		if solvedKey == "" || in.Config.CaptchaSettings.CaptchaAPI == "" {
 			payload = invitePayload{}
 		} else {
 			payload = invitePayload{
@@ -269,15 +269,15 @@ func (in *Instance) Invite(Code string) error {
 				continue
 			}
 			cap := resp["captcha_sitekey"].(string)
-			var rqData string 
-			var rqToken string 
+			var rqData string
+			var rqToken string
 			if strings.Contains(string(body), "captcha_rqdata") {
 				rqData = resp["captcha_rqdata"].(string)
 			}
 			if strings.Contains(string(body), "captcha_rqtoken") {
-				rqToken = resp["captcha_rqdata"].(string)
+				rqToken = resp["captcha_rqtoken"].(string)
 			}
-			if in.Config.CaptchaAPI == "" {
+			if in.Config.CaptchaSettings.CaptchaAPI == "" {
 				color.Red("[%v] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
 				break
 			} else {

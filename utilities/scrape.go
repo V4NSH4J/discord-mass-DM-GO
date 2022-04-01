@@ -19,11 +19,11 @@ func Scrape(ws *Connection, Guild string, Channel string, index int) error {
 	}
 
 	payload := Data{
-		GuildId: Guild,
-		Typing: true, 
-		Threads: true, 
-		Activities: true,
-		Members: nil,
+		GuildId:           Guild,
+		Typing:            true,
+		Threads:           true,
+		Activities:        true,
+		Members:           nil,
 		ThreadMemberLists: nil,
 		Channels: map[string]interface{}{
 			Channel: x,

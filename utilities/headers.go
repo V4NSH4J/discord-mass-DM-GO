@@ -143,21 +143,21 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie, fingerprint st
 
 func (in *Instance) SendMessageHeaders(req *http.Request, cookie, fingerprint, recipient string) *http.Request {
 	for k, v := range map[string]string{
-		"Host": "discord.com",
-		"User-Agent": UserAgent,
-		"Accept": "*/*",
-		"Accept-Language": "en-US,en;q=0.5",
-		"Content-Type": "application/json",
-		"Authorization": in.Token,
+		"Host":               "discord.com",
+		"User-Agent":         UserAgent,
+		"Accept":             "*/*",
+		"Accept-Language":    "en-US,en;q=0.5",
+		"Content-Type":       "application/json",
+		"Authorization":      in.Token,
 		"X-Super-Properties": XSuper,
-		"X-Discord-Locale": "en-US",
-		"X-Debug-Options": "bugReporterEnabled",
-		"Origin": "https://discord.com",
-		"Referer": fmt.Sprintf(`https://discord.com/channels/@me/%s`, recipient),
-		"Cookie": cookie,
-		"Sec-Fetch-Dest": "empty",
-		"Sec-Fetch-Mode": "cors",
-		"Sec-Fetch-Site": "same-origin",		
+		"X-Discord-Locale":   "en-US",
+		"X-Debug-Options":    "bugReporterEnabled",
+		"Origin":             "https://discord.com",
+		"Referer":            fmt.Sprintf(`https://discord.com/channels/@me/%s`, recipient),
+		"Cookie":             cookie,
+		"Sec-Fetch-Dest":     "empty",
+		"Sec-Fetch-Mode":     "cors",
+		"Sec-Fetch-Site":     "same-origin",
 	} {
 		req.Header.Set(k, v)
 	}

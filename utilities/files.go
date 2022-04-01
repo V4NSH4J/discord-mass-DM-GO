@@ -19,8 +19,8 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	
-	"gopkg.in/yaml.v2"
+
+	"gopkg.in/yaml.v3"
 )
 
 func ReadLines(filename string) ([]string, error) {
@@ -185,35 +185,60 @@ func GetMessage() ([]Message, error) {
 }
 
 type Config struct {
-	Delay           int    `yaml:"individual_delay"`
-	LongDelay       int    `yaml:"rate_limit_delay"`
-	Offset          int    `yaml:"offset"`
-	Skip            bool   `yaml:"skip_completed"`
+	DirectMessage      DirectMessage      `yaml:"direct_message_settings"`
+	ProxySettings      ProxySettings      `yaml:"proxy_settings"`
+	ScraperSettings    ScraperSettings    `yaml:"scraper_settings"`
+	CaptchaSettings    CaptchaSettings    `yaml:"captcha_settings"`
+	OtherSettings      OtherSettings      `yaml:"other_settings"`
+	SuspicionAvoidance SuspicionAvoidance `yaml:"suspicion_avoidance"`
+}
+type DirectMessage struct {
+	Delay      int  `yaml:"individual_delay"`
+	LongDelay  int  `yaml:"rate_limit_delay"`
+	Offset     int  `yaml:"offset"`
+	Skip       bool `yaml:"skip_completed"`
+	Call       bool `yaml:"call"`
+	Remove     bool `yaml:"remove_dead_tokens"`
+	RemoveM    bool `yaml:"remove_completed_members"`
+	Stop       bool `yaml:"stop_dead_tokens"`
+	Mutual     bool `yaml:"check_mutual"`
+	Friend     bool `yaml:"friend_before_DM"`
+	Websocket  bool `yaml:"online_tokens"`
+	MaxDMS     int  `yaml:"max_dms_per_token"`
+	Receive    bool `yaml:"receive_messages"`
+	SkipFailed bool `yaml:"skip_failed"`
+	Block      bool `yaml:"block_after_dm"`
+	Close      bool `yaml:"close_dm_after_message"`
+}
+type ProxySettings struct {
 	Proxy           string `yaml:"proxy"`
-	Call            bool   `yaml:"call"`
-	Remove          bool   `yaml:"remove_dead_tokens"`
-	RemoveM         bool   `yaml:"remove_completed_members"`
-	Stop            bool   `yaml:"stop_dead_tokens"`
-	Mutual          bool   `yaml:"check_mutual"`
-	Friend          bool   `yaml:"friend_before_DM"`
-	Websocket       bool   `yaml:"online_tokens"`
-	SleepSc         int    `yaml:"online_scraper_delay"`
 	ProxyFromFile   bool   `yaml:"proxy_from_file"`
+	ProxyForCaptcha bool   `yaml:"proxy_for_captcha"`
 	ProxyProtocol   string `yaml:"proxy_protocol"`
-	MaxDMS          int    `yaml:"max_dms_per_token"`
-	Receive         bool   `yaml:"receive_messages"`
 	GatewayProxy    bool   `yaml:"use_proxy_for_gateway"`
 	Timeout         int    `yaml:"timeout"`
-	SkipFailed      bool   `yaml:"skip_failed"`
-	ClientKey       string `yaml:"captcha_api_key"`
-	CaptchaAPI      string `yaml:"captcha_api"`
-	MaxInvite       int    `yaml:"max_attempt_invite_rejoin"`
-	DisableKL       bool   `yaml:"disable_keep_alives"`
-	ScrapeUsernames bool   `yaml:"scrape_usernames"`
-	ScrapeAvatars   bool   `yaml:"scrape_avatars"`
-	ProxyForCaptcha bool   `yaml:"proxy_for_captcha"`
-	Block           bool   `yaml:"block_after_dm"`
-	Close           bool   `yaml:"close_dm_after_message"`
+}
+
+type ScraperSettings struct {
+	SleepSc         int  `yaml:"online_scraper_delay"`
+	ScrapeUsernames bool `yaml:"scrape_usernames"`
+	ScrapeAvatars   bool `yaml:"scrape_avatars"`
+}
+
+type CaptchaSettings struct {
+	ClientKey  string `yaml:"captcha_api_key"`
+	CaptchaAPI string `yaml:"captcha_api"`
+}
+
+type OtherSettings struct {
+	MaxInvite int  `yaml:"max_attempt_invite_rejoin"`
+	DisableKL bool `yaml:"disable_keep_alives"`
+}
+
+type SuspicionAvoidance struct {
+	RandomIndividualDelay  int `yaml:"random_individual_delay"`
+	RandomRateLimitDelay   int `yaml:"random_rate_limit_delay"`
+	RandomDelayOpenChannel int `yaml:"random_delay_before_dm"`
 }
 
 func GetConfig() (Config, error) {
@@ -223,16 +248,17 @@ func GetConfig() (Config, error) {
 		return Config{}, err
 	}
 	ex = filepath.ToSlash(ex)
-	file, err1 := os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
-	if err1 != nil {
-		color.Red("Error while Opening Config (tried .json + .yml)")
+	var file *os.File
+	file, err = os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
+	if err != nil {
+		color.Red("Error while Opening Config")
 		return Config{}, err
 	} else {
 		defer file.Close()
 		var config Config
 		bytes, _ := io.ReadAll(file)
-		errr := yaml.Unmarshal(bytes, &config)
-		if errr != nil {
+		err = yaml.Unmarshal(bytes, &config)
+		if err != nil {
 			fmt.Println(err)
 			return Config{}, err
 		}
