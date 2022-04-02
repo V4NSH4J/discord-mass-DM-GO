@@ -14,7 +14,7 @@
 
 [Telegram Server for Support](https://t.me/tosviolators)
 
-[Discord Community Server](https://discord.gg/mtW89Y7prK)
+[Discord Community Server](https://discord.gg/T9FBNBQb4d)
 
 
 ## **Features** : 
