@@ -13,12 +13,12 @@ direct_message_settings:
   friend_before_DM: false
   online_tokens: false
   receive_messages: false
-  skip_failed: true 
+  skip_failed: false
   block_after_dm: false
   close_dm_after_message: false
 
 proxy_settings:
-  proxy_from_file: true 
+  proxy_from_file: true
   proxy_for_captcha: true 
   use_proxy_for_gateway: false
   proxy_protocol: "http"
@@ -31,10 +31,11 @@ scraper_settings:
 
 captcha_settings:
   captcha_api_key: ""
-  captcha_api: "capmonster.cloud"
+  captcha_api: "2captcha.com"
+  max_captcha_wait: 60
+  max_captcha_retry: 3
 
 other_settings: 
-  max_attempt_invite_rejoin: 3
   disable_keep_alives: false
 
 suspicion_avoidance:

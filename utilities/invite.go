@@ -73,12 +73,12 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 		contextProperties = generateXContext(channelID, channelType, guildID)
 	}
 	site = fmt.Sprintf(`https://ptb.discord.com/api/v10/invites/%v`, invitationCode)
-	if in.Config.OtherSettings.MaxInvite < 2 {
-		in.Config.OtherSettings.MaxInvite = 2
+	if in.Config.CaptchaSettings.MaxCaptcha < 2 {
+		in.Config.CaptchaSettings.MaxCaptcha = 2
 	}
 	var captchaKey string
 	var req *http.Request
-	for i := 0; i < in.Config.OtherSettings.MaxInvite; i++ {
+	for i := 0; i < in.Config.CaptchaSettings.MaxCaptcha; i++ {
 		if captchaKey == "" {
 			req, err = http.NewRequest(http.MethodPost, site, strings.NewReader(`{}`))
 		} else {

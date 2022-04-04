@@ -34,7 +34,7 @@ import (
 )
 
 func main() {
-	version := "1.8.8"
+	version := "1.8.9"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
@@ -403,14 +403,14 @@ func Options() {
 
 									break
 								} else {
-									if instances[i].Rejoin >= maxattempts {
+									if instances[i].Retry >= maxattempts {
 										color.Red("[%v] Stopping token %v [Max server rejoin attempts]", time.Now().Format("15:04:05"), instances[i].Token)
 										break
 									}
 									err := instances[i].Invite(invite)
 									if err != nil {
 										color.Red("[%v] Error while joining server: %v", time.Now().Format("15:04:05"), err)
-										instances[i].Rejoin++
+										instances[i].Retry++
 										continue
 									}
 								}
@@ -624,6 +624,13 @@ func Options() {
 						failed = append(failed, member)
 						color.Red("[%v] Token %v is being rate limited. Sleeping for 10 seconds", time.Now().Format("15:04:05"), instances[i].Token)
 						time.Sleep(10 * time.Second)
+					} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
+						color.Red("[%v] Token %v Captcha was attempted to solve but appeared again", time.Now().Format("15:04:05"), instances[i].Token)
+						instances[i].Retry++
+						if instances[i].Retry >= cfg.CaptchaSettings.MaxCaptcha {
+							color.Red("[%v] Stopping token %v max captcha solves reached", time.Now().Format("15:04:05"), instances[i].Token)
+							break
+						}
 					} else {
 						failedCount++
 						failed = append(failed, member)

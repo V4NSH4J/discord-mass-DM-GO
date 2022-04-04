@@ -27,7 +27,7 @@ type Instance struct {
 	LastCount    int
 	Members      []User
 	AllMembers   []User
-	Rejoin       int
+	Retry       int
 	ScrapeCount  int
 	ID           string
 	Receiver     bool

@@ -209,17 +209,21 @@ func Bypass(client *http.Client, serverid string, token string, invite string) e
 
 type invitePayload struct {
 	CaptchaKey string `json:"captcha_key,omitempty"`
+	RqToken    string `json:"captcha_rqtoken,omitempty"`
 }
 
 func (in *Instance) Invite(Code string) error {
 	var solvedKey string
 	var payload invitePayload
-	for i := 0; i < in.Config.OtherSettings.MaxInvite; i++ {
+	var rqData string
+	var rqToken string
+	for i := 0; i < in.Config.CaptchaSettings.MaxCaptcha; i++ {
 		if solvedKey == "" || in.Config.CaptchaSettings.CaptchaAPI == "" {
 			payload = invitePayload{}
 		} else {
 			payload = invitePayload{
 				CaptchaKey: solvedKey,
+				RqToken:    rqToken,
 			}
 		}
 		payload, err := json.Marshal(payload)
@@ -269,8 +273,6 @@ func (in *Instance) Invite(Code string) error {
 				continue
 			}
 			cap := resp["captcha_sitekey"].(string)
-			var rqData string
-			var rqToken string
 			if strings.Contains(string(body), "captcha_rqdata") {
 				rqData = resp["captcha_rqdata"].(string)
 			}

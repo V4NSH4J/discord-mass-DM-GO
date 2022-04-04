@@ -228,10 +228,11 @@ type ScraperSettings struct {
 type CaptchaSettings struct {
 	ClientKey  string `yaml:"captcha_api_key"`
 	CaptchaAPI string `yaml:"captcha_api"`
+	Timeout    int    `yaml:"max_captcha_wait"`
+	MaxCaptcha int  `yaml:"max_captcha_retry"`
 }
 
 type OtherSettings struct {
-	MaxInvite int  `yaml:"max_attempt_invite_rejoin"`
 	DisableKL bool `yaml:"disable_keep_alives"`
 }
 
