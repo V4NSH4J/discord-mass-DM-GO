@@ -116,7 +116,7 @@ func (in *Instance) xContextPropertiesHeaders(req *http.Request, cookie, fingerp
 	return req
 }
 
-func (in *Instance) OpenChannelHeaders(req *http.Request, cookie, fingerprint string) *http.Request {
+func (in *Instance) OpenChannelHeaders(req *http.Request, cookie string) *http.Request {
 	for k, v := range map[string]string{
 		"Host":                 "discord.com",
 		"User-Agent":           UserAgent,
@@ -130,7 +130,6 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie, fingerprint st
 		"X-Debug-Options":      "bugReporterEnabled",
 		"Origin":               "https://discord.com",
 		"Referer":              "https://discord.com/channels/@me",
-		"X-Fingerprint":        fingerprint,
 		"Cookie":               cookie,
 		"Sec-Fetch-Dest":       "empty",
 		"Sec-Fetch-Mode":       "cors",
@@ -141,7 +140,7 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie, fingerprint st
 	return req
 }
 
-func (in *Instance) SendMessageHeaders(req *http.Request, cookie, fingerprint, recipient string) *http.Request {
+func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient string) *http.Request {
 	for k, v := range map[string]string{
 		"Host":               "discord.com",
 		"User-Agent":         UserAgent,

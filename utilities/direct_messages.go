@@ -51,7 +51,7 @@ func (in *Instance) GetCookieString() (string, error) {
 	}
 	cookies := ""
 	for _, cookie := range resp.Cookies() {
-		cookies += fmt.Sprintf(`%s=%s;`, cookie.Name, cookie.Value)
+		cookies += fmt.Sprintf(`%s=%s; `, cookie.Name, cookie.Value)
 	}
 	cookies += "locale=en-US"
 	// CfRay := resp.Header.Get("cf-ray")
@@ -78,7 +78,7 @@ func (in *Instance) GetCookieString() (string, error) {
 	// 	return finalCookies, nil
 	// }
 
-	return cookies + "locale:en-US", nil
+	return cookies, nil
 
 }
 func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
@@ -187,12 +187,8 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return "", fmt.Errorf("error while getting fingerprint %v", err)
-	}
 
-	resp, err := in.Client.Do(in.OpenChannelHeaders(req, cookie, fingerprint))
+	resp, err := in.Client.Do(in.OpenChannelHeaders(req, cookie))
 
 	if err != nil {
 		return "", fmt.Errorf("error while getting response from open channel request %v", err)
@@ -223,14 +219,15 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 
 	return channelSnowflake.ID, nil
 }
+
 type captchaDetected struct {
 	CaptchaKey []string `json:"captcha_key"`
-	Sitekey   string   `json:"captcha_sitekey"`
-	Service  string   `json:"captcha_service"`
-	RqData  string   `json:"captcha_rqdata"`
-	RqToken string   `json:"captcha_rqtoken"`
-
+	Sitekey    string   `json:"captcha_sitekey"`
+	Service    string   `json:"captcha_service"`
+	RqData     string   `json:"captcha_rqdata"`
+	RqToken    string   `json:"captcha_rqtoken"`
 }
+
 // Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
 func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.Response, error) {
 	// Sending a random message incase there are multiple.
@@ -262,12 +259,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
-	}
-
-	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, fingerprint, channelSnowflake))
+	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)
 		return http.Response{}, fmt.Errorf("error while getting send message response %v", err)
@@ -288,16 +280,16 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while unmarshalling captcha %v", err)
 		}
-		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie,captchaDetect.RqData, captchaDetect.RqToken)
+		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie, captchaDetect.RqData, captchaDetect.RqToken, fmt.Sprintf("https://discord.com/channels/@me/%s", channelSnowflake))
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while solving captcha %v", err)
 		}
 		body, err = json.Marshal(&map[string]interface{}{
-			"content": x,
-			"tts":     false,
-			"nonce":   Snowflake(),
-			 "captcha_key": solved,
-			 "captcha_rqtoken": captchaDetect.RqToken,
+			"content":         x,
+			"tts":             false,
+			"nonce":           Snowflake(),
+			"captcha_key":     solved,
+			"captcha_rqtoken": captchaDetect.RqToken,
 		})
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while marshalling message %v %v ", index, err)
@@ -306,7 +298,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
 		}
-		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, fingerprint, channelSnowflake))
+		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while getting send message response %v", err)
 		}
@@ -511,7 +503,7 @@ func (in *Instance) greet(channelid, cookie, fingerprint string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	req = in.SendMessageHeaders(req, cookie, fingerprint, channelid)
+	req = in.SendMessageHeaders(req, cookie, channelid)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", err
@@ -543,7 +535,7 @@ func (in *Instance) ungreet(channelid, cookie, fingerprint, msgid string) error 
 	if err != nil {
 		return err
 	}
-	req = in.SendMessageHeaders(req, cookie, fingerprint, channelid)
+	req = in.SendMessageHeaders(req, cookie, channelid)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return err

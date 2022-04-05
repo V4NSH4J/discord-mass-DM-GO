@@ -285,7 +285,7 @@ func (in *Instance) Invite(Code string) error {
 			} else {
 				color.Yellow("[%v] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.Token, cap, i)
 			}
-			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken)
+			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {
 				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue

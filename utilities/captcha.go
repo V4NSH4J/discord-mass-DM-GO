@@ -10,38 +10,36 @@ import (
 	"strings"
 	"time"
 
-	api2captcha "github.com/2captcha/2captcha-go"
 	"github.com/fatih/color"
 )
 
-func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string) (string, error) {
+func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string, url string) (string, error) {
 	switch true {
 	case Contains([]string{"capmonster.cloud", "anti-captcha.com", "anycaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
-		return in.SolveCaptchaCapmonster(sitekey, cookie, rqData)
-	case Contains([]string{"rucaptcha.com", "azcaptcha.com", "solvecaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
-		return in.SolveCaptchaRucaptcha(sitekey, rqData, rqToken)
+		return in.SolveCaptchaCapmonster(sitekey, cookie, rqData, url)
 	case in.Config.CaptchaSettings.CaptchaAPI == "deathbycaptcha.com":
-		return in.SolveCaptchaDeathByCaptcha(sitekey)
-	case in.Config.CaptchaSettings.CaptchaAPI == "2captcha.com":
-		return in.twoCaptcha(sitekey, rqData)
+		return in.SolveCaptchaDeathByCaptcha(sitekey, url)
+	case Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
+		return in.twoCaptcha(sitekey, rqData, url)
 	default:
 		return "", fmt.Errorf("unsupported captcha api: %s", in.Config.CaptchaSettings.CaptchaAPI)
 	}
 }
 
 // Function to use a captcha solving service and return a solved captcha key
-func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdata string) (string, error) {
+func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdata string, url string) (string, error) {
 	var jsonx Pload
 	if !in.Config.ProxySettings.ProxyForCaptcha || in.Config.CaptchaSettings.CaptchaAPI == "anycaptcha.com" {
 		jsonx = Pload{
 			ClientKey: in.Config.CaptchaSettings.ClientKey,
 			Task: Task{
 				Type:       "HCaptchaTaskProxyless",
-				WebsiteURL: "https://discord.com/channels/@me",
+				WebsiteURL: url,
 				WebsiteKey: sitekey,
-				Cookies:    cookies,
 				UserAgent:  UserAgent,
+				Cookies:    cookies,
 				Data:       rqdata,
+				Invisible:  true,
 			},
 		}
 	} else {
@@ -70,7 +68,7 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdat
 			ClientKey: in.Config.CaptchaSettings.ClientKey,
 			Task: Task{
 				Type:          "HCaptchaTask",
-				WebsiteURL:    "https://discord.com/channels/@me",
+				WebsiteURL:    url,
 				WebsiteKey:    sitekey,
 				UserAgent:     UserAgent,
 				ProxyType:     in.Config.ProxySettings.ProxyProtocol,
@@ -80,6 +78,7 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdat
 				ProxyPassword: password,
 				Cookies:       cookies,
 				Data:          rqdata,
+				Invisible:     true,
 			},
 		}
 	}
@@ -191,6 +190,7 @@ type Task struct {
 	ProxyPassword string `json:"proxyPassword"`
 	UserAgent     string `json:"userAgent"`
 	Cookies       string `json:"cookies`
+	Invisible     bool   `json:"isInvisible`
 }
 
 type Resp struct {
@@ -206,47 +206,8 @@ type Sol struct {
 	Ans string `json:"gRecaptchaResponse"`
 }
 
-func (in *Instance) SolveCaptcha2Captcha(sitekey string) (string, error) {
-	client := api2captcha.NewClient(in.Config.CaptchaSettings.ClientKey)
-	client.DefaultTimeout = 120
-	client.PollingInterval = 22
-
-	cap := api2captcha.HCaptcha{
-		SiteKey: sitekey,
-		Url:     "https://discord.com/channels/@me",
-	}
-	var proxyType string
-	if in.Config.ProxySettings.ProxyProtocol == "socks5" {
-		proxyType = "SOCKS5"
-	} else if in.Config.ProxySettings.ProxyProtocol == "socks4" {
-		proxyType = "SOCKS4"
-	} else if in.Config.ProxySettings.ProxyProtocol == "http" {
-		proxyType = "HTTPS"
-	}
-
-	req := cap.ToRequest()
-	if in.Config.ProxySettings.ProxyForCaptcha {
-		req.SetProxy(proxyType, in.Proxy)
-	}
-	req.Params["userAgent"] = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36"
-
-	code, err := client.Solve(req)
-	if err != nil {
-		if err == api2captcha.ErrTimeout {
-			return "", fmt.Errorf("Timeout")
-		} else if err == api2captcha.ErrApi {
-			return "", fmt.Errorf("API error")
-		} else if err == api2captcha.ErrNetwork {
-			return "", fmt.Errorf("Network error")
-		} else {
-			return "", fmt.Errorf("Unknown error %v", err)
-		}
-	}
-	return code, nil
-}
-
 // Incomplete
-func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey string) (string, error) {
+func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey, url string) (string, error) {
 	// Authentication can be a user:pass combination or with a 2fa key.
 	var username string
 	var password string
@@ -271,10 +232,10 @@ func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey string) (string, error) {
 			"token_params": {
 				"proxy": "%s",
 				"proxytype": "%s",
-				"pageurl": "http://discord.com",
+				"pageurl": "%s",
 				"sitekey": "%s"
 			}
-		}`, username, password, proxy, proxytype, sitekey)
+		}`, username, password, proxy, proxytype, url, sitekey)
 	fmt.Println(payload)
 	req, err := http.NewRequest(http.MethodPost, captchaPostEndpoint, strings.NewReader(payload))
 	if err != nil {
@@ -296,111 +257,12 @@ func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey string) (string, error) {
 
 }
 
-func (in *Instance) SolveCaptchaRucaptcha(sitekey string, rqData string, rqToken string) (string, error) {
-	encUa := `Mozilla%2F5.0%20%28Windows%20NT%2010.0%3B%20Win64%3B%20x64%3B%20rv%3A83.0%29%20Gecko%2F20100101%20Firefox%2F83.0`
-	var submitEndpoint string
-	if !in.Config.ProxySettings.ProxyForCaptcha {
-		if in.Config.CaptchaSettings.CaptchaAPI == "2captcha.com" {
-			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&json=1&soft_id=12368652", in.Config.CaptchaSettings.CaptchaAPI, in.Config.CaptchaSettings.ClientKey, sitekey, "https://discord.com/channels/@me", encUa)
-		} else {
-			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%sjson=1&soft_id=13615286", in.Config.CaptchaSettings.CaptchaAPI, in.Config.CaptchaSettings.ClientKey, sitekey, "https://discord.com/channels/@me", encUa)
-		}
-
-	} else {
-		var proxyType string
-		if in.Config.ProxySettings.ProxyProtocol == "socks5" {
-			proxyType = "SOCKS5"
-		} else if in.Config.ProxySettings.ProxyProtocol == "socks4" {
-			proxyType = "SOCKS4"
-		} else if in.Config.ProxySettings.ProxyProtocol == "http" {
-			proxyType = "HTTPS"
-		}
-		if in.Config.CaptchaSettings.CaptchaAPI == "2captcha.com" {
-			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=12368652", in.Config.CaptchaSettings.CaptchaAPI, in.Config.CaptchaSettings.ClientKey, sitekey, "https://discord.com/channels/@me", encUa, in.Proxy, proxyType)
-		} else {
-			submitEndpoint = fmt.Sprintf("http://%s/in.php?key=%s&method=hcaptcha&sitekey=%s&pageurl=%s&userAgent=%s&proxy=%s&proxy_type=%s&json=1&soft_id=13615286", in.Config.CaptchaSettings.CaptchaAPI, in.Config.CaptchaSettings.ClientKey, sitekey, "https://discord.com/channels/@me", encUa, in.Proxy, proxyType)
-		}
-	}
-	if rqData != "" {
-		submitEndpoint = fmt.Sprintf("%s&data=%s", submitEndpoint, rqData)
-	}
-	req, err := http.NewRequest(http.MethodGet, submitEndpoint, nil)
-	if err != nil {
-		return "", fmt.Errorf("error creating request [%v]", err)
-	}
-	req.Header.Set("User-Agent", UserAgent)
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", fmt.Errorf("error sending request [%v]", err)
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return "", fmt.Errorf("error reading response [%v]", err)
-	}
-	fmt.Println(string(body))
-	if !strings.Contains(string(body), "status") {
-		return "", fmt.Errorf("cannot proccess response, it does not contain status [%v] %v", err, string(body))
-	}
-	var response map[string]interface{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return "", fmt.Errorf("error unmarshalling response [%v]", err)
-	}
-	if response["status"].(float64) != 1 {
-		return "", fmt.Errorf("error %v", response["request"])
-	}
-	var captchaIDfloat int
-	var captchaIDString string
-	var captchaGetEndpoint string
-	if in.Config.CaptchaSettings.CaptchaAPI == "azcaptcha.com" {
-		captchaIDfloat = int(response["request"].(float64))
-		fmt.Println(captchaIDfloat)
-		captchaGetEndpoint = fmt.Sprintf("https://%s/res.php?key=%s&action=get&action=get&id=%s&json=1", in.Config.CaptchaSettings.CaptchaAPI, in.Config.CaptchaSettings.ClientKey, strconv.Itoa(captchaIDfloat))
-	} else {
-		captchaIDString = response["request"].(string)
-		captchaGetEndpoint = fmt.Sprintf("https://%s/res.php?key=%s&action=get&action=get&id=%s&json=1", in.Config.CaptchaSettings.CaptchaAPI, in.Config.CaptchaSettings.ClientKey, captchaIDString)
-	}
-	fmt.Println(captchaGetEndpoint)
-	// time recommended in rucaptcha documentation
-	time.Sleep(15 * time.Second)
-
-	for i := 0; i < 100; i++ {
-		req, err := http.NewRequest(http.MethodGet, captchaGetEndpoint, nil)
-		if err != nil {
-			return "", fmt.Errorf("error creating request [%v]", err)
-		}
-		req.Header.Set("User-Agent", UserAgent)
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			return "", fmt.Errorf("error sending request [%v]", err)
-		}
-		defer resp.Body.Close()
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return "", fmt.Errorf("error reading response [%v]", err)
-		}
-		fmt.Println(string(body))
-		err = json.Unmarshal(body, &response)
-		if err != nil {
-			return "", fmt.Errorf("error unmarshalling response [%v]", err)
-		}
-		if response["request"] == "CAPCHA_NOT_READY" {
-			time.Sleep(10 * time.Second)
-			continue
-		} else {
-			return response["request"].(string), nil
-		}
-	}
-	return "", fmt.Errorf("max retries exceeded")
-}
-
 type twoCaptchaSubmitResponse struct {
 	Status  int    `json:"status"`
 	Request string `json:"request"`
 }
 
-func (in *Instance) twoCaptcha(sitekey, rqdata string) (string, error) {
+func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	var solvedKey string
 	inEndpoint := "https://2captcha.com/in.php"
 	inURL, err := url.Parse(inEndpoint)
@@ -415,18 +277,24 @@ func (in *Instance) twoCaptcha(sitekey, rqdata string) (string, error) {
 	q.Set("method", "hcaptcha")
 	q.Set("sitekey", sitekey)
 	// Page URL same as referer in headers
-	q.Set("pageurl", "https://discord.com/channels/@me")
+	q.Set("pageurl", site)
 	q.Set("userAgent", UserAgent)
 	q.Set("json", "1")
 	q.Set("soft_id", "3359")
 	if rqdata != "" {
 		q.Set("data", rqdata)
+		q.Set("invisible", "1")
 	}
 	if in.Config.ProxySettings.ProxyForCaptcha {
 		q.Set("proxy", in.Proxy)
 		q.Set("proxytype", in.Config.ProxySettings.ProxyProtocol)
 	}
 	inURL.RawQuery = q.Encode()
+	if in.Config.CaptchaSettings.CaptchaAPI == "2captcha.com" {
+		inURL.Host = "2captcha.com"
+	} else if in.Config.CaptchaSettings.CaptchaAPI == "rucaptcha.com" {
+		inURL.Host = "rucaptcha.com"
+	}
 	inEndpoint = inURL.String()
 	req, err := http.NewRequest(http.MethodGet, inEndpoint, nil)
 	if err != nil {
@@ -459,6 +327,11 @@ func (in *Instance) twoCaptcha(sitekey, rqdata string) (string, error) {
 	q.Set("action", "get")
 	q.Set("id", inResponse.Request)
 	q.Set("json", "1")
+	if in.Config.CaptchaSettings.CaptchaAPI == "2captcha.com" {
+		outURL.Host = "2captcha.com"
+	} else if in.Config.CaptchaSettings.CaptchaAPI == "rucaptcha.com" {
+		outURL.Host = "rucaptcha.com"
+	}
 	outURL.RawQuery = q.Encode()
 	outEndpoint = outURL.String()
 	req, err = http.NewRequest(http.MethodGet, outEndpoint, nil)
