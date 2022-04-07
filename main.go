@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -29,10 +28,8 @@ import (
 )
 
 func main() {
-	version := "1.8.10"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
-	versionCheck(version)
 	Options()
 }
 
@@ -1866,55 +1863,3 @@ func findNextQueries(query string, lastName string, completedQueries []string, c
 }
 
 var CaptchaServices []string
-
-func versionCheck(version string) {
-	link := "https://pastebin.com/raw/CCaVBSPv"
-	resp, err := http.Get(link)
-	if err != nil {
-		return
-	}
-	if resp.StatusCode != 200 && resp.StatusCode != 201 && resp.StatusCode != 204 {
-		return
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	var response map[string]interface{}
-	err = json.Unmarshal(body, &response)
-	if err != nil {
-		return
-	}
-	v := response["version"].(string)
-	message := response["message"].(string)
-	if v != version {
-		color.Red("[!] You're using V%v, but the latest version is V%v. Consider updating at https://discord-mass-dm/releases", version, v)
-	} else {
-		color.Green("[O] You're Up-to-Date! You're using V%v", version)
-	}
-	if message != "" {
-		color.Yellow("[!] %v", message)
-	}
-
-	link = "https://pastebin.com/CCaVBSPv"
-	resp, err = http.Get(link)
-	if err != nil {
-		return
-	}
-	if resp.StatusCode != 200 && resp.StatusCode != 201 && resp.StatusCode != 204 {
-		return
-	}
-	defer resp.Body.Close()
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-	r := regexp.MustCompile(`<div class="visits" title="Unique visits to this paste">\n(.+)<\/div>`)
-	matches := r.FindStringSubmatch(string(body))
-	if len(matches) == 0 {
-		return
-	}
-	views := strings.ReplaceAll(matches[1], " ", "")
-	color.Green("[O] Users: %v [21-February-2022 - %v]", views, time.Now().Format("02-January-2006"))
-}
