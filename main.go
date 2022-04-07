@@ -35,7 +35,7 @@ func main() {
 
 func Options() {
 	reg := regexp.MustCompile(`(.+):(.+):(.+)`)
-	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) Haven't thought of anything\n |- 16) Exit")
+	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) Exit")
 	color.White("\nEnter your choice: ")
 	var choice int
 	fmt.Scanln(&choice)
@@ -1600,7 +1600,7 @@ func Options() {
 		}
 		c.WaitAllDone()
 
-	case 16:
+	case 15:
 		os.Exit(0)
 
 	}
