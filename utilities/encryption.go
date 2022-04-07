@@ -1,23 +1,15 @@
-// Copyright (C) 2021 github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 import (
 	"bytes"
+	"compress/zlib"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
-	"compress/zlib"
-
 	"github.com/andybalholm/brotli"
 )
 
-// Decoding brotli encrypted responses
 func DecodeBr(data []byte) ([]byte, error) {
 	r := bytes.NewReader(data)
 	br := brotli.NewReader(r)
@@ -25,9 +17,7 @@ func DecodeBr(data []byte) ([]byte, error) {
 	return ioutil.ReadAll(br)
 }
 
-// Function to handle all sorts of accepted-encryptions
 func ReadBody(resp http.Response) ([]byte, error) {
-
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)

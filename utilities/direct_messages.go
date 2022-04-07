@@ -1,9 +1,3 @@
-// Copyright (C) 2021 github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 import (
@@ -24,15 +18,10 @@ import (
 	"github.com/fatih/color"
 )
 
-// Cookies are required for legitimate looking requests, a GET request to discord.com has these required cookies in it's response along with the website HTML
-// We can use this to get the cookies & arrange them in a string
-
 func (in *Instance) GetCookieString() (string, error) {
-
 	url := "https://discord.com"
 
 	req, err := http.NewRequest("GET", url, nil)
-
 	if err != nil {
 		color.Red("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("error while making request to get cookie %v", err)
@@ -79,8 +68,8 @@ func (in *Instance) GetCookieString() (string, error) {
 	// }
 
 	return cookies, nil
-
 }
+
 func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 	site := fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, r)
 	res := RandomResult()
@@ -131,19 +120,16 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 		cookies = cookies + cookie.Name + "=" + cookie.Value
 	}
 	return cookies, nil
-
 }
 
 type response struct {
 	Fingerprint string `json:"fingerprint"`
 }
 
-// Getting Fingerprint to use in our requests for more legitimate seeming requests.
 func (in *Instance) GetFingerprintString(cookie string) (string, error) {
 	url := "https://discord.com/api/v9/experiments"
 
 	req, err := http.NewRequest("GET", url, nil)
-
 	if err != nil {
 		color.Red("[%v] Error while making request to get fingerprint %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("error while making request to get fingerprint %v", err)
@@ -189,7 +175,6 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	}
 
 	resp, err := in.Client.Do(in.OpenChannelHeaders(req, cookie))
-
 	if err != nil {
 		return "", fmt.Errorf("error while getting response from open channel request %v", err)
 	}
@@ -228,7 +213,6 @@ type captchaDetected struct {
 	RqToken    string   `json:"captcha_rqtoken"`
 }
 
-// Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
 func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.Response, error) {
 	// Sending a random message incase there are multiple.
 	index := rand.Intn(len(in.Messages))
@@ -251,7 +235,6 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	url := "https://discord.com/api/v9/channels/" + channelSnowflake + "/messages"
 
 	req, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
-
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
 	}
@@ -347,7 +330,6 @@ func (in *Instance) UserInfo(userid string) (UserInf, error) {
 	}
 
 	if body == nil {
-
 		return UserInf{}, fmt.Errorf("body is nil")
 	}
 
@@ -365,7 +347,6 @@ type RingData struct {
 }
 
 func Ring(httpClient *http.Client, auth string, snowflake string) (int, error) {
-
 	url := "https://discord.com/api/v9/channels/" + snowflake + "/call"
 
 	p := RingData{
@@ -396,8 +377,8 @@ func Ring(httpClient *http.Client, auth string, snowflake string) (int, error) {
 	}
 	fmt.Println(string(body))
 	return resp.StatusCode, nil
-
 }
+
 func Snowflake() int64 {
 	snowflake := strconv.FormatInt((time.Now().UTC().UnixNano()/1000000)-1420070400000, 2) + "0000000000000000000000"
 	nonce, _ := strconv.ParseInt(snowflake, 2, 64)
@@ -405,10 +386,9 @@ func Snowflake() int64 {
 }
 
 func CommonHeaders(req *http.Request) *http.Request {
-
 	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTA0OTY3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 	req.Header.Set("sec-fetch-dest", "empty")
-	//req.Header.Set("Connection", "keep-alive")
+	// req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("x-debug-options", "bugReporterEnabled")
 	req.Header.Set("sec-fetch-mode", "cors")
 	req.Header.Set("X-Discord-Locale", "en-US")
@@ -427,7 +407,7 @@ func RegisterHeaders(req *http.Request) *http.Request {
 	req.Header.Set("method", "POST")
 	req.Header.Set("path", "/api/v9/auth/register")
 	req.Header.Set("scheme", "https")
-	//req.Header.Set("Connection", "keep-alive")
+	// req.Header.Set("Connection", "keep-alive")
 	req.Header.Set("X-Discord-Locale", "en-US")
 	req.Header.Set("origin", "discord.com")
 	req.Header.Set("referer", "discord.com/register")
@@ -442,7 +422,6 @@ func RegisterHeaders(req *http.Request) *http.Request {
 	req.Header.Set("sec-fetch-site", "same-origin")
 
 	return req
-
 }
 
 func (in *Instance) CloseDMS(snowflake string) (int, error) {

@@ -1,9 +1,3 @@
-// Copyright (C) 2021 github.com/dankgrinder & github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 import (
@@ -17,7 +11,6 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// Define WebSocket connection struct
 type Connection struct {
 	Members       []string
 	OfflineScrape chan []byte
@@ -33,7 +26,6 @@ type Connection struct {
 	closeChan     chan struct{}
 }
 
-// Input Discord token and start a new websocket connection
 func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, error) {
 	var dialer websocket.Dialer
 	if in.GatewayProxy == "" {
@@ -108,7 +100,8 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 				},
 				Compress: false,
 			},
-		}})
+		},
+	})
 	if err != nil {
 		c.Conn.Close()
 		return nil, fmt.Errorf("error while sending authentication message: %v", err)
@@ -123,10 +116,8 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	go c.listen()
 
 	return &c, nil
-
 }
 
-// Read Hello function to read hello message from websocket return 0 if next message is not a hello message or return the heartbeat interval
 func (c *Connection) ReadHello() (int, error) {
 	_, message, err := c.Conn.ReadMessage()
 	if err != nil {
@@ -145,10 +136,7 @@ func (c *Connection) ReadHello() (int, error) {
 	}
 
 	return body.Data.HeartbeatInterval, nil
-
 }
-
-// Ping Heartbeat interval
 
 func (c *Connection) Ping(interval time.Duration) {
 	go func() {
@@ -204,7 +192,6 @@ func (c *Connection) listen() {
 			go func() {
 				c.OfflineScrape <- b
 			}()
-
 		}
 		if body.EventName == "GUILD_MEMBER_LIST_UPDATE" {
 			for i := 0; i < len(body.Data.Ops); i++ {
@@ -233,7 +220,6 @@ func (c *Connection) listen() {
 				go func() {
 					c.Messages <- b
 				}()
-
 			}
 		case OpcodeInvalidSession:
 			c.fatalHandler(fmt.Errorf("session invalidated"))
@@ -261,12 +247,10 @@ func (c *Connection) Close() error {
 	return nil
 }
 
-// Send interface to websocket
 func (c *Connection) WriteRaw(e interface{}) error {
 	return c.Conn.WriteJSON(e)
 }
 
-// Function to write event
 func (c *Connection) WriteJSONe(e *Event) error {
 	return c.Conn.WriteJSON(e)
 }

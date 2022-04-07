@@ -1,9 +1,3 @@
-// Copyright (C) 2021 github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 import (
@@ -12,11 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strings"
-	"time"
-
 	"net/http"
 	"net/url"
+	"strings"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -120,7 +113,6 @@ func (in *Instance) ContextProperties(invite, cookie, fingerprint string) (strin
 		return "", err
 	}
 	return x, nil
-
 }
 
 type XContext struct {
@@ -143,7 +135,6 @@ func XContextGen(guildID string, channelID string, ChannelType float64) (string,
 	}
 	Enc := b64.StdEncoding.EncodeToString(jsonData)
 	return Enc, nil
-
 }
 
 func Bypass(client *http.Client, serverid string, token string, invite string) error {
@@ -318,7 +309,6 @@ func (in *Instance) Invite(Code string) error {
 
 	}
 	return fmt.Errorf("max retries exceeded")
-
 }
 
 func (in *Instance) Leave(serverid string) int {
@@ -375,7 +365,6 @@ type friendRequest struct {
 }
 
 func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error) {
-
 	url := "https://discord.com/api/v9/users/@me/relationships"
 
 	fr := friendRequest{Username, Discrim}
@@ -402,13 +391,11 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 	req.Header.Set("Authorization", in.Token)
 
 	resp, err := in.Client.Do(CommonHeaders(req))
-
 	if err != nil {
 		return &http.Response{}, err
 	}
 
 	return resp, nil
-
 }
 
 func (in *Instance) CheckToken() int {
@@ -424,7 +411,6 @@ func (in *Instance) CheckToken() int {
 		return -1
 	}
 	return resp.StatusCode
-
 }
 
 func FindMessage(channel string, messageid string, token string) (string, error) {
@@ -529,7 +515,7 @@ func headersInvite(req *http.Request, cookie string, authorization string, finge
 	req.Header.Set("X-Discord-Locale", "en-US")
 	req.Header.Set("X-Fingerprint", fingerprint)
 	// Constant Context properties
-	//req.Header.Set("X-Context-Properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6Ijk0NDI2ODQ5MzczMjMyMzM3OCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5NDQyNjg0OTM3MzIzMjMzODEiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
+	// req.Header.Set("X-Context-Properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6Ijk0NDI2ODQ5MzczMjMyMzM3OCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5NDQyNjg0OTM3MzIzMjMzODEiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
 	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
 
 	return req

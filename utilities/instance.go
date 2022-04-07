@@ -1,9 +1,3 @@
-// Copyright (C) 2021 github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 import (
@@ -27,7 +21,7 @@ type Instance struct {
 	LastCount    int
 	Members      []User
 	AllMembers   []User
-	Retry       int
+	Retry        int
 	ScrapeCount  int
 	ID           string
 	Receiver     bool

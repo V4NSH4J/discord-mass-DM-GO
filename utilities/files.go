@@ -1,9 +1,3 @@
-// Copyright (C) 2021 github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 import (
@@ -29,7 +23,7 @@ func ReadLines(filename string) ([]string, error) {
 		return nil, err
 	}
 	ex = filepath.ToSlash(ex)
-	file, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR, 0660)
+	file, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR, 0o660)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +43,7 @@ func WriteLines(filename string, line string) error {
 		return err
 	}
 	ex = filepath.ToSlash(ex)
-	f, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR|os.O_APPEND, 0660)
-
+	f, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR|os.O_APPEND, 0o660)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -61,7 +54,6 @@ func WriteLines(filename string, line string) error {
 		log.Fatal(err2)
 	}
 	return nil
-
 }
 
 func TruncateLines(filename string, line []string) error {
@@ -70,8 +62,7 @@ func TruncateLines(filename string, line []string) error {
 		return err
 	}
 	ex = filepath.ToSlash(ex)
-	f, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0755)
-
+	f, err := os.OpenFile(path.Join(path.Dir(ex)+"/input/"+filename), os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o755)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -84,7 +75,6 @@ func TruncateLines(filename string, line []string) error {
 		}
 	}
 	return nil
-
 }
 
 type MessageEmbedImage struct {
@@ -229,7 +219,7 @@ type CaptchaSettings struct {
 	ClientKey  string `yaml:"captcha_api_key"`
 	CaptchaAPI string `yaml:"captcha_api"`
 	Timeout    int    `yaml:"max_captcha_wait"`
-	MaxCaptcha int  `yaml:"max_captcha_retry"`
+	MaxCaptcha int    `yaml:"max_captcha_retry"`
 }
 
 type OtherSettings struct {

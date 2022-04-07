@@ -26,7 +26,6 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 	}
 }
 
-// Function to use a captcha solving service and return a solved captcha key
 func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdata string, url string) (string, error) {
 	var jsonx Pload
 	if !in.Config.ProxySettings.ProxyForCaptcha || in.Config.CaptchaSettings.CaptchaAPI == "anycaptcha.com" {
@@ -86,7 +85,6 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdat
 	bytes, err := json.Marshal(jsonx)
 	if err != nil {
 		return "", fmt.Errorf("error marshalling json [%v]", err)
-
 	}
 	// Almost all solving services have similar API, so we can use the same function and replace the domain.
 	resp, err := http.Post("https://api."+in.Config.CaptchaSettings.CaptchaAPI+"/createTask", "application/json", strings.NewReader(string(bytes)))
@@ -139,7 +137,6 @@ func (in *Instance) SolveCaptchaCapmonster(sitekey string, cookies string, rqdat
 			}
 			if response.Status == "ready" {
 				return response.Solution.Ans, nil
-
 			} else if response.Status == "processing" {
 				p++ // Incrementing the counter
 				time.Sleep(3 * time.Second)
@@ -206,7 +203,6 @@ type Sol struct {
 	Ans string `json:"gRecaptchaResponse"`
 }
 
-// Incomplete
 func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey, url string) (string, error) {
 	// Authentication can be a user:pass combination or with a 2fa key.
 	var username string
@@ -254,7 +250,6 @@ func (in *Instance) SolveCaptchaDeathByCaptcha(sitekey, url string) (string, err
 	fmt.Println(resp.StatusCode)
 
 	return "", nil
-
 }
 
 type twoCaptchaSubmitResponse struct {

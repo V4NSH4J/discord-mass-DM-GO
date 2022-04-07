@@ -15,10 +15,11 @@ import (
 	"github.com/fatih/color"
 )
 
-const Useragent = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.1013 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36"
-const XSuperProp = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJwdGIiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC4xMDEzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTE1NjMzLCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
+const (
+	Useragent  = "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.1013 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36"
+	XSuperProp = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJwdGIiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC4xMDEzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTE1NjMzLCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
+)
 
-// New Invite joiner
 func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fingerprint string) (int, string, string, error) {
 	// Need X-Context-Properties
 	var contextProperties string = "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjM5MjQyMTM5MzgwMDg4ODMyMSIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MDE0MTY2NjE1OTExNjI5NDIiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9"
@@ -181,7 +182,6 @@ func (in *Instance) Inviter(invitationCode string, mode int, cookie string, fing
 }
 
 func (in *Instance) headersRules(req *http.Request, cookie string, fingerprint string, serverID string, channelID string) *http.Request {
-
 	for k, v := range map[string]string{
 		"Host":               "ptb.discord.com",
 		"Connection":         "keep-alive",
@@ -210,6 +210,7 @@ func (in *Instance) headersRules(req *http.Request, cookie string, fingerprint s
 func fakeStripeMid() string {
 	return fmt.Sprintf(` __stripe_mid=%s-%s-%s-%s-%s`, randomString(8), randomString(4), randomString(4), randomString(4), randomString(18))
 }
+
 func fakeCFruid() string {
 	return fmt.Sprintf(`; __cfruid=%s-%s`, randomString(40), randomIntegerString(10))
 }
@@ -222,6 +223,7 @@ func randomString(length int) string {
 	}
 	return rndm
 }
+
 func randomIntegerString(length int) string {
 	numset := "0123456789"
 	var rndm string

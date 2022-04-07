@@ -1,9 +1,3 @@
-// Copyright (C) github.com/dankgrinder & github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package utilities
 
 const (
@@ -29,7 +23,6 @@ const (
 
 type Intent int
 
-// Constants for the different bit offsets of intents
 const (
 	IntentsGuilds                 Intent = 1 << 0
 	IntentsGuildMembers           Intent = 1 << 1

@@ -1,9 +1,3 @@
-// Copyright (C) 2021 github.com/V4NSH4J
-//
-// This source code has been released under the GNU Affero General Public
-// License v3.0. A copy of this license is available at
-// https://www.gnu.org/licenses/agpl-3.0.en.html
-
 package main
 
 import (
@@ -28,7 +22,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
+	"discord-mass-dm/utilities"
+
 	"github.com/fatih/color"
 	"github.com/zenthangplus/goccm"
 )
@@ -37,13 +32,10 @@ func main() {
 	version := "1.8.10"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
-	color.Blue(logo + " v" + version + "\n")
-	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
 	versionCheck(version)
 	Options()
 }
 
-// Options menu
 func Options() {
 	reg := regexp.MustCompile(`(.+):(.+):(.+)`)
 	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) Haven't thought of anything\n |- 16) Credits & Info\n |- 17) Exit")
@@ -114,7 +106,6 @@ func Options() {
 					}
 					time.Sleep(time.Duration(delay) * time.Second)
 					c.Done()
-
 				}(i)
 			}
 			c.WaitAllDone()
@@ -260,7 +251,7 @@ func Options() {
 		var completed []string
 		var failed []string
 		var dead []string
-		var failedCount = 0
+		failedCount := 0
 		completed, err = utilities.ReadLines("completed.txt")
 		if err != nil {
 			color.Red("Error while opening completed.txt: %v", err)
@@ -304,7 +295,7 @@ func Options() {
 		// Setting information to windows titlebar by github.com/foxzsz
 		go func() {
 			for {
-				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %d avg. dms, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), len(instances)-len(dead)))
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`[%d sent, %v failed, %d locked, %d avg. dms, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), len(instances)-len(dead)))
 				_ = cmd.Run()
 			}
 		}()
@@ -827,7 +818,6 @@ func Options() {
 					defer wg.Done()
 					if msg.Reactions[emoji].Emojis.ID == "" {
 						send = msg.Reactions[emoji].Emojis.Name
-
 					} else if msg.Reactions[emoji].Emojis.ID != "" {
 						send = msg.Reactions[emoji].Emojis.Name + ":" + msg.Reactions[emoji].Emojis.ID
 					}
@@ -838,7 +828,6 @@ func Options() {
 					} else {
 						color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].Token)
 					}
-
 				}(i)
 			}
 			wg.Wait()
@@ -1147,7 +1136,6 @@ func Options() {
 				fmt.Scanln(&index)
 				if msg.Reactions[index].Emojis.ID == "" {
 					send = msg.Reactions[index].Emojis.Name
-
 				} else if msg.Reactions[index].Emojis.ID != "" {
 					send = msg.Reactions[index].Emojis.Name + ":" + msg.Reactions[index].Emojis.ID
 				}
@@ -1624,7 +1612,6 @@ func Options() {
 	}
 	time.Sleep(1 * time.Second)
 	Options()
-
 }
 
 type jsonResponse struct {
@@ -1711,7 +1698,6 @@ func getEverything() (utilities.Config, []utilities.Instance, error) {
 		color.Red("[!] You may be using a malformed config.json")
 	}
 	return cfg, instances, nil
-
 }
 
 func setMessages(instances []utilities.Instance, messages []utilities.Message) error {
@@ -1736,9 +1722,8 @@ func setMessages(instances []utilities.Instance, messages []utilities.Message) e
 	return nil
 }
 
-// Append items from slice to file
 func Append(filename string, items []string) error {
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
@@ -1753,9 +1738,8 @@ func Append(filename string, items []string) error {
 	return nil
 }
 
-// Truncate items from slice to file
 func Truncate(filename string, items []string) error {
-	file, err := os.OpenFile(filename, os.O_TRUNC|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filename, os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
@@ -1770,9 +1754,8 @@ func Truncate(filename string, items []string) error {
 	return nil
 }
 
-// Write line to file
 func WriteLine(filename string, line string) error {
-	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
@@ -1785,7 +1768,6 @@ func WriteLine(filename string, line string) error {
 	return nil
 }
 
-// Create a New file and add items from a slice or append to it if it already exists
 func WriteFile(filename string, items []string) error {
 	file, err := os.Create(filename)
 	if err != nil {
@@ -1843,7 +1825,6 @@ func initClient(proxy string, cfg utilities.Config) (*http.Client, error) {
 		},
 	}
 	return Client, nil
-
 }
 
 func ExitSafely() {
@@ -1866,13 +1847,11 @@ func findNextQueries(query string, lastName string, completedQueries []string, c
 	}
 	wantedCharIndex := indexQuery + len(query)
 	if wantedCharIndex >= len(lastName) {
-
 		return nil
 	}
 	wantedChar := lastName[wantedCharIndex]
 	queryIndexDone := strings.Index(chars, string(wantedChar))
 	if queryIndexDone == -1 {
-
 		return nil
 	}
 
@@ -1910,9 +1889,9 @@ func versionCheck(version string) {
 	v := response["version"].(string)
 	message := response["message"].(string)
 	if v != version {
-		color.Red("[!] You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
+		color.Red("[!] You're using V%v, but the latest version is V%v. Consider updating at https://discord-mass-dm/releases", version, v)
 	} else {
-		color.Green("[O] You're Up-to-Date! You're using DMDGO V%v", version)
+		color.Green("[O] You're Up-to-Date! You're using V%v", version)
 	}
 	if message != "" {
 		color.Yellow("[!] %v", message)
@@ -1937,5 +1916,5 @@ func versionCheck(version string) {
 		return
 	}
 	views := strings.ReplaceAll(matches[1], " ", "")
-	color.Green("[O] DMDGO Users: %v [21-February-2022 - %v]", views, time.Now().Format("02-January-2006"))
+	color.Green("[O] Users: %v [21-February-2022 - %v]", views, time.Now().Format("02-January-2006"))
 }
