@@ -214,7 +214,10 @@ Leave a star on the repository, helps out intensively! You can also buy me a coo
 - *SOL*: 8QyA9dCetgVMxU2AjzfM3DrY1i3mXuE8nsgLkvAX1hTe
 
 - *LTC*: LN5UPbL31TcPzpBKFbsNKZ5BxwUzKcyi1F
-
+## Contact
+There are a lot of impersonators, please make sure you're dealing with the correct username 
+Telegram: @campingarunner
+This is my *only* telegram.
 ## Credits
 DMDGO has not been a One man show! I would like to thank everyone for their contributions and my patreons. Special thanks to my lads -> 
 - [The author of Dankgrinder](https://github.com/dankgrinder) and [OsOmE1](https://github.com/OsOmE1) for helping out numerous times since the time I started writing code! Also for the websocket code taken from [dankgrinder](https://github.com/dankgrinder/dankgrinder)
