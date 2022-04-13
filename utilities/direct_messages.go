@@ -11,6 +11,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 
 	// "io/ioutil"
 	"math/rand"
@@ -258,6 +259,21 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	cookie, err := in.GetCookieString()
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	}
+	
+	dur := typingSpeed(x, in.Config.SuspicionAvoidance.TypingVariation, in.Config.SuspicionAvoidance.TypingSpeed, in.Config.SuspicionAvoidance.TypingBase)
+	if dur != 0 {
+		iterations := int((int64(dur)/int64(time.Second*10))) + 1
+		for i := 0; i < iterations; i++ {
+			if err := in.typing(channelSnowflake, cookie); err != nil {
+				continue 
+			}
+			s := time.Second * 10 
+			if i == iterations-1 {
+				s = dur % time.Second * 10
+			}
+			time.Sleep(s)
+		}
 	}
 	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 	if err != nil {
@@ -544,4 +560,31 @@ func (in *Instance) ungreet(channelid, cookie, fingerprint, msgid string) error 
 		return fmt.Errorf(`invalid status code while sending dm%v`, resp.StatusCode)
 	}
 	return nil
+}
+
+func (in *Instance) typing(channelID, cookie string) error {
+	reqURL := fmt.Sprintf(`https://discord.com/api/v9/channels/%s/typing`, channelID)
+	req, err := http.NewRequest("POST", reqURL, nil)
+	if err != nil {
+		return err
+	}
+	req = in.TypingHeaders(req, cookie, channelID)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != 204 {
+		return fmt.Errorf(`invalid status code while sending dm%v`, resp.StatusCode)
+	}
+	return nil
+}
+
+func typingSpeed(msg string, TypingVariation, TypingSpeed, TypingBase int) time.Duration {
+	msPerKey := int(math.Round((1.0 / float64(TypingSpeed)) * 60000))
+	d := TypingBase
+	d += len(msg) * msPerKey
+	if TypingVariation > 0 {
+		d += rand.Intn(TypingVariation)
+	}
+	return time.Duration(d) * time.Millisecond
 }

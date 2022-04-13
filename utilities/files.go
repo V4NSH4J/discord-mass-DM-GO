@@ -229,7 +229,7 @@ type CaptchaSettings struct {
 	ClientKey  string `yaml:"captcha_api_key"`
 	CaptchaAPI string `yaml:"captcha_api"`
 	Timeout    int    `yaml:"max_captcha_wait"`
-	MaxCaptcha int  `yaml:"max_captcha_retry"`
+	MaxCaptcha int    `yaml:"max_captcha_retry"`
 }
 
 type OtherSettings struct {
@@ -240,6 +240,9 @@ type SuspicionAvoidance struct {
 	RandomIndividualDelay  int `yaml:"random_individual_delay"`
 	RandomRateLimitDelay   int `yaml:"random_rate_limit_delay"`
 	RandomDelayOpenChannel int `yaml:"random_delay_before_dm"`
+	TypingVariation        int `yaml:"typing_variation"`
+	TypingSpeed            int `yaml:"typing_speed"`
+	TypingBase 			   int `yaml:"typing_base"`
 }
 
 func GetConfig() (Config, error) {

@@ -179,18 +179,18 @@ type Pload struct {
 }
 
 type Task struct {
-	Type          string `json:"type"`
-	WebsiteURL    string `json:"websiteURL"`
-	WebsiteKey    string `json:"websiteKey"`
-	ProxyType     string `json:"proxyType"`
-	ProxyAddress  string `json:"proxyAddress"`
-	ProxyPort     int    `json:"proxyPort"`
-	ProxyLogin    string `json:"proxyLogin"`
-	Data          string `json:"data"`
-	ProxyPassword string `json:"proxyPassword"`
-	UserAgent     string `json:"userAgent"`
-	Cookies       string `json:"cookies`
-	Invisible     bool   `json:"isInvisible`
+	Type          string `json:"type,omitempty"`
+	WebsiteURL    string `json:"websiteURL,omitempty"`
+	WebsiteKey    string `json:"websiteKey,omitempty"`
+	ProxyType     string `json:"proxyType,omitempty"`
+	ProxyAddress  string `json:"proxyAddress,omitempty"`
+	ProxyPort     int    `json:"proxyPort,omitempty"`
+	ProxyLogin    string `json:"proxyLogin,omitempty"`
+	Data          string `json:"data,omitempty"`
+	ProxyPassword string `json:"proxyPassword,omitempty"`
+	UserAgent     string `json:"userAgent,omitempty"`
+	Cookies       string `json:"cookies,omitempty`
+	Invisible     bool   `json:"isInvisible,omitempty`
 }
 
 type Resp struct {

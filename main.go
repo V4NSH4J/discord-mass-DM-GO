@@ -34,7 +34,7 @@ import (
 )
 
 func main() {
-	version := "1.8.10"
+	version := "1.8.12"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
@@ -54,13 +54,6 @@ func Options() {
 	default:
 		color.Red("Invalid choice!")
 		Options()
-	case 0:
-		color.Cyan("Debug Mode")
-		var inv string
-		fmt.Scanln(&inv)
-		cfg, _, _ := getEverything()
-		fmt.Println(cfg)
-
 	case 1:
 		var invitechoice int
 		color.White("Invite Menu:\n1) Single Invite\n2) Multiple Invites from file")
