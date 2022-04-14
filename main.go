@@ -34,7 +34,7 @@ import (
 )
 
 func main() {
-	version := "1.8.12"
+	version := "1.8.13"
 	CaptchaServices = []string{"capmonster.cloud", "anti-captcha.com", "2captcha.com", "rucaptcha.com", "deathbycaptcha.com", "anycaptcha.com", "azcaptcha.com", "solvecaptcha.com"}
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue(logo + " v" + version + "\n")
@@ -297,7 +297,7 @@ func Options() {
 		// Setting information to windows titlebar by github.com/foxzsz
 		go func() {
 			for {
-				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %d avg. dms, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), len(instances)-len(dead)))
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %v avg. dms, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), len(instances)-len(dead)))
 				_ = cmd.Run()
 			}
 		}()

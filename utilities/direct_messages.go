@@ -13,6 +13,8 @@ import (
 	"io/ioutil"
 	"math"
 
+	//"regexp"
+
 	// "io/ioutil"
 	"math/rand"
 	"net/http"
@@ -54,7 +56,6 @@ func (in *Instance) GetCookieString() (string, error) {
 	for _, cookie := range resp.Cookies() {
 		cookies += fmt.Sprintf(`%s=%s; `, cookie.Name, cookie.Value)
 	}
-	cookies += "locale=en-US"
 	// CfRay := resp.Header.Get("cf-ray")
 	// if strings.Contains(CfRay, "-BOM") {
 	// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
@@ -75,21 +76,20 @@ func (in *Instance) GetCookieString() (string, error) {
 	// 	if err != nil {
 	// 		return cookies + "locale:en-US", nil
 	// 	}
-	// 	fmt.Println(finalCookies)
+	// 	finalCookies += "; locale:en-US"
 	// 	return finalCookies, nil
 	// }
-
+	cookies += "locale:en-US"
 	return cookies, nil
 
 }
 func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 	site := fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, r)
-	res := RandomResult()
 	payload := fmt.Sprintf(
 		`
 		{
 			"m":"%s",
-			"results":["%s","%s"],
+			"results":["859fe3e432b90450c6ddf8fae54c9a58","460d5f1e93f296a48e3f6745675f27e2"],
 			"timing":%v,
 			"fp":
 				{
@@ -107,7 +107,7 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 				}
 			}
 		}
-		`, m, res[0], res[1], 60+rand.Intn(60),
+		`, m, 60+rand.Intn(60),
 	)
 	req, err := http.NewRequest("POST", site, strings.NewReader(payload))
 	if err != nil {
@@ -127,7 +127,6 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 	if len(resp.Cookies()) == 0 {
 		return cookies, nil
 	}
-	cookies = cookies + "; "
 	for _, cookie := range resp.Cookies() {
 		cookies = cookies + cookie.Name + "=" + cookie.Value
 	}
@@ -250,7 +249,6 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	}
 
 	url := "https://discord.com/api/v9/channels/" + channelSnowflake + "/messages"
-
 	req, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
 
 	if err != nil {
@@ -260,15 +258,15 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	
+
 	dur := typingSpeed(x, in.Config.SuspicionAvoidance.TypingVariation, in.Config.SuspicionAvoidance.TypingSpeed, in.Config.SuspicionAvoidance.TypingBase)
 	if dur != 0 {
-		iterations := int((int64(dur)/int64(time.Second*10))) + 1
+		iterations := int((int64(dur) / int64(time.Second*10))) + 1
 		for i := 0; i < iterations; i++ {
 			if err := in.typing(channelSnowflake, cookie); err != nil {
-				continue 
+				continue
 			}
-			s := time.Second * 10 
+			s := time.Second * 10
 			if i == iterations-1 {
 				s = dur % time.Second * 10
 			}
