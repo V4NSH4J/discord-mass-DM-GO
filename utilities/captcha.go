@@ -104,15 +104,16 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	}
 	outURL.RawQuery = q.Encode()
 	outEndpoint = outURL.String()
-	req, err = http.NewRequest(http.MethodGet, outEndpoint, nil)
-	if err != nil {
-		return solvedKey, fmt.Errorf("error creating request [%v]", err)
-	}
+
 	time.Sleep(10 * time.Second)
 	now := time.Now()
 	for {
 		if time.Since(now) > time.Duration(in.Config.CaptchaSettings.Timeout)*time.Second {
 			return solvedKey, fmt.Errorf("captcha response from 2captcha timedout")
+		}
+		req, err = http.NewRequest(http.MethodGet, outEndpoint, nil)
+		if err != nil {
+			return solvedKey, fmt.Errorf("error creating request [%v]", err)
 		}
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -193,20 +194,32 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	}
 	if in.Config.ProxySettings.ProxyForCaptcha && in.Proxy != "" {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTask"
-		proxyURL, err := url.Parse(in.Proxy)
-		if err != nil {
-			return solvedKey, fmt.Errorf("error while parsing proxy url %v", err)
-		}
-		submitCaptcha.Task.ProxyType = in.Config.ProxySettings.ProxyProtocol
-		submitCaptcha.Task.ProxyAddress = proxyURL.Hostname()
-		submitCaptcha.Task.ProxyPort, err = strconv.Atoi(proxyURL.Port())
-		if err != nil {
-			return solvedKey, fmt.Errorf("error while parsing proxy port %v", err)
-		}
-		submitCaptcha.Task.ProxyLogin = proxyURL.User.Username()
-		pwd, setPwd := proxyURL.User.Password()
-		if setPwd {
-			submitCaptcha.Task.ProxyPassword = pwd
+		if strings.Contains(in.Proxy, "@") {
+			// User:pass authenticated proxy
+			parts := strings.Split(in.Proxy, "@")
+			userPass, ipPort := parts[0], parts[1]
+			if !strings.Contains(ipPort, ":") || !strings.Contains(userPass, ":") {
+				return solvedKey, fmt.Errorf("invalid proxy format")
+			}
+			submitCaptcha.Task.ProxyLogin, submitCaptcha.Task.ProxyPassword = strings.Split(userPass, ":")[0], strings.Split(userPass, ":")[1]
+			port := strings.Split(ipPort, ":")[1]
+			var err error
+			submitCaptcha.Task.ProxyPort, err = strconv.Atoi(port)
+			if err != nil {
+				return solvedKey, fmt.Errorf("invalid proxy format")
+			}
+			submitCaptcha.Task.ProxyAddress = strings.Split(ipPort, ":")[0]
+		} else {
+			if !strings.Contains(in.Proxy, ":") {
+				return solvedKey, fmt.Errorf("invalid proxy format")
+			}
+			submitCaptcha.Task.ProxyAddress = strings.Split(in.Proxy, ":")[0]
+			port := strings.Split(in.Proxy, ":")[1]
+			var err error
+			submitCaptcha.Task.ProxyPort, err = strconv.Atoi(port)
+			if err != nil {
+				return solvedKey, fmt.Errorf("invalid proxy format")
+			}
 		}
 	} else {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTaskProxyless"
@@ -245,15 +258,16 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	if err != nil {
 		return solvedKey, fmt.Errorf("error while marshalling payload %v", err)
 	}
-	req, err = http.NewRequest(http.MethodPost, outEndpoint, bytes.NewBuffer(payload))
-	if err != nil {
-		return solvedKey, fmt.Errorf("error creating request [%v]", err)
-	}
 	req.Header.Set("Content-Type", "application/json")
+	time.Sleep(5 * time.Second)
 	t := time.Now()
 	for i := 0; i < 120; i++ {
 		if time.Since(t).Seconds() >= float64(in.Config.CaptchaSettings.Timeout) {
 			return solvedKey, fmt.Errorf("timedout - increase timeout in config to wait longer")
+		}
+		req, err = http.NewRequest(http.MethodPost, outEndpoint, bytes.NewBuffer(payload))
+		if err != nil {
+			return solvedKey, fmt.Errorf("error creating request [%v]", err)
 		}
 		resp, err = http.DefaultClient.Do(req)
 		if err != nil {
