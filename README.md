@@ -35,7 +35,7 @@
 - Multi-threaded and supports high number of simultaneous accounts
 - Proxyless / HTTP(s) Proxies
 - Can ping users
-- ~Can send Embeds~ (can no longer send embeds after Discord update on 22nd January 2022 removing ability to send embeds completely from regular discord users)
+- Can send Embeds (using an External API)
 - Supports multiple messages, sends one randomly
 - Can receive messages from people it messaged
 - Uses safe requests to prevent phone locks
