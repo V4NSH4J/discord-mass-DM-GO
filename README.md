@@ -26,9 +26,11 @@
 - Token Checker
 - Guild Leaver
 - Token Onliner
+- Multiple Captcha solving APIs implemented
 - Scraping [3 Modes to get the maximum users including an Opcode 8 Scraper]
 - Name Changer
 - Avatar Changer
+- Bio Changer
 - Checks if tokens are in a server
 - Multi-threaded and supports high number of simultaneous accounts
 - Proxyless / HTTP(s) Proxies
@@ -48,13 +50,14 @@
 
 ## Disclaimer 
  The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Read about Discord [Terms Of service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines)
+ This program Discord Mass DM GO or DMDGO was written as a proof of concept that Discord accounts could still be automated to spam Discord Users in large amounts. 
  
 ## Tutorial / Showcase Video
-### DMDGO v1.0.7
+### DMDGO v1.7.0
 [![Youtube - Click to play](https://i.imgur.com/Jx4gk54.png)](https://youtu.be/9HX64DHJYWI)
 Click to play
 
-### DMDGO v1.0.5 
+### DMDGO v1.5.0
 [![Youtube - Click to play](https://img.youtube.com/vi/3m56RTbThbg/maxresdefault.jpg)](https://www.youtube.com/watch?v=3m56RTbThbg&t=174s)
 Click to play
 
@@ -73,7 +76,7 @@ Click to play
 3) A binary compatible with your OS/Arch should be made. If there are some problems on MacOS/Linux with executing the binary as a program. You can run this command `chmod +x ./discord-mass-dm-GO` or go to properties -> permissions -> Allow executing file as program. 
 
 ## How to get help? 
-Read this documentation, try using `Ctrl + F` to find what you're looking for. Watch the tutorial video on YouTube. Other than that, feel free to make an [issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) or try asking on our [Guilded Support Server](https://guilded.gg/tos)
+Read this documentation, try using `Ctrl + F` to find what you're looking for. Watch the tutorial video on YouTube. Other than that, feel free to make an [issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) or try asking on our [Telegram Server](https://t.me/tosviolators)
 
 ## Configuration
 Name | Type | Description
@@ -140,13 +143,13 @@ You can register an account there, load some balance and copy your Captcha API K
 This is the config I'd use, with ofcourse the offset calculated accordingly. 
 
 ## Message in file
-The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. Message.json is an array of messages. Find the examples below to add multiple messages. You can use the "get message" option to get messages from discord as well. Be sure to have the [] around the whole message. The only way to change lines is adding `\n`. After discord update on 22nd January 2022; Embed support was removed from DMDGO V1.0.7.5 and higher as discord removed the capibility to send embeds completely from userbots
+The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. Message.json is an array of messages. Find the examples below to add multiple messages. You can use the "get message" option to get messages from discord as well. Be sure to have the [] around the whole message. The only way to change lines is adding `\n`. After discord update on 22nd January 2022; Embed support was removed from DMDGO V1.7.5 and higher as discord removed the capibility to send embeds completely from userbots
 
 ### Example message 1 : Single Message, No Embed
 ```json
 [
   {
-    "content": "Hi <user> join my guilded server https://guilded.gg/tos"
+    "content": "Hi <user> join my telegram server https://t.me/tosviolators"
   }
 ]
 ```
@@ -155,7 +158,7 @@ The `input/message.json` is an array of messages from which one is chosen at ran
 ```json
 [
   {
-    "content": "Hi <user> join my guilded server https://guilded.gg/tos"
+    "content": "Hi <user> join my telegram server https://t.me/tosviolators"
   },
   {
     "content": "We had a discord but it got terminated"
@@ -171,8 +174,8 @@ For problems with setting the JSON files. Read this document very carefully and 
 For problems with sending DMs/ Any other function, the best way to diagnose is logging into the token and see what's going on. I highly recommend not to use email:password to login as it might trigger the New Login Location prompt. It's better to login via tokens. [Click here](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) for a simple and fast token login script by @m-Pheonix852
 Once logged into the token, you can see if it's still in the server / diagnose other problems with channel veriifcation levels, etc. You may also read the FAQs. Always keep in mind, when using self-bots you can only do actions that normal users can do. If you try DMing someone with no mutuals or friends, you can't DM them. Similarly, this self-bot can't either. 
 
-## Scraping [Experimental Menu as of DMDGO v1.0.7]
-The Scraping menu is a new functionality introduced in DMDGO V1.0.7 Before that, DMDGO recommended the use of [Discum's Scraper](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) 
+## Scraping [Experimental Menu as of DMDGO v1.7.0]
+The Scraping menu is a new functionality introduced in DMDGO V1.7.0 Before that, DMDGO recommended the use of [Discum's Scraper](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) 
 This menu is still unstable and needs a lot of improvement. For stability, you can use the Discum Scraper. But if you do decide to use the scraper from DMDGO, It's explained here. 
 - *Online Scraper (Opcode 14)* : Scrapes members from the member list visible on the right hand side of a discord server. This is usually only online members in case of larger servers as the offline member list usually gets hidden when servers are larger than 1000 members. 
 
@@ -215,9 +218,11 @@ Leave a star on the repository, helps out intensively! You can also buy me a coo
 
 - *LTC*: LN5UPbL31TcPzpBKFbsNKZ5BxwUzKcyi1F
 ## Contact
-There are a lot of impersonators, please make sure you're dealing with the correct username 
-Telegram: @campingarunner
-This is my *only* telegram.
+There are a lot of impersonators, please make sure you're dealing with the correct username. 
+
+Telegram: https://t.me/campingarunner (This is my only Telegram)
+Mail: v4nsh4j@protonmail.com
+
 ## Credits
 DMDGO has not been a One man show! I would like to thank everyone for their contributions and my patreons. Special thanks to my lads -> 
 - [The author of Dankgrinder](https://github.com/dankgrinder) and [OsOmE1](https://github.com/OsOmE1) for helping out numerous times since the time I started writing code! Also for the websocket code taken from [dankgrinder](https://github.com/dankgrinder/dankgrinder)
