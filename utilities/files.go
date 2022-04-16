@@ -270,6 +270,27 @@ func GetConfig() (Config, error) {
 	}
 }
 
+func GetEmbed() ([]byte, error) {
+	ex, err := os.Executable()
+	var errbytes []byte
+	if err != nil {
+		color.Red("Error while finding executable")
+		return errbytes, err
+	}
+	ex = filepath.ToSlash(ex)
+	var file *os.File
+	file, err = os.Open(path.Join(path.Dir(ex) + "/" + "embed.json"))
+	if err != nil {
+		color.Red("Error while Opening embed.json")
+		color.Red(err.Error())
+		return errbytes, err
+	} else {
+		defer file.Close()
+		bytes, _ := io.ReadAll(file)
+		return bytes, nil
+	}
+}
+
 func ProcessAvatar(av string, memberid string) error {
 	if strings.Contains(av, "a_") {
 		// Nitro Avatar
