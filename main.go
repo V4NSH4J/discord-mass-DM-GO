@@ -27,6 +27,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"bytes"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/fatih/color"
@@ -46,7 +47,7 @@ func main() {
 // Options menu
 func Options() {
 	reg := regexp.MustCompile(`(.+):(.+):(.+)`)
-	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) Haven't thought of anything\n |- 16) Credits & Info\n |- 17) Exit")
+	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) Embed Creator\n |- 16) Credits & Info\n |- 17) Exit")
 	color.White("\nEnter your choice: ")
 	var choice int
 	fmt.Scanln(&choice)
@@ -1608,6 +1609,41 @@ func Options() {
 		}
 		c.WaitAllDone()
 
+	case 15:
+		var embeddata []byte
+		var err error
+		embeddata, err = utilities.GetEmbed()
+		if err == nil {
+			responseBody := bytes.NewBuffer(embeddata)
+			resp, err := http.Post("https://e.chasa.wtf/api/v1/embed", "application/json", responseBody)
+			if err != nil {
+				color.Red("Error making HTTP request to server")
+				color.Red(err.Error())
+			} else {
+				bodyBytes, err := io.ReadAll(resp.Body)
+				if err != nil {
+					color.Red("Error unmarhsalling HTTP request")
+					color.Red(err.Error())
+				} else {
+					var respdata EmbedJSONResponse
+					err := json.Unmarshal(bodyBytes, &respdata)
+					if err != nil {
+						color.Red("Error unmarhsalling HTTP request")
+						color.Red(err.Error())
+					} else {
+						if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
+							color.Green("Created Embed Link, use the link below and add it to your message in message.json.")
+							color.Green(respdata.Link)
+							color.Green("Make sure to restart DMDGO after editing message.json")
+							color.Green("Service provided with <3 by chasa")
+						} else {
+							color.Red("Unexpected response from server: %v", fmt.Sprint(resp.StatusCode))
+							color.Red(string(bodyBytes))
+						}
+					}
+				}
+			}
+		}
 	case 16:
 		color.Blue("Made with <3 by github.com/V4NSH4J for free. If you were sold this program, you got scammed. Full length documentation for this is available on the github readme.")
 	case 17:
@@ -1618,6 +1654,35 @@ func Options() {
 	time.Sleep(1 * time.Second)
 	Options()
 
+}
+
+type ImageEmbed struct {
+	Url       string `json:"url"`
+	Thumbnail bool `json:"thumbnail"`
+}
+type ProviderEmbed struct {
+	Url  string `json:"url"`
+	Name string `json:"name"`
+}
+type AuthorEmbed struct {
+	Url  string `json:"url"`
+	Name string `json:"name"`
+}
+type Embed struct {
+	Title 		string `json:"title"`
+	Description string `json:"description"`
+	Color 		string `json:"color"`
+	Redirect 	string `json:"redirect"`
+	Author 		AuthorEmbed `json:"author"`
+	Image 		ImageEmbed `json:"image"`
+	Provider 	ProviderEmbed `json:"provider"`
+}
+
+type EmbedJSONResponse struct {
+	EmbedData 	Embed `json:"embed"`
+	Timestamp 	string `json:"timestamp"`
+	Id 			string `json:"id"`
+	Link 		string `json:"link"`
 }
 
 type jsonResponse struct {
