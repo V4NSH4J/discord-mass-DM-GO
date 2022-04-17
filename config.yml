@@ -18,8 +18,8 @@ direct_message_settings:
   close_dm_after_message: false
 
 proxy_settings:
-  proxy_from_file: true
-  proxy_for_captcha: true
+  proxy_from_file: false
+  proxy_for_captcha: false
   use_proxy_for_gateway: false
   proxy_protocol: "http"
   timeout: 60
@@ -31,7 +31,7 @@ scraper_settings:
 
 captcha_settings:
   captcha_api_key: ""
-  captcha_api: "capmonster.cloud"
+  captcha_api: "anti-captcha.com"
   max_captcha_wait: 60
   max_captcha_retry: 3
 
@@ -45,3 +45,19 @@ suspicion_avoidance:
   typing_variation: 250
   typing_speed: 450
   typing_base: 200
+
+dm_on_react:
+  observer_token: ""
+  change_name: true
+  change_avatar: true 
+  invite: ""
+  server_id: ""
+  channel_id: ""
+  message_id: ""
+  emoji: ""
+  skip_completed: true 
+  skip_failed: true 
+  leave_token_on_ratelimit: true 
+  rotate_tokens: true
+  max_anti_raid_queue: 20
+  max_dms_per_token: 10

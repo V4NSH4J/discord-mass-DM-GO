@@ -4,7 +4,7 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities
+package instance
 
 import (
 	"encoding/json"
@@ -31,6 +31,7 @@ type Connection struct {
 	fatalHandler  func(err error)
 	seq           int
 	closeChan     chan struct{}
+	Reactions     chan []byte
 }
 
 // Input Discord token and start a new websocket connection
@@ -72,6 +73,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 		Messages:      make(chan []byte),
 		fatalHandler:  fatalHandler,
 		closeChan:     make(chan struct{}),
+		Reactions:     make(chan []byte),
 	}
 	// Receive Hello message
 	interval, err := c.ReadHello()
@@ -205,6 +207,11 @@ func (c *Connection) listen() {
 				c.OfflineScrape <- b
 			}()
 
+		}
+		if body.EventName == "MESSAGE_REACTION_ADD" {
+			go func() {
+				c.Reactions <- b
+			}()
 		}
 		if body.EventName == "GUILD_MEMBER_LIST_UPDATE" {
 			for i := 0; i < len(body.Data.Ops); i++ {

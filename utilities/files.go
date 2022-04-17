@@ -8,7 +8,6 @@ package utilities
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
@@ -17,10 +16,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-
-	"github.com/fatih/color"
-
-	"gopkg.in/yaml.v3"
 )
 
 func ReadLines(filename string) ([]string, error) {
@@ -87,189 +82,6 @@ func TruncateLines(filename string, line []string) error {
 
 }
 
-type MessageEmbedImage struct {
-	URL      string `json:"url,omitempty"`
-	ProxyURL string `json:"proxy_url,omitempty"`
-	Width    int    `json:"width,omitempty"`
-	Height   int    `json:"height,omitempty"`
-}
-
-type EmbedField struct {
-	Name   string `json:"name,omitempty"`
-	Value  string `json:"value,omitempty"`
-	Inline bool   `json:"inline,omitempty"`
-}
-
-type EmbedFooter struct {
-	Text         string `json:"text,omitempty"`
-	IconURL      string `json:"icon_url,omitempty"`
-	ProxyIconURL string `json:"proxy_icon_url,omitempty"`
-}
-
-type EmbedAuthor struct {
-	Name         string `json:"name,omitempty"`
-	URL          string `json:"url,omitempty"`
-	IconURL      string `json:"icon_url,omitempty"`
-	ProxyIconURL string `json:"proxy_icon_url,omitempty"`
-}
-type MessageEmbedThumbnail struct {
-	URL      string `json:"url,omitempty"`
-	ProxyURL string `json:"proxy_url,omitempty"`
-	Width    int    `json:"width,omitempty"`
-	Height   int    `json:"height,omitempty"`
-}
-
-type EmbedProvider struct {
-	Name string `json:"name,omitempty"`
-	URL  string `json:"url,omitempty"`
-}
-type Embed struct {
-	Title string `json:"title,omitempty"`
-
-	// The type of embed. Always EmbedTypeRich for webhook embeds.
-	Type        string             `json:"type,omitempty"`
-	Description string             `json:"description,omitempty"`
-	URL         string             `json:"url,omitempty"`
-	Image       *MessageEmbedImage `json:"image,omitempty"`
-
-	// The color code of the embed.
-	Color     int                    `json:"color,omitempty"`
-	Footer    EmbedFooter            `json:"footer,omitempty"`
-	Thumbnail *MessageEmbedThumbnail `json:"thumbnail,omitempty"`
-	Provider  EmbedProvider          `json:"provider,omitempty"`
-	Author    EmbedAuthor            `json:"author,omitempty"`
-	Fields    []EmbedField           `json:"fields,omitempty"`
-}
-type Emoji struct {
-	ID       string `json:"id,omitempty"`
-	Name     string `json:"name,omitempty"`
-	Animated bool   `json:"animated,omitempty"`
-}
-type Reaction struct {
-	Emojis Emoji `json:"emoji,omitempty"`
-	Count  int   `json:"count,omitempty"`
-}
-
-type Message struct {
-	Content   string     `json:"content,omitempty"`
-	Embeds    []Embed    `json:"embeds,omitempty"`
-	Reactions []Reaction `json:"reactions,omitempty"`
-	Author    User       `json:"author,omitempty"`
-	GuildID   string     `json:"guild_id,omitempty"`
-}
-
-func GetMessage() ([]Message, error) {
-	var messages []Message
-	ex, err := os.Executable()
-	if err != nil {
-		color.Red("Error while finding executable")
-		return []Message{}, err
-	}
-	ex = filepath.ToSlash(ex)
-	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "message.json"))
-	if err != nil {
-		color.Red("Error while Opening message.json")
-		fmt.Println(err)
-		return []Message{}, err
-	}
-	defer file.Close()
-	bytes, _ := io.ReadAll(file)
-	errr := json.Unmarshal(bytes, &messages)
-	if errr != nil {
-		fmt.Println(errr)
-
-		return []Message{}, errr
-	}
-
-	return messages, nil
-}
-
-type Config struct {
-	DirectMessage      DirectMessage      `yaml:"direct_message_settings"`
-	ProxySettings      ProxySettings      `yaml:"proxy_settings"`
-	ScraperSettings    ScraperSettings    `yaml:"scraper_settings"`
-	CaptchaSettings    CaptchaSettings    `yaml:"captcha_settings"`
-	OtherSettings      OtherSettings      `yaml:"other_settings"`
-	SuspicionAvoidance SuspicionAvoidance `yaml:"suspicion_avoidance"`
-}
-type DirectMessage struct {
-	Delay      int  `yaml:"individual_delay"`
-	LongDelay  int  `yaml:"rate_limit_delay"`
-	Offset     int  `yaml:"offset"`
-	Skip       bool `yaml:"skip_completed"`
-	Call       bool `yaml:"call"`
-	Remove     bool `yaml:"remove_dead_tokens"`
-	RemoveM    bool `yaml:"remove_completed_members"`
-	Stop       bool `yaml:"stop_dead_tokens"`
-	Mutual     bool `yaml:"check_mutual"`
-	Friend     bool `yaml:"friend_before_DM"`
-	Websocket  bool `yaml:"online_tokens"`
-	MaxDMS     int  `yaml:"max_dms_per_token"`
-	Receive    bool `yaml:"receive_messages"`
-	SkipFailed bool `yaml:"skip_failed"`
-	Block      bool `yaml:"block_after_dm"`
-	Close      bool `yaml:"close_dm_after_message"`
-}
-type ProxySettings struct {
-	Proxy           string `yaml:"proxy"`
-	ProxyFromFile   bool   `yaml:"proxy_from_file"`
-	ProxyForCaptcha bool   `yaml:"proxy_for_captcha"`
-	ProxyProtocol   string `yaml:"proxy_protocol"`
-	GatewayProxy    bool   `yaml:"use_proxy_for_gateway"`
-	Timeout         int    `yaml:"timeout"`
-}
-
-type ScraperSettings struct {
-	SleepSc         int  `yaml:"online_scraper_delay"`
-	ScrapeUsernames bool `yaml:"scrape_usernames"`
-	ScrapeAvatars   bool `yaml:"scrape_avatars"`
-}
-
-type CaptchaSettings struct {
-	ClientKey  string `yaml:"captcha_api_key"`
-	CaptchaAPI string `yaml:"captcha_api"`
-	Timeout    int    `yaml:"max_captcha_wait"`
-	MaxCaptcha int    `yaml:"max_captcha_retry"`
-}
-
-type OtherSettings struct {
-	DisableKL bool `yaml:"disable_keep_alives"`
-}
-
-type SuspicionAvoidance struct {
-	RandomIndividualDelay  int `yaml:"random_individual_delay"`
-	RandomRateLimitDelay   int `yaml:"random_rate_limit_delay"`
-	RandomDelayOpenChannel int `yaml:"random_delay_before_dm"`
-	TypingVariation        int `yaml:"typing_variation"`
-	TypingSpeed            int `yaml:"typing_speed"`
-	TypingBase 			   int `yaml:"typing_base"`
-}
-
-func GetConfig() (Config, error) {
-	ex, err := os.Executable()
-	if err != nil {
-		color.Red("Error while finding executable")
-		return Config{}, err
-	}
-	ex = filepath.ToSlash(ex)
-	var file *os.File
-	file, err = os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
-	if err != nil {
-		color.Red("Error while Opening Config")
-		return Config{}, err
-	} else {
-		defer file.Close()
-		var config Config
-		bytes, _ := io.ReadAll(file)
-		err = yaml.Unmarshal(bytes, &config)
-		if err != nil {
-			fmt.Println(err)
-			return Config{}, err
-		}
-		return config, nil
-	}
-}
-
 func ProcessAvatar(av string, memberid string) error {
 	if strings.Contains(av, "a_") {
 		// Nitro Avatar
@@ -304,5 +116,71 @@ func processFiles(url string, nameFile string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+// Append items from slice to file
+func Append(filename string, items []string) error {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, item := range items {
+		if _, err = file.WriteString(item + "\n"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Truncate items from slice to file
+func Truncate(filename string, items []string) error {
+	file, err := os.OpenFile(filename, os.O_TRUNC|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, item := range items {
+		if _, err = file.WriteString(item + "\n"); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Write line to file
+func WriteLine(filename string, line string) error {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	if _, err = file.WriteString(line + "\n"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Create a New file and add items from a slice or append to it if it already exists
+func WriteFile(filename string, items []string) error {
+	file, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	for _, item := range items {
+		if _, err = file.WriteString(item + "\n"); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

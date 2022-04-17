@@ -1,4 +1,10 @@
-package utilities
+// Copyright (C) 2021 github.com/V4NSH4J
+//
+// This source code has been released under the GNU Affero General Public
+// License v3.0. A copy of this license is available at
+// https://www.gnu.org/licenses/agpl-3.0.en.html
+
+package instance
 
 import (
 	"bytes"
@@ -10,13 +16,15 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 )
 
 func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string, url string) (string, error) {
 	switch true {
-	case Contains([]string{"capmonster.cloud", "anti-captcha.com", "anycaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
+	case utilities.Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.Capmonster(sitekey, url, rqData, cookie)
-	case Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
+	case utilities.Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.twoCaptcha(sitekey, rqData, url)
 	default:
 		return "", fmt.Errorf("unsupported captcha api: %s", in.Config.CaptchaSettings.CaptchaAPI)
@@ -26,11 +34,6 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 /*
 	2Captcha/RuCaptcha
 */
-
-type twoCaptchaSubmitResponse struct {
-	Status  int    `json:"status"`
-	Request string `json:"request"`
-}
 
 func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	var solvedKey string
@@ -53,7 +56,7 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	q.Set("soft_id", "3359")
 	if rqdata != "" {
 		q.Set("data", rqdata)
-		q.Set("invisible", "1")
+		q.Set("invisible", "0")
 	}
 	if in.Config.ProxySettings.ProxyForCaptcha {
 		q.Set("proxy", in.Proxy)
@@ -146,43 +149,6 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	Capmonster
 */
 
-type CapmonsterPayload struct {
-	ClientKey string `json:"clientKey,omitempty"`
-	Task      Task   `json:"task,omitempty"`
-	TaskId    int    `json:"taskId,omitempty"`
-}
-
-type Task struct {
-	CaptchaType   string `json:"type,omitempty"`
-	WebsiteURL    string `json:"websiteURL,omitempty"`
-	WebsiteKey    string `json:"websiteKey,omitempty"`
-	IsInvisible   bool   `json:"isInvisible,omitempty"`
-	Data          string `json:"data,omitempty"`
-	ProxyType     string `json:"proxyType,omitempty"`
-	ProxyAddress  string `json:"proxyAddress,omitempty"`
-	ProxyPort     int    `json:"proxyPort,omitempty"`
-	ProxyLogin    string `json:"proxyLogin,omitempty"`
-	ProxyPassword string `json:"proxyPassword,omitempty"`
-	UserAgent     string `json:"userAgent,omitempty"`
-	Cookies       string `json:"cookies,omitempty"`
-}
-
-type CapmonsterSubmitResponse struct {
-	ErrorID int `json:"errorId,omitempty"`
-	TaskID  int `json:"taskId,omitempty"`
-}
-
-type CapmonsterOutResponse struct {
-	ErrorID   int      `json:"errorId,omitempty"`
-	ErrorCode string   `json:"errorCode,omitempty"`
-	Status    string   `json:"status,omitempty"`
-	Solution  Solution `json:"solution"`
-}
-
-type Solution struct {
-	CaptchaResponse string `json:"gRecaptchaResponse,omitempty"`
-}
-
 func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string, error) {
 	var solvedKey string
 	inEndpoint, outEndpoint := fmt.Sprintf("https://api.%s/createTask", in.Config.CaptchaSettings.CaptchaAPI), fmt.Sprintf("https://api.%s/getTaskResult", in.Config.CaptchaSettings.CaptchaAPI)
@@ -224,7 +190,16 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	} else {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTaskProxyless"
 	}
-	submitCaptcha.Task.WebsiteURL, submitCaptcha.Task.WebsiteKey, submitCaptcha.Task.Data, submitCaptcha.Task.Cookies, submitCaptcha.Task.IsInvisible, submitCaptcha.Task.UserAgent = website, sitekey, rqdata, cookies, true, UserAgent
+	submitCaptcha.Task.WebsiteURL, submitCaptcha.Task.WebsiteKey, submitCaptcha.Task.Cookies, submitCaptcha.Task.UserAgent = website, sitekey, cookies, UserAgent
+	if rqdata != "" && in.Config.CaptchaSettings.CaptchaAPI == "capmonster.cloud" {
+		submitCaptcha.Task.Data = rqdata
+		// Try with true too
+		submitCaptcha.Task.IsInvisible = false
+	} else if rqdata != "" && in.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
+		submitCaptcha.Task.IsInvisible = false
+		submitCaptcha.Task.Enterprise.RqData = rqdata
+		submitCaptcha.Task.Enterprise.Sentry = true
+	}
 	payload, err := json.Marshal(submitCaptcha)
 	if err != nil {
 		return solvedKey, fmt.Errorf("error while marshalling payload %v", err)

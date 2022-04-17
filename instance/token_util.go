@@ -4,7 +4,7 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities
+package instance
 
 import (
 	"bufio"
@@ -19,12 +19,9 @@ import (
 	"net/http"
 	"os"
 	"strings"
-)
 
-type NameChange struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
-}
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
+)
 
 // @me Discord Patch request to change Username
 func (in *Instance) NameChanger(name string) (http.Response, error) {
@@ -50,20 +47,13 @@ func (in *Instance) NameChanger(name string) (http.Response, error) {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
 
-	req.Header.Add("Authorization", in.Token)
-	req.Header.Add("cookie", cookie)
-
-	resp, err := in.Client.Do(CommonHeaders(req))
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return http.Response{}, err
 	}
 
 	return *resp, nil
 
-}
-
-type AvatarChange struct {
-	Avatar string `json:"avatar"`
 }
 
 // @me Discord Patch request to change Avatar
@@ -91,10 +81,7 @@ func (in *Instance) AvatarChanger(avatar string) (http.Response, error) {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
 
-	req.Header.Add("Authorization", in.Token)
-	req.Header.Add("cookie", cookie)
-
-	resp, err := http.DefaultClient.Do(CommonHeaders(req))
+	resp, err := http.DefaultClient.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return http.Response{}, err
 	}
@@ -167,12 +154,12 @@ func (in *Instance) BioChanger(bios []string) error {
 	if err != nil {
 		return fmt.Errorf("error while getting cookie: %v", err)
 	}
-	req.Header.Set("Cookie", cookie)
-	resp, err := in.Client.Do(CommonHeaders(req))
+
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return fmt.Errorf("error while sending request: %v", err)
 	}
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return fmt.Errorf("error while reading body: %v", err)
 	}
@@ -193,4 +180,71 @@ func ValidateBios(bios []string) []string {
 		validBios = append(validBios, bios[i])
 	}
 	return validBios
+}
+
+func (in *Instance) RandomHypeSquadChanger() error {
+	site := "https://discord.com/api/v9/hypesquad/online"
+	req, err := http.NewRequest(http.MethodPost, site, strings.NewReader(fmt.Sprintf(`{"house_id": %v}`, rand.Intn(3)+1)))
+	if err != nil {
+		return fmt.Errorf("error while making request: %v", err)
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return fmt.Errorf("error while getting cookie: %v", err)
+	}
+	req = in.AtMeHeaders(req,cookie)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error while sending request: %v", err)
+	}
+	if resp.StatusCode != 204 {
+		defer resp.Body.Close()
+		body, err := utilities.ReadBody(*resp)
+		if err != nil {
+			return fmt.Errorf("error while reading body: %v", err)
+		}
+		return fmt.Errorf("error while changing hype squad %v %v", resp.StatusCode, string(body))
+	}
+	return nil
+}
+
+func (in *Instance) ChangeToken(newPassword string) (string, error) {
+	site := "https://discord.com/api/v9/users/@me"
+	payload := fmt.Sprintf(`
+	{
+		"password": "%v",
+		"new_password": "%v"
+	}
+	`, in.Password, newPassword)
+	req, err := http.NewRequest(http.MethodPatch, site, strings.NewReader(payload))
+	if err != nil {
+		return "", fmt.Errorf("error while making request: %v", err)
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return "", fmt.Errorf("error while getting cookie: %v", err)
+	}
+	req = in.AtMeHeaders(req, cookie)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error while sending request: %v", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error while reading body: %v", err)
+	}
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("invalid status code %v while changing token %v", resp.StatusCode, string(body))
+	}
+	if strings.Contains(string(body), "token") {
+		var response map[string]interface{}
+		err := json.Unmarshal(body, &response)
+		if err != nil {
+			return "", fmt.Errorf("error while unmarshalling response: %v", err)
+		}
+		return response["token"].(string), nil
+	} else {
+		return "", fmt.Errorf("error while changing token %v body does not contain token", string(body))
+	}
 }

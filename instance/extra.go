@@ -4,7 +4,7 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities
+package instance
 
 import (
 	"bytes"
@@ -18,12 +18,9 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/fatih/color"
 )
-
-type Reactionx struct {
-	ID string `json:"id"`
-}
 
 func GetReactions(channel string, message string, token string, emoji string, after string) ([]string, error) {
 	encodedID := url.QueryEscape(emoji)
@@ -42,7 +39,7 @@ func GetReactions(channel string, message string, token string, emoji string, af
 	if err != nil {
 		return nil, err
 	}
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return nil, err
 	}
@@ -62,37 +59,13 @@ func GetReactions(channel string, message string, token string, emoji string, af
 	return UIDS, nil
 }
 
-type guild struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-}
-
-type joinresponse struct {
-	VerificationForm bool  `json:"show_verification_form"`
-	GuildObj         guild `json:"guild"`
-}
-
-type bypassInformation struct {
-	Version    string      `json:"version"`
-	FormFields []FormField `json:"form_fields"`
-}
-
-type FormField struct {
-	FieldType   string   `json:"field_type"`
-	Label       string   `json:"label"`
-	Description string   `json:"description"`
-	Required    bool     `json:"required"`
-	Values      []string `json:"values"`
-	Response    bool     `json:"response"`
-}
-
-func (in *Instance) ContextProperties(invite, cookie, fingerprint string) (string, error) {
+func (in *Instance) ContextProperties(invite, cookie string) (string, error) {
 	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue=wnd&with_counts=true&with_expiration=true"
 	req, err := http.NewRequest("GET", site, nil)
 	if err != nil {
 		return "", err
 	}
-	req = in.xContextPropertiesHeaders(req, cookie, fingerprint)
+	req = in.xContextPropertiesHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", err
@@ -100,7 +73,7 @@ func (in *Instance) ContextProperties(invite, cookie, fingerprint string) (strin
 	if resp.StatusCode != 200 {
 		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
 	}
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return "", err
 	}
@@ -121,13 +94,6 @@ func (in *Instance) ContextProperties(invite, cookie, fingerprint string) (strin
 	}
 	return x, nil
 
-}
-
-type XContext struct {
-	Location            string  `json:"location"`
-	LocationGuildID     string  `json:"location_guild_id"`
-	LocationChannelID   string  `json:"location_channel_id"`
-	LocationChannelType float64 `json:"location_channel_type"`
 }
 
 func XContextGen(guildID string, channelID string, ChannelType float64) (string, error) {
@@ -159,7 +125,7 @@ func Bypass(client *http.Client, serverid string, token string, invite string) e
 		return err
 	}
 
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return err
 	}
@@ -193,23 +159,18 @@ func Bypass(client *http.Client, serverid string, token string, invite string) e
 		color.Red("Error while sending HTTP request bypass %v \n", err)
 		return err
 	}
-	body, err = ReadBody(*resp)
+	body, err = utilities.ReadBody(*resp)
 	if err != nil {
 		color.Red("[%v] Error while reading body %v \n", time.Now().Format("15:04:05"), err)
 		return err
 	}
 
 	if resp.StatusCode == 201 || resp.StatusCode == 204 {
-		color.Green("[%v] Successfully bypassed token %v", time.Now().Format("15:04:05"), token)
+		color.Green("[%v][X] Successfully bypassed token %v", time.Now().Format("15:04:05"), token)
 	} else {
-		color.Red("[%v] Failed to bypass Token %v %v %v", time.Now().Format("15:04:05"), token, resp.StatusCode, string(body))
+		color.Red("[%v][X] Failed to bypass Token %v %v %v", time.Now().Format("15:04:05"), token, resp.StatusCode, string(body))
 	}
 	return nil
-}
-
-type invitePayload struct {
-	CaptchaKey string `json:"captcha_key,omitempty"`
-	RqToken    string `json:"captcha_rqtoken,omitempty"`
 }
 
 func (in *Instance) Invite(Code string) error {
@@ -243,16 +204,11 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
 			continue
 		}
-		fingerprint, err := in.GetFingerprintString(cookie)
-		if err != nil {
-			color.Red("[%v] Error while Getting fingerprint: %v", err)
-			continue
-		}
-		XContext, err := in.ContextProperties(Code, cookie, fingerprint)
+		XContext, err := in.ContextProperties(Code, cookie)
 		if err != nil {
 			XContext = "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkyNTA2NjE3MjM0MzM5ODQyMCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MjUwNjYxNzIzNDMzOTg0MjMiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9"
 		}
-		req = in.inviteHeaders(req, cookie, fingerprint, XContext)
+		req = in.inviteHeaders(req, cookie, XContext)
 
 		resp, err := in.Client.Do(req)
 		if err != nil {
@@ -260,7 +216,7 @@ func (in *Instance) Invite(Code string) error {
 			continue
 		}
 
-		body, err := ReadBody(*resp)
+		body, err := utilities.ReadBody(*resp)
 		if err != nil {
 			color.Red("Error while reading body %v \n", err)
 			continue
@@ -280,10 +236,10 @@ func (in *Instance) Invite(Code string) error {
 				rqToken = resp["captcha_rqtoken"].(string)
 			}
 			if in.Config.CaptchaSettings.CaptchaAPI == "" {
-				color.Red("[%v] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
+				color.Red("[%v][X] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
 				break
 			} else {
-				color.Yellow("[%v] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.Token, cap, i)
+				color.Yellow("[%v][X] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.Token, cap, i)
 			}
 			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {
@@ -304,7 +260,7 @@ func (in *Instance) Invite(Code string) error {
 			return err
 		}
 		if resp.StatusCode == 200 {
-			color.Green("[%v] %v joint guild", time.Now().Format("15:04:05"), in.Token)
+			color.Green("[%v][X] %v joint guild", time.Now().Format("15:04:05"), in.Token)
 			if Join.VerificationForm {
 				if len(Join.GuildObj.ID) != 0 {
 					Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
@@ -312,7 +268,7 @@ func (in *Instance) Invite(Code string) error {
 			}
 		}
 		if resp.StatusCode != 200 {
-			color.Red("[%v] %v Failed to join guild %v", time.Now().Format("15:04:05"), resp.StatusCode, string(body))
+			color.Red("[%v][X] %v Failed to join guild %v", time.Now().Format("15:04:05"), resp.StatusCode, string(body))
 		}
 		return nil
 
@@ -355,10 +311,7 @@ func (in *Instance) React(channelID string, MessageID string, Emoji string) erro
 	if err != nil {
 		return fmt.Errorf("error while getting cookie %v", err)
 	}
-	req.Header.Set("Authorization", in.Token)
-	req.Header.Set("Cookie", cookie)
-
-	resp, err := in.Client.Do(req)
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return err
 	}
@@ -367,11 +320,6 @@ func (in *Instance) React(channelID string, MessageID string, Emoji string) erro
 	}
 
 	return fmt.Errorf("%s", resp.Status)
-}
-
-type friendRequest struct {
-	Username string `json:"username"`
-	Discrim  int    `json:"discriminator"`
 }
 
 func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error) {
@@ -392,16 +340,8 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 	if err != nil {
 		return &http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return &http.Response{}, fmt.Errorf("error while getting fingerprint %v", err)
-	}
 
-	req.Header.Set("Cookie", cookie)
-	req.Header.Set("x-fingerprint", fingerprint)
-	req.Header.Set("Authorization", in.Token)
-
-	resp, err := in.Client.Do(CommonHeaders(req))
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 
 	if err != nil {
 		return &http.Response{}, err
@@ -508,29 +448,4 @@ func (in *Instance) ServerCheck(serverid string) (int, error) {
 	defer resp.Body.Close()
 
 	return resp.StatusCode, nil
-}
-
-func headersInvite(req *http.Request, cookie string, authorization string, fingerprint string) *http.Request {
-	req.Header.Set("Accept-Language", "en-GB,en;q=0.9")
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("Authorization", authorization)
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Cookie", cookie)
-	req.Header.Set("Origin", "https://discord.com")
-	req.Header.Set("referer", "https://discord.com/channels/@me")
-	req.Header.Set("Sec-Fetch-Dest", "empty")
-	req.Header.Set("Sec-Fetch-Mode", "cors")
-	req.Header.Set("Sec-Fetch-Site", "same-origin")
-	req.Header.Set("Sec-ch-ua-mobile", "?0")
-	req.Header.Set("sec-ch-ua-platform", `"Windows"`)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36")
-	req.Header.Set("X-Debug-Options", "bugReporterEnabled")
-	req.Header.Set("X-Discord-Locale", "en-US")
-	req.Header.Set("X-Fingerprint", fingerprint)
-	// Constant Context properties
-	//req.Header.Set("X-Context-Properties", "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6Ijk0NDI2ODQ5MzczMjMyMzM3OCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5NDQyNjg0OTM3MzIzMjMzODEiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9")
-	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTEzODU0LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
-
-	return req
 }

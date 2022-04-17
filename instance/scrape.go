@@ -4,7 +4,15 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities
+package instance
+
+import (
+	"strings"
+	"time"
+
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
+	"github.com/fatih/color"
+)
 
 func Scrape(ws *Connection, Guild string, Channel string, index int) error {
 	var x []interface{}
@@ -76,4 +84,55 @@ func ScrapeOffline(c *Connection, guild string, query string) error {
 		return err
 	}
 	return nil
+}
+
+func FindNextQueries(query string, lastName string, completedQueries []string, chars string) []string {
+	if query == "" {
+		color.Red("[%v] Query is empty", time.Now().Format("15:04:05"))
+		return nil
+	}
+	lastName = strings.ToLower(lastName)
+	indexQuery := strings.Index(lastName, query)
+	if indexQuery == -1 {
+		return nil
+	}
+	wantedCharIndex := indexQuery + len(query)
+	if wantedCharIndex >= len(lastName) {
+
+		return nil
+	}
+	wantedChar := lastName[wantedCharIndex]
+	queryIndexDone := strings.Index(chars, string(wantedChar))
+	if queryIndexDone == -1 {
+
+		return nil
+	}
+
+	var nextQueries []string
+	for j := queryIndexDone; j < len(chars); j++ {
+		newQuery := query + string(chars[j])
+		if !utilities.Contains(completedQueries, newQuery) && !strings.Contains(newQuery, "  ") && string(newQuery[0]) != "" {
+			nextQueries = append(nextQueries, newQuery)
+		}
+	}
+	return nextQueries
+}
+
+func Subscribe(ws *Connection, guildid string) error {
+	payload := Data{
+		GuildId:    guildid,
+		Typing:     true,
+		Threads:    true,
+		Activities: true,
+	}
+
+	err := ws.WriteJSONe(&Event{
+		Op:   14,
+		Data: payload,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+
 }

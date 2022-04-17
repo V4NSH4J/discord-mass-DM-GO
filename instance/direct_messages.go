@@ -4,7 +4,7 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities
+package instance
 
 import (
 	"bytes"
@@ -12,22 +12,16 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-
-	//"regexp"
-
-	// "io/ioutil"
 	"math/rand"
 	"net/http"
-
-	// "regexp"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/fatih/color"
 )
 
-// Cookies are required for legitimate looking requests, a GET request to discord.com has these required cookies in it's response along with the website HTML
+// Cookies are required for legitimate looking requests, a GET request to instance.com has these required cookies in it's response along with the website HTML
 // We can use this to get the cookies & arrange them in a string
 
 func (in *Instance) GetCookieString() (string, error) {
@@ -134,45 +128,6 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 
 }
 
-type response struct {
-	Fingerprint string `json:"fingerprint"`
-}
-
-// Getting Fingerprint to use in our requests for more legitimate seeming requests.
-func (in *Instance) GetFingerprintString(cookie string) (string, error) {
-	url := "https://discord.com/api/v9/experiments"
-
-	req, err := http.NewRequest("GET", url, nil)
-
-	if err != nil {
-		color.Red("[%v] Error while making request to get fingerprint %v", time.Now().Format("15:04:05"), err)
-		return "", fmt.Errorf("error while making request to get fingerprint %v", err)
-	}
-	req = in.fingerprintHeaders(req, cookie)
-	resp, err := in.Client.Do(req)
-	if err != nil {
-		color.Red("[%v] Error while getting response from fingerprint request %v", time.Now().Format("15:04:05"), err)
-		return "", fmt.Errorf("error while getting response from fingerprint request %v", err)
-	}
-
-	p, err := ReadBody(*resp)
-	if err != nil {
-		color.Red("[%v] Error while reading body from fingerprint request %v", time.Now().Format("15:04:05"), err)
-		return "", fmt.Errorf("error while reading body %v", err)
-	}
-
-	var Response response
-
-	err = json.Unmarshal(p, &Response)
-
-	if err != nil {
-		color.Red("[%v] Error while unmarshalling body from fingerprint request %v", time.Now().Format("15:04:05"), err)
-		return "", fmt.Errorf("error while unmarshalling response from fingerprint request %v", err)
-	}
-
-	return Response.Fingerprint, nil
-}
-
 func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	url := "https://discord.com/api/v9/users/@me/channels"
 
@@ -183,9 +138,14 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 		fmt.Println("Error while making request")
 		return "", fmt.Errorf("error while making open channel request %v", err)
 	}
-	cookie, err := in.GetCookieString()
-	if err != nil {
-		return "", fmt.Errorf("error while getting cookie %v", err)
+	var cookie string 
+	if in.Cookie == "" {
+		cookie, err = in.GetCookieString()
+		if err != nil {
+			return "", fmt.Errorf("error while getting cookie %v", err)
+		}
+	} else {
+		cookie = in.Cookie
 	}
 
 	resp, err := in.Client.Do(in.OpenChannelHeaders(req, cookie))
@@ -195,7 +155,7 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return "", fmt.Errorf("error while reading body from open channel request %v", err)
 	}
@@ -220,14 +180,6 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	return channelSnowflake.ID, nil
 }
 
-type captchaDetected struct {
-	CaptchaKey []string `json:"captcha_key"`
-	Sitekey    string   `json:"captcha_sitekey"`
-	Service    string   `json:"captcha_service"`
-	RqData     string   `json:"captcha_rqdata"`
-	RqToken    string   `json:"captcha_rqtoken"`
-}
-
 // Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
 func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.Response, error) {
 	// Sending a random message incase there are multiple.
@@ -242,7 +194,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	body, err := json.Marshal(&map[string]interface{}{
 		"content": x,
 		"tts":     false,
-		"nonce":   Snowflake(),
+		"nonce":   utilities.Snowflake(),
 	})
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while marshalling message %v %v ", index, err)
@@ -254,10 +206,16 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
 	}
-	cookie, err := in.GetCookieString()
-	if err != nil {
-		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	var cookie string 
+	if in.Cookie == "" {
+		cookie, err = in.GetCookieString()
+		if err != nil {
+			return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+		}
+	} else {
+		cookie = in.Cookie
 	}
+
 
 	dur := typingSpeed(x, in.Config.SuspicionAvoidance.TypingVariation, in.Config.SuspicionAvoidance.TypingSpeed, in.Config.SuspicionAvoidance.TypingBase)
 	if dur != 0 {
@@ -301,7 +259,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		body, err = json.Marshal(&map[string]interface{}{
 			"content":         x,
 			"tts":             false,
-			"nonce":           Snowflake(),
+			"nonce":           utilities.Snowflake(),
 			"captcha_key":     solved,
 			"captcha_rqtoken": captchaDetect.RqToken,
 		})
@@ -321,15 +279,6 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	return *res, nil
 }
 
-type UserInf struct {
-	User   User     `json:"user"`
-	Mutual []Guilds `json:"mutual_guilds"`
-}
-
-type Guilds struct {
-	ID string `json:"id"`
-}
-
 func (in *Instance) UserInfo(userid string) (UserInf, error) {
 	url := "https://discord.com/api/v9/users/" + userid + "/profile?with_mutual_guilds=true"
 
@@ -341,21 +290,13 @@ func (in *Instance) UserInfo(userid string) (UserInf, error) {
 	if err != nil {
 		return UserInf{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return UserInf{}, fmt.Errorf("error while getting fingerprint %v", err)
-	}
-	req.Header.Set("Authorization", in.Token)
-	req.Header.Set("Cookie", cookie)
-	req.Header.Set("x-fingerprint", fingerprint)
-	req.Header.Set("host", "discord.com")
 
-	resp, err := in.Client.Do(CommonHeaders(req))
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return UserInf{}, err
 	}
 
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return UserInf{}, err
 	}
@@ -372,10 +313,6 @@ func (in *Instance) UserInfo(userid string) (UserInf, error) {
 		return UserInf{}, errx
 	}
 	return info, nil
-}
-
-type RingData struct {
-	Recipients interface{} `json:"recipients"`
 }
 
 func Ring(httpClient *http.Client, auth string, snowflake string) (int, error) {
@@ -404,58 +341,12 @@ func Ring(httpClient *http.Client, auth string, snowflake string) (int, error) {
 	}
 	defer resp.Body.Close()
 
-	body, err := ReadBody(*resp)
+	body, err := utilities.ReadBody(*resp)
 	if err != nil {
 		return 0, err
 	}
 	fmt.Println(string(body))
 	return resp.StatusCode, nil
-
-}
-func Snowflake() int64 {
-	snowflake := strconv.FormatInt((time.Now().UTC().UnixNano()/1000000)-1420070400000, 2) + "0000000000000000000000"
-	nonce, _ := strconv.ParseInt(snowflake, 2, 64)
-	return nonce
-}
-
-func CommonHeaders(req *http.Request) *http.Request {
-
-	req.Header.Set("X-Super-Properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTA0OTY3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
-	req.Header.Set("sec-fetch-dest", "empty")
-	//req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("sec-fetch-mode", "cors")
-	req.Header.Set("X-Discord-Locale", "en-US")
-	req.Header.Set("X-Debug-Options", "bugReporterEnabled")
-	req.Header.Set("sec-fetch-site", "same-origin")
-	req.Header.Set("accept-language", "en-US")
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:95.0) Gecko/20100101 Firefox/95.0")
-	req.Header.Set("TE", "trailers")
-	return req
-}
-
-func RegisterHeaders(req *http.Request) *http.Request {
-	req.Header.Set("accept", "*/*")
-	req.Header.Set("authority", "discord.com")
-	req.Header.Set("method", "POST")
-	req.Header.Set("path", "/api/v9/auth/register")
-	req.Header.Set("scheme", "https")
-	//req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("X-Discord-Locale", "en-US")
-	req.Header.Set("origin", "discord.com")
-	req.Header.Set("referer", "discord.com/register")
-	req.Header.Set("x-debug-options", "bugReporterEnabled")
-	req.Header.Set("accept-language", "en-US,en;q=0.9")
-	req.Header.Set("content-Type", "application/json")
-	// Imitating Discord Desktop Client
-	req.Header.Set("user-agent", "Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) discord/1.0.9003 Chrome/91.0.4472.164 Electron/13.4.0 Safari/537.36")
-	req.Header.Set("x-super-properties", "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRGlzY29yZCBDbGllbnQiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfdmVyc2lvbiI6IjEuMC45MDAzIiwib3NfdmVyc2lvbiI6IjEwLjAuMjIwMDAiLCJvc19hcmNoIjoieDY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTA0OTY3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ==")
-	req.Header.Set("sec-fetch-dest", "empty")
-	req.Header.Set("sec-fetch-mode", "cors")
-	req.Header.Set("sec-fetch-site", "same-origin")
-
-	return req
 
 }
 
@@ -469,15 +360,7 @@ func (in *Instance) CloseDMS(snowflake string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return -1, err
-	}
-	req.Header.Set("cookie", cookie)
-	req.Header.Set("X-Fingerprint", fingerprint)
-	req.Header.Set("Authorization", in.Token)
-	req = CommonHeaders(req)
-	resp, err := in.Client.Do(req)
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return -1, err
 	}
@@ -495,15 +378,7 @@ func (in *Instance) BlockUser(userid string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	fingerprint, err := in.GetFingerprintString(cookie)
-	if err != nil {
-		return -1, err
-	}
-	req.Header.Set("cookie", cookie)
-	req.Header.Set("X-Fingerprint", fingerprint)
-	req.Header.Set("Authorization", in.Token)
-	req = CommonHeaders(req)
-	resp, err := in.Client.Do(req)
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return -1, err
 	}
@@ -585,4 +460,26 @@ func typingSpeed(msg string, TypingVariation, TypingSpeed, TypingBase int) time.
 		d += rand.Intn(TypingVariation)
 	}
 	return time.Duration(d) * time.Millisecond
+}
+
+func (in *Instance) Call(snowflake string) error {
+	if in.Ws == nil {
+		return fmt.Errorf("websocket is not initialized")
+	}
+	e := CallEvent{
+		Op: 4,
+		Data: CallData{
+			ChannelId: snowflake,
+			GuildId:   nil,
+			SelfDeaf:  false,
+			SelfMute:  false,
+			SelfVideo: false,
+		},
+	}
+	err := in.Ws.WriteRaw(e)
+	if err != nil {
+		return fmt.Errorf("failed to write to websocket: %s", err)
+	}
+
+	return nil
 }

@@ -4,7 +4,7 @@
 // License v3.0. A copy of this license is available at
 // https://www.gnu.org/licenses/agpl-3.0.en.html
 
-package utilities
+package instance
 
 const (
 	OpcodeDispatch = iota
@@ -89,7 +89,13 @@ type Data struct {
 	Threads           bool                   `json:"threads,omitempty"`
 	Activities        bool                   `json:"activities,omitempty"`
 	ThreadMemberLists interface{}            `json:"thread_member_lists,omitempty"`
+	// Emoji React
+	UserID string `json:"user_id,omitempty"`
+	MessageID string `json:"message_id,omitempty"`
+	Emoji Emoji `json:"emoji,omitempty"`
+
 }
+
 type Ops struct {
 	Items []Userinfo  `json:"items,omitempty"`
 	Range interface{} `json:"range,omitempty"`
