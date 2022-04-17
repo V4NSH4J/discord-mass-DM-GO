@@ -135,7 +135,8 @@ func GetEverything() (Config, []Instance, error) {
 			instanceToken = parts[2]
 			email = parts[0]
 			password = parts[1]
-
+		} else {
+			instanceToken = tokens[i]
 		}
 		if cfg.ProxySettings.ProxyFromFile {
 			proxy = proxies[rand.Intn(len(proxies))]

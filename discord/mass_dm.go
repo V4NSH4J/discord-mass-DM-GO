@@ -506,13 +506,18 @@ func LaunchMassDM() {
 
 	elapsed := time.Since(start)
 	color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(completed), len(failed), len(dead), len(instances)-len(dead))
+	var left []string
 	if cfg.DirectMessage.Remove {
-		var tokens []string
 		for i := 0; i < len(instances); i++ {
-			tokens = append(tokens, instances[i].Token)
+			if !utilities.Contains(dead, instances[i].Token) {
+				if instances[i].Password == "" {
+					left = append(left, instances[i].Token)
+				} else {
+					left = append(left, fmt.Sprintf(`%v:%v:%v`, instances[i].Email, instances[i].Password, instances[i].Token))
+				}
+			}
 		}
-		m := utilities.RemoveSubset(tokens, dead)
-		err := utilities.Truncate("input/tokens.txt", m)
+		err := utilities.Truncate("input/tokens.txt", left)
 		if err != nil {
 			fmt.Println(err)
 		}
