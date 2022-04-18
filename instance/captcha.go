@@ -158,6 +158,9 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	} else {
 		submitCaptcha.ClientKey = in.Config.CaptchaSettings.ClientKey
 	}
+	if in.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
+		submitCaptcha.SoftID = 1021 
+	} 
 	if in.Config.ProxySettings.ProxyForCaptcha && in.Proxy != "" {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTask"
 		if strings.Contains(in.Proxy, "@") {

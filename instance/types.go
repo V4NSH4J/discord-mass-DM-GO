@@ -15,33 +15,33 @@ type CapmonsterPayload struct {
 	ClientKey string `json:"clientKey,omitempty"`
 	Task      Task   `json:"task,omitempty"`
 	TaskId    int    `json:"taskId,omitempty"`
+	SoftID    int    `json:"softId,omitempty"`
 }
 
 type Task struct {
-	CaptchaType   string `json:"type,omitempty"`
-	WebsiteURL    string `json:"websiteURL,omitempty"`
-	WebsiteKey    string `json:"websiteKey,omitempty"`
-	IsInvisible   bool   `json:"isInvisible,omitempty"`
-	Data          string `json:"data,omitempty"`
-	ProxyType     string `json:"proxyType,omitempty"`
-	ProxyAddress  string `json:"proxyAddress,omitempty"`
-	ProxyPort     int    `json:"proxyPort,omitempty"`
-	ProxyLogin    string `json:"proxyLogin,omitempty"`
-	ProxyPassword string `json:"proxyPassword,omitempty"`
-	UserAgent     string `json:"userAgent,omitempty"`
-	Cookies       string `json:"cookies,omitempty"`
-	Enterprise Enterprise `json:"enterprisePayload,omitempty"`
+	CaptchaType   string     `json:"type,omitempty"`
+	WebsiteURL    string     `json:"websiteURL,omitempty"`
+	WebsiteKey    string     `json:"websiteKey,omitempty"`
+	IsInvisible   bool       `json:"isInvisible,omitempty"`
+	Data          string     `json:"data,omitempty"`
+	ProxyType     string     `json:"proxyType,omitempty"`
+	ProxyAddress  string     `json:"proxyAddress,omitempty"`
+	ProxyPort     int        `json:"proxyPort,omitempty"`
+	ProxyLogin    string     `json:"proxyLogin,omitempty"`
+	ProxyPassword string     `json:"proxyPassword,omitempty"`
+	UserAgent     string     `json:"userAgent,omitempty"`
+	Cookies       string     `json:"cookies,omitempty"`
+	Enterprise    Enterprise `json:"enterprisePayload,omitempty"`
 }
 
 type Enterprise struct {
-	RqData string `json:"rqdata,omitempty"`
-	Sentry bool  `json:"sentry,omitempty"`
+	RqData      string `json:"rqdata,omitempty"`
+	Sentry      bool   `json:"sentry,omitempty"`
 	ApiEndpoint string `json:"apiEndpoint,omitempty"`
-	Endpoint string `json:"endpoint,omitempty"`
-	ReportAPI string `json:"reportapi,omitempty"`
-	AssetHost string `json:"assethost,omitempty"`
-	ImageHost string `json:"imghost,omitempty"`
-
+	Endpoint    string `json:"endpoint,omitempty"`
+	ReportAPI   string `json:"reportapi,omitempty"`
+	AssetHost   string `json:"assethost,omitempty"`
+	ImageHost   string `json:"imghost,omitempty"`
 }
 
 type CapmonsterSubmitResponse struct {
