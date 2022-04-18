@@ -167,6 +167,7 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 			if !strings.Contains(ipPort, ":") || !strings.Contains(userPass, ":") {
 				return solvedKey, fmt.Errorf("invalid proxy format")
 			}
+			submitCaptcha.Task.ProxyType = in.Config.ProxySettings.ProxyProtocol
 			submitCaptcha.Task.ProxyLogin, submitCaptcha.Task.ProxyPassword = strings.Split(userPass, ":")[0], strings.Split(userPass, ":")[1]
 			port := strings.Split(ipPort, ":")[1]
 			var err error

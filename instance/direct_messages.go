@@ -216,21 +216,23 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		cookie = in.Cookie
 	}
 
-
-	dur := typingSpeed(x, in.Config.SuspicionAvoidance.TypingVariation, in.Config.SuspicionAvoidance.TypingSpeed, in.Config.SuspicionAvoidance.TypingBase)
-	if dur != 0 {
-		iterations := int((int64(dur) / int64(time.Second*10))) + 1
-		for i := 0; i < iterations; i++ {
-			if err := in.typing(channelSnowflake, cookie); err != nil {
-				continue
+	if in.Config.SuspicionAvoidance.Typing {
+		dur := typingSpeed(x, in.Config.SuspicionAvoidance.TypingVariation, in.Config.SuspicionAvoidance.TypingSpeed, in.Config.SuspicionAvoidance.TypingBase)
+		if dur != 0 {
+			iterations := int((int64(dur) / int64(time.Second*10))) + 1
+			for i := 0; i < iterations; i++ {
+				if err := in.typing(channelSnowflake, cookie); err != nil {
+					continue
+				}
+				s := time.Second * 10
+				if i == iterations-1 {
+					s = dur % time.Second * 10
+				}
+				time.Sleep(s)
 			}
-			s := time.Second * 10
-			if i == iterations-1 {
-				s = dur % time.Second * 10
-			}
-			time.Sleep(s)
 		}
 	}
+	
 	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)

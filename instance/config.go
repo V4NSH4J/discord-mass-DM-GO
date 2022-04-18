@@ -73,12 +73,13 @@ type OtherSettings struct {
 }
 
 type SuspicionAvoidance struct {
-	RandomIndividualDelay  int `yaml:"random_individual_delay"`
-	RandomRateLimitDelay   int `yaml:"random_rate_limit_delay"`
-	RandomDelayOpenChannel int `yaml:"random_delay_before_dm"`
-	TypingVariation        int `yaml:"typing_variation"`
-	TypingSpeed            int `yaml:"typing_speed"`
-	TypingBase             int `yaml:"typing_base"`
+	RandomIndividualDelay  int  `yaml:"random_individual_delay"`
+	RandomRateLimitDelay   int  `yaml:"random_rate_limit_delay"`
+	RandomDelayOpenChannel int  `yaml:"random_delay_before_dm"`
+	Typing                 bool `yaml:"typing"`
+	TypingVariation        int  `yaml:"typing_variation"`
+	TypingSpeed            int  `yaml:"typing_speed"`
+	TypingBase             int  `yaml:"typing_base"`
 }
 
 type DMonReact struct {
@@ -95,7 +96,7 @@ type DMonReact struct {
 	Emoji                 string `yaml:"emoji"`
 	RotateTokens          bool   `yaml:"rotate_tokens"`
 	MaxAntiRaidQueue      int    `yaml:"max_anti_raid_queue"`
-	MaxDMsPerToken 	  int    `yaml:"max_dms_per_token"`
+	MaxDMsPerToken        int    `yaml:"max_dms_per_token"`
 }
 
 func GetConfig() (Config, error) {

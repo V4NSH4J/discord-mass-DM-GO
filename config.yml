@@ -39,9 +39,10 @@ other_settings:
   disable_keep_alives: false
 
 suspicion_avoidance:
-  random_individual_delay: 20
-  random_rate_limit_delay: 20
-  random_delay_before_dm: 20
+  random_individual_delay: 0
+  random_rate_limit_delay: 0
+  random_delay_before_dm: 0
+  typing: false
   typing_variation: 250
   typing_speed: 450
   typing_base: 200
