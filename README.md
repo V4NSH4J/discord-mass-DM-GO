@@ -17,41 +17,52 @@
 [Discord Community Server](https://discord.gg/T9FBNBQb4d)
 
 
-## **Features** : 
-- Invite joiner [Single Invite/Multiple Invites] with delays to bypass Anti-Raid bots
+## **Features** :
+### Token Utilities
+- Avatar Changer
+- Username Changer
+- Hypesquad Changer
+- Bio Changer
+- Token Changer
+- Invite joiner (Single/Multi modes)
+- Guild Leaver
+- Token Onliner 
+- Token Format Changer
+- Token Checker
+- Reaction Adder
+- Server Checker
+### Mass Messaging
 - Mass DM Advertisement 
 - Single DM Spam
-- Reaction Adder
-- Token format changer
-- Token Checker
-- Guild Leaver
-- Token Onliner
-- Multiple Captcha solving APIs implemented
-- Scraping [3 Modes to get the maximum users including an Opcode 8 Scraper]
-- Name Changer
-- Avatar Changer
-- Bio Changer
-- Checks if tokens are in a server
-- Multi-threaded and supports high number of simultaneous accounts
-- Proxyless / HTTP(s) Proxies
-- Can ping users
-- ~Can send Embeds~ (can no longer send embeds after Discord update on 22nd January 2022 removing ability to send embeds completely from regular discord users)
-- Supports multiple messages, sends one randomly
-- Can receive messages from people it messaged
-- Uses safe requests to prevent phone locks
-- Free & Open source
+- DM on React
+### Scraping Utilities
+- Opcode 14 Scraper (Memberlist scraper)
+- Opcode 8 Scraper (Bruteforce Scraper)
+- Reaction Scraper
+### Other Features
+- Multiple Captcha APIs supported
+- Supports token & email:pass:token formats
 - Compatible with all major OS and Architectures
-- Highly documented to help the user run it without problems
-
-
+- Proxyless 
+- Supports HTTP(s), SOCKS5 and SOCKS4 proxies
+- Free & Open source
+- Emulates Discord's requests to a very high accuracy to prevent detection
+- Highly Documented
+- Multi-threaded using Light-weight Goroutines supporting thousands of concurrent accounts
+- Can Receieve messages during mass DM
+- Can ping user
+- Can send embeds using 3rd Party APIs
+- Supports multiple messages
+### Preview
 <p align="center">
-  <img src="https://i.imgur.com/go9h9Fn.png">
+  <img src="https://i.imgur.com/rpa7CnG.png">
 </p>
 
 ## Disclaimer 
  The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Read about Discord [Terms Of service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines)
- This program Discord Mass DM GO or DMDGO was written as a proof of concept that Discord accounts could still be automated to spam Discord Users in large amounts. 
  
+Discord Mass DM GO (DMDGO) was written as a proof of concept that Discord accounts can be automated and can perform actions beyond the scope of regular Discord Users like sending Embeds so that Discord can make changes. The DMDGO authors are released of any liabilities which your usage may entail. 
+
 ## Tutorial / Showcase Video
 ### DMDGO v1.7.0
 [![Youtube - Click to play](https://i.imgur.com/Jx4gk54.png)](https://youtu.be/9HX64DHJYWI)
@@ -65,45 +76,116 @@ Click to play
 ## Basic Usage
 1) [Build from source](https://github.com/V4NSH4J/discord-mass-DM-GO#building-from-source-) or download a pre-built version for your OS & Arch from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
 2) Run the program via the binary. 
-3) Set your [Config](https://github.com/V4NSH4J/discord-mass-DM-GO#configuration) by modifying the `config.json` file. 
+3) Set your [Config](https://github.com/V4NSH4J/discord-mass-DM-GO#configuration) by modifying the `config.yml` file. 
 4) If you already have memberids to DM, put them in `\input\memberids.txt` or obtain them from [Scraping]()
 5) Put HTTP(s) Proxies in `\input\proxies.txt` if you enabled proxies in config. The format is IP:Port or User:pass@IP:Port if your proxies have a user-pass authentication. 
-6) Enter your message(s) in `message.json` file. You can use [this](https://glitchii.github.io/embedbuilder/?editor=json) website to easily make JSON objects for embeds. However, if you do not want to/ are unable to format the file properly, you will have an option to input a simple message before mass DM-ing. Writing "\<user\>" without quotes anywhere in message content will ping the user to whom you're sending a message. 
+6) Enter your message(s) in `message.json` file. You can use [this](https://glitchii.github.io/embedbuilder/?editor=json) website to easily make JSON objects. However, if you do not want to/ are unable to format the file properly, you will have an option to input a simple message before mass DM-ing. Writing "\<user\>" without quotes anywhere in message content will ping the user to whom you're sending a message. Please make sure to use \n to change lines. You may pick an [example]() message.json and build from it.
 
 ## Building from source
 1) Download and install [Golang](https://go.dev/) and verify your installation
 2) Open a terminal window/ command prompt in the directory of the source code and type `go build`
 3) A binary compatible with your OS/Arch should be made. If there are some problems on MacOS/Linux with executing the binary as a program. You can run this command `chmod +x ./discord-mass-dm-GO` or go to properties -> permissions -> Allow executing file as program. 
 
+
 ## How to get help? 
 Read this documentation, try using `Ctrl + F` to find what you're looking for. Watch the tutorial video on YouTube. Other than that, feel free to make an [issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) or try asking on our [Telegram Server](https://t.me/tosviolators)
 
 ## Configuration
-Name | Type | Description
----- | ---- | ----
-`individual_delay` | int | Duration in seconds that one account waits in between of sends 2 messages. Due to how discord rate limits are structured, you can only send 10 new messages every 10 minutes. To avoid hitting the rate limit, the recommended duration is 60.
-`rate_limit_delay` | int | Duration in seconds that the account sleeps for when rate limited. If you send 10 messages very quickly, this rate limit is of 600 seconds (10 minutes). With the recommended settings, you'd never hit it, so it's recommended to set at 60.
-`offset` | int | Duration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value like 50
-`skip_completed` | bool | Program will avoid sending DMs to IDs it has already messaged. When someone is messaged, his ID is added to `input/completed.txt`. Adding IDs to `input/completed.txt` will in a way blacklist them. 
-`skip_failed` | bool | Program will avoid sending DMs to IDs it has already attempted to message but failed. When someone is attempted to be messaged but fails, his ID is added to `input/failed.txt`.
-`proxy` | string | Not included in the default config, but can be added. It is there to ensure backward compatibility, to use DMDGO like it was in Versions 1.0.6 and before. The format is IP:Port or User:Pass@IP:Port for User-Pass Authenticated proxies. See `proxy_from_file` to use proxies the new way. To use this option, `proxy_from_file` must be false. Adding proxy here uses it for gateway events even if `use_proxy_for_gateway` may be disabled.
-`call` | bool | After a succesful DM, DMDGO will attempt to call the user. This is unnecessary as it would make no difference. The calls don't "ring" if the users are not friended which they're not in most cases. So in essence, it would be a call without a ring. Recommended is false.
-`remove_dead_tokens` | bool | After completion of Mass DM, DMDGO will attempt to remove non-working tokens from `input/tokens.txt`
-`remove_completed_members` | bool | After completion of Mass DM, DMDGO will attempt to remove completed members from `input/memberids.txt` leaving behind only the failed/unattempted IDs so the user can re-run the program to target them
-`stop_dead_tokens` | bool | Once a token is locked/disabled, it will stop DMing if this is set to true. Recommended to be true. 
-`check_mutual` | bool | DMDGO will check if the user has a mutual guild with the token and also gather the user's Name and Discrim. This has been buggy in the past. Recommended to be set to false. 
-`friend_before_DM` | bool | DMDGO will send a friend request to everyone in the list before attempting to DM them. Requires `online_tokens` and `check_mutual`. It needs `online_tokens` as a precautionary measure. Incase a token has never connected to gateway before and it tries sending a friend request, it will get locked.
-`online_tokens` | bool | DMDGO will online tokens before starting mass DM. This is a very important setting, certain functions like `receive_messages`, `friend_before_DM` and `call` cannot be used without it. But if you're not planning to use those features anyways, it can be set to false.
-`online_scraper_delay` | int | Time in milliseconds DMDGO will sleep between 2 consecutive scrapes to avoid being websocket-rate-limited. 1000 by default.
-`proxy_from_file` | bool | If set to true, DMDGO will use proxies from `input\proxies.txt`
-`max_dms_per_token` | int | Number of maximum DMs you want your tokens to send. If set to 0 they will send DMs till they are locked or the list is completed. 
-`receive_messages` | bool | If set to true, the messages from other users will be logged on console and in `input\received.txt` 
-`use_proxy_for_gateway` | bool | If set to true, websocket connections will use proxy as well. Recommend keeping it at false unless you have very good proxies.
-`Timeout` | int | Timeout for all requests in seconds. Increase if slow connection or proxies.
-`captcha_api` | string | Domain of the Captcha API you wish to use. The current supported Captcha APIs are capmonster.cloud and anti-captcha.com
-`captcha_api_key` | string | Your Captcha API Key with balance loaded 
-`max_attempt_invite_rejoin` | int | Maximum attempts to rejoin token to server. Use minimum of 2. Introduced since Discord added Captchas to join servers on some tokens. 
-`disable_keep_alives` | bool | Closes the underlying TCP connection after every request. Might be helpful to change IPs on every request with rotating proxies. Only used with proxies_from_file and not with the proxy field in config. Added because older versions of DMDGO which used only rotating proxies did this by default.
+
+| Name | Type | Description | 
+| ---  | ---  | ---         |
+| `direct_message_options` | DirectMessage | Contains settings related to sending Direct messages to discord users.
+| `proxy_settings` | ProxySettings | Contains settings related to proxies. 
+| `scraper_settings` | ScraperSettings | Contains settings related to scraping menu. 
+| `captcha_settings` | CaptchaSettings | Contains settings related to captchas. 
+| `other_settings` | OtherSettings | Contains miscellaneous settings and options. 
+| `suspicion_avoidance` | SuspicionAvoidance| Contains settings related to appearing like an actual user.
+| `dm_on_react` | DMonreact | Contains settings for DM on react option. 
+### DirectMessage Object
+| Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`individual_delay` |int |90 | Duration in seconds between 2 consecutive Direct messages by one instance.
+|`rate_limit_delay` |int |60 | Duration in seconds instance sleeps for when Discord says "You're opening new direct messages too fast"
+|`offset` |int |1000 | uration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value.
+|`skip_completed` |bool |true | Skip members who have already been DM'd from the input/completed.txt file 
+|`call` |bool |false | Call users after DM (Token needs to be friended to Ring)
+|`remove_dead_tokens` |bool |true | Remove tokens which have died from input/tokens.txt once DMs are completed.
+|`remove_completed_members` |bool |true | Remove members who have been DM'd from input/memberids.txt once DMs are completed
+|`stop_dead_tokens` |bool |true | Stop using tokens which have been locked/disabled. 
+|`check_mutual` |bool |false | Check mutual servers and Username 
+|`friend_before_DM` |bool |false | Friend user before sending DM (Requires Check Mutual to get username and discriminator)
+|`online_tokens` |bool |false | Websocket tokens and set their status to online while mass DMing 
+|`max_dms_per_token` |int |0 | Stop tokens at a particular number of DMs. 0 for unlimited.
+|`receive_messages` |bool |false | Receieve messages from the people your tokens are sending DMs to. They get saved to input/received.txt (Requires Online Tokens)
+|`skip_failed` |bool |true | Skip members who have already been attempted to be DM'd but failed from the input/failed.txt file
+|`block_after_dm` |bool |false | Block user after sending DM
+|`close_dm_after_message` |bool |false | Close DM (Presses the X in front of the DM) after sending a message
+
+### ProxySettings Object
+ Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`proxy`|string|""|Using rotating proxy in config like in DMDGO v1.6.0 and earlier. (Depracated, see `proxy_from_file`)|
+|`proxy_from_file`|bool|true|Load proxies from /input/proxies.txt and use them globally throughout the program. A proxy is binded to each instance at the beginning of any function and sticks with it throughout the process. There is no in-built proxy checker and it does not rotate proxies on it's own. Always use high quality static checked proxies.|
+|`proxy_for_captcha`|bool|false|Send proxy to captcha service to ensure that captcha is solved on the same IP address as the action taken on Discord (like joining server) to avoid detection. Each service has it's own documentation on what proxy is acceptable for them. Usually they don't support IP Authorization and disallow hostnames. You can ping your proxy hostname to resolve it's IP Address and use that|
+|`proxy_protocol`|string|"http"|Proxy protocol of your proxies, used for actions on Discord and sent to captcha APIs as well|
+|`gateway_proxy`| bool | false | use proxy for websocket functions. Same proxy is used as the one for other actions on Discord. |
+|`timeout`| int | 60 | Maximum time to wait before timing out incase of slow proxies or incase a proxy does not connect. |
+
+### ScraperSettings Object
+Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`online_scraper_delay` | int | 1000-2000 | Delay in milliseconds to sleep between 2 scrape requests in Opcode 8 and Opcode 14 Scrapers.|
+|`scrape_usernames`| bool | false | Scrape usernames and output them to input/names.txt while using Opcode 8 Scraper.|
+|`scrape_avatars`| bool | false | Scrape avatars and output them to input/pfps/ while using Opcode 8 Scraper. |
+
+### CaptchaSettings Object
+Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`captcha_api_key`| string | "your_captcha_key" | Your authentication key for the captcha solving service you set. if user authenticated then enter username and password in format user:pass or just put the key. |
+|`captcha_api`| string | "anti-captcha.com" | The captcha service you're using. Always check which ones are compatible before using one! Might need to use a different captcha provider if you're getting flagged or invalid solutions | 
+|`mac_captcha_wait`| int | 120 | Maximum time to wait for the solution after submitting the captcha before cancelling the action and moving forward|
+|`max_captcha_retry_dm`| int | 0 | Maximum times to retry solving captcha if an unacceptable solution is returned (Implemented so people don't wipe out their balances) Keep 0 for unlimited|
+|`max_captcha_retry_invite`| int | 3 | Maximum times to retry joining server if met with captcha |
+
+### OtherSettings 
+Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`disable_keep_alives`| bool | false | Open a new underlying TCP connection for each request. Highly detectable. Always keep false. But helps to rotate a rotating proxy's IP on each request when set in environment using the depracated `proxy` field in ProxySettings object| 
+
+## SuspicionAvoidance Object 
+Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`random_individual_delay`| int | 0 | Random amount of time in seconds to be added to each individual delay|
+|`random_rate_limit_delay`| int | 0 | Random amount of time in seconds to be added to each rate limit delay| 
+|`random_delay_before_dm`| int | 0 | Random amount of time in seconds to wait in between of opening a DM and sending a DM|
+|`typing`| bool | false | Show user as typing before sending a message|
+|`typing_variation`| int | 250 | random delay added in typing | 
+|`typing_speed`| int | 300 | Speed in which the message is typed (Affects the overall time it takes to send the message, shorter messages will be sent quicker)|
+|`typing_base`| int | 100 | base delay in typing |
+
+## DMonReact Object 
+Name | Type | Recommended Value | Description |
+| -----|------|-------------------|-------------|
+|`observer_token`| string | "your token" | A token which is present in the server where yo want to sniff reactions and send DMs. This token is only used for looking at the reacts, it's never used to send DMs. |
+|`change_name`| bool | true | An instance token changes name before sending DMs to people approved by observer token. Requires tokens in format email:pass:token|
+|`change_avatar`| bool | true | An instance token changes avatar before sending DMs to people apporved by observer token. |
+|`invite`| string | "invite_to_server" | Invite to the server where you're running DM on react, to join instances when they're needed so they don't get kicked. If not specified, the bot will assume the tokens are already present in the server |
+|`server_id`| string | "server_id" | Server ID where you're running the DM on react. If not specified, instances will try to send to every reaction sniffed by observer token. This is required for other things like checking if Token is in server or not, it's highly recommended you specify this field. | 
+|`channel_id`| string | "your_channelId" | Channel ID where you want to send messages to reactions. If left blank, bot will send DMs to reacts in all channels in the server. |
+|`message_id`| string | "your_messageId" | Message ID of the message on which you want to send people DMs who react. If left blank, would send DMs to all messages in the channel. |
+|`emoji`| string | "emojiname:id" | The emoji when reacted with the message will be sent. Unicode emojis have to be entered just as the emoji. Example: "🚀" (Don't worry if it appears as boxes on your machine) And for custom/nitro emojis you have to put emoji_name:emoji_id which you can get from the emoji's URL. If left blank, messages will be sent to every reaction on the message. |
+|`rotate_tokens`| bool | true | Re-uses tokens from a pool. Suppose if token was rate limited, it would be switched but later be returned to to be reused. |
+|`max_anti_raid_queue`| int | 20 |To ensure someone does not spam reactions to jam your bot and lock your instances, you can set the maximum queue size. Any reactions above this would be discarded. This will easily help bypass mass emoji reacts breaking the bot. |
+|`max_dms_per_token`| int | 0 | Maximum DMs you want your tokens to send. Set to 0 for unlimited.
+
+
+
+
+
+
+
+
+
 
 ### Offset 
 Offset is a duration in milliseconds. As the name suggests this offsets or displaces the goroutines (threads) by a short period of time to ensure that all accounts don't start at the exact same second. What is the recommended offset? If you have less than 100 tokens or are using short individual delays, it does not matter. You can put any offset like 50-300. But if you are running a large number of tokens, you should set your individual and rate limit delays to 60 each or higher. Your offset will come with this formula - (individual delay/number of tokens) * 1000 This ensures your tokens start evenly spread out throughout the individual delay period. 
