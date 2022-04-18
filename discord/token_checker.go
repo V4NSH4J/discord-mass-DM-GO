@@ -48,7 +48,7 @@ func LaunchTokenChecker() {
 		}(i)
 	}
 	c.WaitAllDone()
-	var workingTokens []string 
+	var workingTokens []string
 	for i := 0; i < len(working); i++ {
 		if working[i].Password != "" && working[i].Email != "" {
 			workingTokens = append(workingTokens, fmt.Sprintf(`%v:%v:%v`, working[i].Email, working[i].Password, working[i].Token))

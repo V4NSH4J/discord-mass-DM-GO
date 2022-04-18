@@ -178,7 +178,7 @@ func (in *Instance) Invite(Code string) error {
 	var payload invitePayload
 	var rqData string
 	var rqToken string
-	for i := 0; i < in.Config.CaptchaSettings.MaxCaptcha; i++ {
+	for i := 0; i < in.Config.CaptchaSettings.MaxCaptchaInv; i++ {
 		if solvedKey == "" || in.Config.CaptchaSettings.CaptchaAPI == "" {
 			payload = invitePayload{}
 		} else {

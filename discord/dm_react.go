@@ -289,7 +289,7 @@ func LaunchDMReact() {
 							}
 						}
 						if cfg.DMonReact.Emoji != "" {
-							if event.Data.Emoji.Name != cfg.DMonReact.Emoji || fmt.Sprintf(`%v:%v`, event.Data.Emoji.Name, event.Data.Emoji.ID) != cfg.DMonReact.Emoji {
+							if event.Data.Emoji.Name != cfg.DMonReact.Emoji && fmt.Sprintf(`%v:%v`, event.Data.Emoji.Name, event.Data.Emoji.ID) != cfg.DMonReact.Emoji {
 								color.Cyan("[%v][O] Skipping event from other emoji [%v]", time.Now().Format("15:04:05"), event.Data.Emoji.Name)
 								continue Listener
 							}
@@ -311,7 +311,7 @@ func LaunchDMReact() {
 						continue Listener
 					}
 					if cfg.DMonReact.ServerID != "" && observerInstance.Ws != nil {
-						err := instance.Subscribe(observerInstance.Ws,cfg.DMonReact.ServerID)
+						err := instance.Subscribe(observerInstance.Ws, cfg.DMonReact.ServerID)
 						if err != nil {
 							color.Red("[%v][!] Error while subscribing to server: %s", time.Now().Format("15:04:05"), err)
 							time.Sleep(10 * time.Second)
@@ -331,7 +331,7 @@ func LaunchDMReact() {
 					continue Listener
 				}
 				if cfg.DMonReact.ServerID != "" && observerInstance.Ws != nil {
-					err := instance.Subscribe(observerInstance.Ws,cfg.DMonReact.ServerID)
+					err := instance.Subscribe(observerInstance.Ws, cfg.DMonReact.ServerID)
 					if err != nil {
 						color.Red("[%v][!] Error while subscribing to server: %s", time.Now().Format("15:04:05"), err)
 						time.Sleep(10 * time.Second)

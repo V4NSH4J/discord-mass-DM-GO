@@ -478,9 +478,18 @@ func LaunchMassDM() {
 					color.Red("[%v] Token %v is being rate limited. Sleeping for 10 seconds", time.Now().Format("15:04:05"), instances[i].Token)
 					time.Sleep(10 * time.Second)
 				} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
-					color.Red("[%v] Token %v Captcha was attempted to solve but appeared again", time.Now().Format("15:04:05"), instances[i].Token)
+					mem <- member
+					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instances[i].Token)
+					if instances[i].Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
+						err := instances[i].ReportIncorrectRecaptcha()
+						if err != nil {
+							color.Red("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
+						} else {
+							color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), instances[i].LastID)
+						}
+					}
 					instances[i].Retry++
-					if instances[i].Retry >= cfg.CaptchaSettings.MaxCaptcha {
+					if instances[i].Retry >= cfg.CaptchaSettings.MaxCaptchaDM && cfg.CaptchaSettings.MaxCaptchaDM != 0 {
 						color.Red("[%v] Stopping token %v max captcha solves reached", time.Now().Format("15:04:05"), instances[i].Token)
 						break
 					}

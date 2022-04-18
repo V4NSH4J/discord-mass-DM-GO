@@ -90,10 +90,9 @@ type Data struct {
 	Activities        bool                   `json:"activities,omitempty"`
 	ThreadMemberLists interface{}            `json:"thread_member_lists,omitempty"`
 	// Emoji React
-	UserID string `json:"user_id,omitempty"`
+	UserID    string `json:"user_id,omitempty"`
 	MessageID string `json:"message_id,omitempty"`
-	Emoji Emoji `json:"emoji,omitempty"`
-
+	Emoji     Emoji  `json:"emoji,omitempty"`
 }
 
 type Ops struct {

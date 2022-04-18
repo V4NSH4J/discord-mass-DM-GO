@@ -207,4 +207,3 @@ func CommonHeaders(req *http.Request) *http.Request {
 	req.Header.Set("TE", "trailers")
 	return req
 }
-

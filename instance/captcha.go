@@ -159,8 +159,8 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 		submitCaptcha.ClientKey = in.Config.CaptchaSettings.ClientKey
 	}
 	if in.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
-		submitCaptcha.SoftID = 1021 
-	} 
+		submitCaptcha.SoftID = 1021
+	}
 	if in.Config.ProxySettings.ProxyForCaptcha && in.Proxy != "" {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTask"
 		if strings.Contains(in.Proxy, "@") {
@@ -233,6 +233,7 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	var retrieveCaptcha CapmonsterPayload
 	retrieveCaptcha.ClientKey = in.Config.CaptchaSettings.ClientKey
 	retrieveCaptcha.TaskId = inResponse.TaskID
+	in.LastID = inResponse.TaskID
 	payload, err = json.Marshal(retrieveCaptcha)
 	if err != nil {
 		return solvedKey, fmt.Errorf("error while marshalling payload %v", err)
@@ -277,4 +278,39 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 
 	}
 	return solvedKey, nil
+}
+
+func (in *Instance) ReportIncorrectRecaptcha() error {
+	site := "https://api.anti-captcha.com/reportIncorrectRecaptcha"
+	payload := CapmonsterPayload{
+		ClientKey: in.Config.CaptchaSettings.ClientKey,
+		TaskId:    in.LastID,
+	}
+	payloadBytes, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("error while marshalling payload %v", err)
+	}
+	req, err := http.NewRequest(http.MethodPost, site, bytes.NewBuffer(payloadBytes))
+	if err != nil {
+		return fmt.Errorf("error creating request [%v]", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error reading response [%v]", err)
+	}
+	var outResponse CapmonsterOutResponse
+	err = json.Unmarshal(body, &outResponse)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling response [%v]", err)
+	}
+	if outResponse.Status != "success" {
+		return fmt.Errorf("error %v ", outResponse.ErrorID)
+	}
+
+	return nil
 }

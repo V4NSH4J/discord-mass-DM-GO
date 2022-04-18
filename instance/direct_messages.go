@@ -138,7 +138,7 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 		fmt.Println("Error while making request")
 		return "", fmt.Errorf("error while making open channel request %v", err)
 	}
-	var cookie string 
+	var cookie string
 	if in.Cookie == "" {
 		cookie, err = in.GetCookieString()
 		if err != nil {
@@ -206,7 +206,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	if err != nil {
 		return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
 	}
-	var cookie string 
+	var cookie string
 	if in.Cookie == "" {
 		cookie, err = in.GetCookieString()
 		if err != nil {
@@ -232,7 +232,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 			}
 		}
 	}
-	
+
 	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)

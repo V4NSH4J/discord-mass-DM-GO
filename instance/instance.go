@@ -48,6 +48,7 @@ type Instance struct {
 	TimeServerCheck time.Time
 	ChangedName     bool
 	ChangedAvatar   bool
+	LastID          int
 }
 
 func (in *Instance) StartWS() error {

@@ -192,7 +192,7 @@ func (in *Instance) RandomHypeSquadChanger() error {
 	if err != nil {
 		return fmt.Errorf("error while getting cookie: %v", err)
 	}
-	req = in.AtMeHeaders(req,cookie)
+	req = in.AtMeHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error while sending request: %v", err)

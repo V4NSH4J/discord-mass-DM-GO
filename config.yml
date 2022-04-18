@@ -32,8 +32,10 @@ scraper_settings:
 captcha_settings:
   captcha_api_key: ""
   captcha_api: "anti-captcha.com"
-  max_captcha_wait: 60
-  max_captcha_retry: 3
+  max_captcha_wait: 120
+  max_captcha_retry_dm: 0
+  max_captcha_retry_invite: 3
+
 
 other_settings: 
   disable_keep_alives: false

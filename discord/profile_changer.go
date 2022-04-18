@@ -256,7 +256,7 @@ func LaunchTokenChanger() {
 		color.Red("[%v] Invalid mode", time.Now().Format("15:04:05"))
 		utilities.ExitSafely()
 	}
-	var password string 
+	var password string
 	if mode == 1 {
 		color.Green("[%v] Enter Password:", time.Now().Format("15:04:05"))
 		scanner := bufio.NewScanner(os.Stdin)
@@ -270,7 +270,7 @@ func LaunchTokenChanger() {
 	fmt.Scanln(&threads)
 	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
-	} 
+	}
 
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {

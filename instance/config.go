@@ -62,10 +62,11 @@ type ScraperSettings struct {
 }
 
 type CaptchaSettings struct {
-	ClientKey  string `yaml:"captcha_api_key"`
-	CaptchaAPI string `yaml:"captcha_api"`
-	Timeout    int    `yaml:"max_captcha_wait"`
-	MaxCaptcha int    `yaml:"max_captcha_retry"`
+	ClientKey     string `yaml:"captcha_api_key"`
+	CaptchaAPI    string `yaml:"captcha_api"`
+	Timeout       int    `yaml:"max_captcha_wait"`
+	MaxCaptchaDM  int    `yaml:"max_captcha_retry_dm"`
+	MaxCaptchaInv int    `yaml:"max_captcha_retry_invite"`
 }
 
 type OtherSettings struct {
