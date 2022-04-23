@@ -1,0 +1,20 @@
+{
+    "title": "Edit me! This will be the white text on the embed",
+    "description": "This is the main place to put all your info.\nYou can also create new lines.\n\nNote: User's will not be able to click links in the description. Also, you are limited with the amount of lines you can use.",
+    "redirect": "https://example.com/0",
+    "color": "#7289da",
+    "author":{
+        "name": "This text is the same as the 'author' text on an embed, except you can click on it.",
+        "url": "https://example.com/1"
+    },
+    "provider": {
+        "name": "This will be very small text and gray. It will also be at the top of the embed.",
+        "url": "https://discock.shop/2"
+    },
+    "image": {
+        "thumbnail": false,
+        "url": "https://i.imgur.com/pN1GR7Q.png",
+        
+        "info": "'thumbnail' means whether the image is small and on the right side of the embed, or large on the bottom of the embed. Feel free to remove this after."
+    }
+}
