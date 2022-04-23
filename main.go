@@ -32,7 +32,7 @@ func main() {
 
 // Options menu
 func Options() {
-	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) DM on React\n |- 16) Hypesquad Changer\n |- 17) Mass token changer\n |- 18) Credits & Info\n |- 19) Exit")
+	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) DM on React\n |- 16) Hypesquad Changer\n |- 17) Mass token changer\n |- 18) Create Embed\n |- 19) Credits & Info\n |- 20) Exit")
 	color.White("\nEnter your choice: ")
 	var choice int
 	fmt.Scanln(&choice)
@@ -74,10 +74,11 @@ func Options() {
 		discord.LaunchHypeSquadChanger()
 	case 17:
 		discord.LaunchTokenChanger()
-
 	case 18:
-		color.Blue("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation")
+		discord.LanuchEmbed()
 	case 19:
+		color.Blue("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation")
+	case 20:
 		os.Exit(0)
 	}
 	time.Sleep(1 * time.Second)
