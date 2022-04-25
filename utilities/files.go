@@ -184,3 +184,21 @@ func WriteFile(filename string, items []string) error {
 
 	return nil
 }
+
+func GetEmbed() ([]byte, string) {
+	ex, err := os.Executable()
+	var errbytes []byte
+	if err != nil {
+		return errbytes, "Error while finding executable"
+	}
+	ex = filepath.ToSlash(ex)
+	var file *os.File
+	file, err = os.Open(path.Join(path.Dir(ex) + "/" + "embed.json"))
+	if err != nil {
+		return errbytes, "Error while Opening embed.json"
+	} else {
+		defer file.Close()
+		bytes, _ := io.ReadAll(file)
+		return bytes, ""
+	}
+}
