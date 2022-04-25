@@ -50,13 +50,13 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	q.Set("method", "hcaptcha")
 	q.Set("sitekey", sitekey)
 	// Page URL same as referer in headers
-	q.Set("pageurl", site)
+	q.Set("pageurl", "https://discord.com")
 	q.Set("userAgent", UserAgent)
 	q.Set("json", "1")
 	q.Set("soft_id", "3359")
 	if rqdata != "" {
 		q.Set("data", rqdata)
-		q.Set("invisible", "0")
+		q.Set("invisible", "1")
 	}
 	if in.Config.ProxySettings.ProxyForCaptcha {
 		q.Set("proxy", in.Proxy)
@@ -194,11 +194,11 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	} else {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTaskProxyless"
 	}
-	submitCaptcha.Task.WebsiteURL, submitCaptcha.Task.WebsiteKey, submitCaptcha.Task.Cookies, submitCaptcha.Task.UserAgent = website, sitekey, cookies, UserAgent
+	submitCaptcha.Task.WebsiteURL, submitCaptcha.Task.WebsiteKey, submitCaptcha.Task.UserAgent = "https://discord.com", sitekey, UserAgent
 	if rqdata != "" && in.Config.CaptchaSettings.CaptchaAPI == "capmonster.cloud" {
 		submitCaptcha.Task.Data = rqdata
 		// Try with true too
-		submitCaptcha.Task.IsInvisible = false
+		submitCaptcha.Task.IsInvisible = true 
 	} else if rqdata != "" && in.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
 		submitCaptcha.Task.IsInvisible = false
 		submitCaptcha.Task.Enterprise.RqData = rqdata

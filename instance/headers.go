@@ -15,6 +15,7 @@ const UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/5
 const XTrack = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiRmlyZWZveCIsImRldmljZSI6IiIsInN5c3RlbV9sb2NhbGUiOiJlbi1VUyIsImJyb3dzZXJfdXNlcl9hZ2VudCI6Ik1vemlsbGEvNS4wIChXaW5kb3dzIE5UIDEwLjA7IFdpbjY0OyB4NjQ7IHJ2Ojk3LjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvOTcuMCIsImJyb3dzZXJfdmVyc2lvbiI6Ijk3LjAiLCJvc192ZXJzaW9uIjoiMTAiLCJyZWZlcnJlciI6IiIsInJlZmVycmluZ19kb21haW4iOiIiLCJyZWZlcnJlcl9jdXJyZW50IjoiIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiIiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X2J1aWxkX251bWJlciI6OTk5OSwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
 const XSuper = "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkRpc2NvcmQgQ2xpZW50IiwicmVsZWFzZV9jaGFubmVsIjoicHRiIiwiY2xpZW50X3ZlcnNpb24iOiIwLjAuNjEiLCJvc192ZXJzaW9uIjoiMjEuMy4wIiwib3NfYXJjaCI6ImFybTY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTIzODMzLCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
 
+
 func (in *Instance) cookieHeaders(req *http.Request) *http.Request {
 	for k, v := range map[string]string{
 		"Host":             "discord.com",
@@ -206,4 +207,28 @@ func CommonHeaders(req *http.Request) *http.Request {
 	req.Header.Set("user-agent", UserAgent)
 	req.Header.Set("TE", "trailers")
 	return req
+}
+
+func (in *Instance) UserInfoHeaders(req *http.Request, cookie string) *http.Request {
+	for k, v := range map[string]string{
+		"Host": "discord.com",
+		"Cookie": cookie,
+		"User-Agent": UserAgent,
+		"Accept-Language": "en-US,en;q=0.5",
+		"Accept-Encoding": "gzip, deflate",
+		"Authorization": in.Token,
+		"X-Super-Properties": XSuper,
+		"X-Discord-Locale": "en-US",
+		"X-Debug-Options": "bugReporterEnabled",
+		"Dnt": "1",
+		//"Referer": "https://discord.com/channels/942940056157560862/942940056157560865",
+		"Sec-Fetch-Dest": "empty",
+		"Sec-Fetch-Mode": "cors",
+		"Sec-Fetch-Site": "same-origin",
+		"Te": "trailers",
+	} {
+		req.Header.Set(k, v)
+	}
+
+	return req 
 }

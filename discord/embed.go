@@ -47,6 +47,7 @@ type EmbedJSONResponse struct {
 }
 
 func LanuchEmbed() {
+	color.Yellow("This feature is provided and hosted by a 3rd party Entity. Use at your own discretion. Contact https://github.com/itschasa for more information.")
 	var embeddata []byte
 	var err string
 	embeddata, err = utilities.GetEmbed()
@@ -72,7 +73,7 @@ func LanuchEmbed() {
 						color.Green("Created Embed Link, use the link below and add it to your message in message.json.")
 						color.Green(respdata.Link)
 						color.Green("Make sure to restart DMDGO after editing message.json")
-						color.Green("Service provided with <3 by chasa")
+						color.Green("Service provided with <3 by chasa (https://github.com/itschasa)")
 					} else {
 						color.Red("Unexpected response from server: %v", fmt.Sprint(resp.StatusCode))
 						color.Red(string(bodyBytes))
