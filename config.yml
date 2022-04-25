@@ -30,7 +30,7 @@ scraper_settings:
   scrape_avatars: false
 
 captcha_settings:
-  captcha_api_key: "5c1c155da52d68a3a65e38f2cf877987"
+  captcha_api_key: ""
   captcha_api: "capmonster.cloud"
   max_captcha_wait: 120
   max_captcha_retry_dm: 0
