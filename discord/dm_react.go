@@ -589,6 +589,17 @@ Token:
 					color.Red("[%v][X] Token %v failed to DM %v [Rate Limited][%vms]", time.Now().Format("15:04:05"), instance.Token, uuid, time.Since(t).Milliseconds())
 					time.Sleep(5 * time.Second)
 					continue React
+				} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
+					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instance.Token)
+					if instance.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
+						err := instance.ReportIncorrectRecaptcha()
+						if err != nil {
+							color.Red("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
+						} else {
+							color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), instance.LastID)
+						}
+					}
+				
 				} else {
 					failed = append(failed, uuid)
 					err = utilities.WriteLine("input/failed.txt", uuid)
