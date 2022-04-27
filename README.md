@@ -299,14 +299,14 @@ Leave a star on the repository, helps out intensively! You can also buy me a coo
 - *SOL*: 8QyA9dCetgVMxU2AjzfM3DrY1i3mXuE8nsgLkvAX1hTe
 
 - *LTC*: LN5UPbL31TcPzpBKFbsNKZ5BxwUzKcyi1F
-<<<<<<< Updated upstream
+
 ## Contact
 There are a lot of impersonators, please make sure you're dealing with the correct username. 
 
 Telegram: https://t.me/campingarunner (This is my only Telegram)
-Mail: v4nsh4j@protonmail.com
-=======
->>>>>>> Stashed changes
+
+Mail: v4nsh4j@protonmail.com (For Business Enquiries)
+
 
 ## Credits
 DMDGO has not been a One man show! I would like to thank everyone for their contributions and my patreons. Special thanks to my lads -> 
