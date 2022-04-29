@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+	"strings"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
@@ -37,6 +38,10 @@ func LaunchinviteJoiner() {
 		color.White("[%v] Enter your invite CODE (The part after discord.gg/): ", time.Now().Format("15:04:05"))
 		var invite string
 		fmt.Scanln(&invite)
+		invite = strings.ReplaceAll(invite, "https://", "")
+		invite = strings.ReplaceAll(invite, "http://", "")
+		invite = strings.ReplaceAll(invite, "discord.gg/", "")
+		color.White("Using Invite: %v", invite)
 		color.White("[%v] Enter number of Threads (0: Unlimited Threads. 1: For using proper delay. It may be a good idea to use less threads if you're looking to solve captchas): ", time.Now().Format("15:04:05"))
 		var threads int
 		fmt.Scanln(&threads)
