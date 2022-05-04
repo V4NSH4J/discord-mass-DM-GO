@@ -254,6 +254,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while unmarshalling captcha %v", err)
 		}
+		fmt.Println(captchaDetect.Sitekey)
 		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie, captchaDetect.RqData, captchaDetect.RqToken, fmt.Sprintf("https://discord.com/channels/@me/%s", channelSnowflake))
 		if err != nil {
 			return http.Response{}, fmt.Errorf("error while solving captcha %v", err)
@@ -485,4 +486,3 @@ func (in *Instance) Call(snowflake string) error {
 
 	return nil
 }
- 

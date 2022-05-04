@@ -59,40 +59,41 @@ func GetReactions(channel string, message string, token string, emoji string, af
 	return UIDS, nil
 }
 
-func (in *Instance) ContextProperties(invite, cookie string) (string, error) {
-	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue=wnd&with_counts=true&with_expiration=true"
+func (in *Instance) ContextProperties(invite, cookie string) (string, string, error) {
+	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue="+invite+"&with_counts=true&with_expiration=true"
+	fmt.Println(site)
 	req, err := http.NewRequest("GET", site, nil)
 	if err != nil {
-		return "", err
+		return "", "",err
 	}
 	req = in.xContextPropertiesHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
-		return "", err
+		return "", "",err
 	}
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
+		return "", "",fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
 	}
 	body, err := utilities.ReadBody(*resp)
 	if err != nil {
-		return "", err
+		return "", "",err
 	}
-	if !strings.Contains(string(body), "guild") && !strings.Contains(string(body), "id") && !strings.Contains(string(body), "channel") {
-		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
+	if !strings.Contains(string(body), "guild") && !strings.Contains(string(body), "id") && !strings.Contains(string(body), "channel") && !strings.Contains(string(body), "code") {
+		return "", "",fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
 	}
 	var guildInfo map[string]interface{}
 	err = json.Unmarshal(body, &guildInfo)
 	if err != nil {
-		return "", err
+		return "", "",err
 	}
 	guildID := (guildInfo["guild"].(map[string]interface{}))["id"].(string)
 	channelID := (guildInfo["channel"].(map[string]interface{}))["id"].(string)
 	channelType := (guildInfo["channel"].(map[string]interface{}))["type"].(float64)
 	x, err := XContextGen(guildID, channelID, channelType)
 	if err != nil {
-		return "", err
+		return "", "",err
 	}
-	return x, nil
+	return x, guildInfo["code"].(string),nil 
 
 }
 
@@ -192,22 +193,23 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("error while marshalling payload %v", err)
 			continue
 		}
-		url := "https://discord.com/api/v9/invites/" + Code
-		req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
-		if err != nil {
-			color.Red("Error while making http request %v \n", err)
-			continue
-		}
 
 		cookie, err := in.GetCookieString()
 		if err != nil {
 			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
 			continue
 		}
-		XContext, err := in.ContextProperties(Code, cookie)
+		XContext, invCode,err := in.ContextProperties(Code, cookie)
 		if err != nil {
-			XContext = "eyJsb2NhdGlvbiI6IkpvaW4gR3VpbGQiLCJsb2NhdGlvbl9ndWlsZF9pZCI6IjkyNTA2NjE3MjM0MzM5ODQyMCIsImxvY2F0aW9uX2NoYW5uZWxfaWQiOiI5MjUwNjYxNzIzNDMzOTg0MjMiLCJsb2NhdGlvbl9jaGFubmVsX3R5cGUiOjB9"
+			return fmt.Errorf("Error while getting context %v", err)
 		}
+		url := fmt.Sprintf("https://discord.com/api/v9/invites/%s", invCode)
+		req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
+		if err != nil {
+			color.Red("Error while making http request %v \n", err)
+			continue
+		}
+
 		req = in.inviteHeaders(req, cookie, XContext)
 
 		resp, err := in.Client.Do(req)
@@ -239,7 +241,7 @@ func (in *Instance) Invite(Code string) error {
 				color.Red("[%v][X] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
 				break
 			} else {
-				color.Yellow("[%v][X] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.Token, cap, i)
+				color.Yellow("[%v][X] Captcha detected %v [%v]", time.Now().Format("15:04:05"), in.Token, i)
 			}
 			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {

@@ -56,7 +56,7 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	q.Set("soft_id", "3359")
 	if rqdata != "" {
 		q.Set("data", rqdata)
-		q.Set("invisible", "1")
+		q.Set("invisible", "0")
 	}
 	if in.Config.ProxySettings.ProxyForCaptcha {
 		q.Set("proxy", in.Proxy)
@@ -95,6 +95,7 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	if err != nil {
 		return solvedKey, fmt.Errorf("error while parsing url %v", err)
 	}
+	in.LastIDstr = inResponse.Request
 	q = outURL.Query()
 	q.Set("key", in.Config.CaptchaSettings.ClientKey)
 	q.Set("action", "get")

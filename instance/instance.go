@@ -49,6 +49,7 @@ type Instance struct {
 	ChangedName     bool
 	ChangedAvatar   bool
 	LastID          int
+	LastIDstr       string 
 }
 
 func (in *Instance) StartWS() error {
