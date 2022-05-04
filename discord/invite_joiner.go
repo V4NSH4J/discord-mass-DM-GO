@@ -26,7 +26,8 @@ func LaunchinviteJoiner() {
 		utilities.ExitSafely()
 		return
 	}
-	switch invitechoice {
+	switch invitechoice {1
+			    
 	case 1:
 		color.Cyan("Single Invite Mode")
 		color.White("This will join your tokens from tokens.txt to a server")
@@ -34,7 +35,7 @@ func LaunchinviteJoiner() {
 		if err != nil {
 			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		}
-		color.White("[%v] Enter your invite CODE (The part after discord.gg/): ", time.Now().Format("15:04:05"))
+		color.White("[%v] Enter your invite CODE (The part after discord.gg/832rQPMc): ", time.Now().Format("15:04:05"))
 		var invite string
 		fmt.Scanln(&invite)
 		color.White("[%v] Enter number of Threads (0: Unlimited Threads. 1: For using proper delay. It may be a good idea to use less threads if you're looking to solve captchas): ", time.Now().Format("15:04:05"))
