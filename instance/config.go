@@ -56,9 +56,10 @@ type ProxySettings struct {
 }
 
 type ScraperSettings struct {
-	SleepSc         int  `yaml:"online_scraper_delay"`
-	ScrapeUsernames bool `yaml:"scrape_usernames"`
-	ScrapeAvatars   bool `yaml:"scrape_avatars"`
+	SleepSc         int    `yaml:"scraper_delay"`
+	ScrapeUsernames bool   `yaml:"scrape_usernames"`
+	ScrapeAvatars   bool   `yaml:"scrape_avatars"`
+	ExtendedChars   string `yaml:"query_brute_extra_chars"`
 }
 
 type CaptchaSettings struct {
@@ -70,7 +71,10 @@ type CaptchaSettings struct {
 }
 
 type OtherSettings struct {
-	DisableKL bool `yaml:"disable_keep_alives"`
+	DisableKL       bool `yaml:"disable_keep_alives"`
+	Mode            int  `yaml:"mode"`
+	ConstantCookies bool `yaml:"constant_cookies"`
+	CensorToken     bool `yaml:"censor_token"`
 }
 
 type SuspicionAvoidance struct {

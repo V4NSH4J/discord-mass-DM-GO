@@ -8,6 +8,7 @@ package discord
 
 import (
 	"fmt"
+	"os/exec"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
@@ -17,7 +18,6 @@ import (
 )
 
 func LaunchTokenChecker() {
-	color.Cyan("Token checker")
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
@@ -32,6 +32,21 @@ func LaunchTokenChecker() {
 	if threads == 0 {
 		threads = len(instances)
 	}
+	title := make(chan bool)
+	var valid, invalid int 
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Unchecked %v Valid %v Invalid]`, len(instances)-valid-invalid, valid, invalid))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	c := goccm.New(threads)
 	var working []instance.Instance
 	for i := 0; i < len(instances); i++ {
@@ -39,10 +54,12 @@ func LaunchTokenChecker() {
 		go func(i int) {
 			err := instances[i].CheckToken()
 			if err != 200 {
-				color.Red("[%v] Token Invalid %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Red("[%v] Token Invalid %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				invalid++
 			} else {
-				color.Green("[%v] Token Valid %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Token Valid %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
 				working = append(working, instances[i])
+				valid++
 			}
 			c.Done()
 		}(i)
@@ -62,6 +79,8 @@ func LaunchTokenChecker() {
 		utilities.ExitSafely()
 		return
 	}
-
+	title <- true 
 	color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
 }
+
+

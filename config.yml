@@ -1,7 +1,7 @@
 
 direct_message_settings:
-  individual_delay: 120
-  rate_limit_delay: 120
+  individual_delay: 5
+  rate_limit_delay: 650
   offset: 100
   max_dms_per_token: 0
   skip_completed: true
@@ -25,20 +25,23 @@ proxy_settings:
   timeout: 60
 
 scraper_settings:
-  online_scraper_delay: 3000
+  scraper_delay: 3000
   scrape_usernames: false
   scrape_avatars: false
+  query_brute_extra_chars: ""
 
 captcha_settings:
-  captcha_api_key: ""
-  captcha_api: "capmonster.cloud"
-  max_captcha_wait: 120
+  captcha_api_key: "e143cce1f9047bb21b14d58075193b2d"
+  captcha_api: "capcat.xyz"
+  max_captcha_wait: 600
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
 
-
 other_settings: 
   disable_keep_alives: false
+  mode: 2
+  constant_cookies: true 
+  censor_token: true 
 
 suspicion_avoidance:
   random_individual_delay: 0

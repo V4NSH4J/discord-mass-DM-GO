@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"time"
@@ -22,14 +23,28 @@ import (
 )
 
 func LaunchNameChanger() {
-	color.Blue("Name Changer")
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 	}
+	var TotalCount, SuccessCount, FailedCount int 
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	for i := 0; i < len(instances); i++ {
 		if instances[i].Password == "" {
-			color.Red("[%v] %v No password set. It may be wrongly formatted. Only supported format is email:pass:token", time.Now().Format("15:04:05"), instances[i].Token)
+			color.Red("[%v] %v No password set. It may be wrongly formatted. Only supported format is email:pass:token", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			continue
 		}
 	}
@@ -46,7 +61,7 @@ func LaunchNameChanger() {
 	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
 	}
-
+	TotalCount = len(instances)
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {
 		c.Wait()
@@ -55,11 +70,12 @@ func LaunchNameChanger() {
 			if err != nil {
 				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			}
 			r, err := instances[i].NameChanger(users[rand.Intn(len(users))])
 			if err != nil {
-				color.Red("[%v] %v Error while changing name: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+				color.Red("[%v] %v Error while changing name: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
+				FailedCount++
 				return
 			}
 			body, err := utilities.ReadBody(r)
@@ -67,30 +83,47 @@ func LaunchNameChanger() {
 				fmt.Println(err)
 			}
 			if r.StatusCode == 200 || r.StatusCode == 204 {
-				color.Green("[%v] %v Changed name successfully", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] %v Changed name successfully", time.Now().Format("15:04:05"), instances[i].CensorToken)
+				SuccessCount++
 			} else {
-				color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].Token, r.Status, string(body))
+				color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].CensorToken, r.Status, string(body))
+				FailedCount++
 			}
 			err = instances[i].Ws.Close()
 			if err != nil {
 				color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			}
 			c.Done()
 		}(i)
 	}
 	c.WaitAllDone()
+	title <- true 
 	color.Green("[%v] All Done", time.Now().Format("15:04:05"))
 
 }
 
 func LaunchAvatarChanger() {
-	color.Blue("Profile Picture Changer")
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 	}
+	var TotalCount, SuccessCount, FailedCount int 
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	color.Red("NOTE: Only PNG and JPEG/JPG supported. Profile Pictures are changed randomly from the folder. Use PNG format for faster results.")
 	color.White("Loading Avatars..")
 	ex, err := os.Executable()
@@ -124,7 +157,7 @@ func LaunchAvatarChanger() {
 	if threads > len(instances) {
 		threads = len(instances)
 	}
-
+	TotalCount = len(instances)
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {
 		c.Wait()
@@ -133,33 +166,36 @@ func LaunchAvatarChanger() {
 			if err != nil {
 				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			}
 			r, err := instances[i].AvatarChanger(avatars[rand.Intn(len(avatars))])
 			if err != nil {
-				color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+				color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
+				FailedCount++
 			} else {
 				if r.StatusCode == 204 || r.StatusCode == 200 {
-					color.Green("[%v] %v Avatar changed successfully", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Green("[%v] %v Avatar changed successfully", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					SuccessCount++
 				} else {
-					color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].Token, r.StatusCode)
+					color.Red("[%v] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, r.StatusCode)
+					FailedCount++
 				}
 			}
 			err = instances[i].Ws.Close()
 			if err != nil {
 				color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			}
 			c.Done()
 		}(i)
 	}
 	c.WaitAllDone()
+	title <- true 
 	color.Green("[%v] All done", time.Now().Format("15:04:05"))
 }
 
 func LaunchBioChanger() {
-	color.Blue("Bio changer")
 	bios, err := utilities.ReadLines("bios.txt")
 	if err != nil {
 		color.Red("[%v] Error while reading bios.txt: %v", time.Now().Format("15:04:05"), err)
@@ -170,6 +206,21 @@ func LaunchBioChanger() {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		utilities.ExitSafely()
 	}
+	var TotalCount, SuccessCount, FailedCount int 
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	bios = instance.ValidateBios(bios)
 	color.Green("[%v] Loaded %v bios, %v instances", time.Now().Format("15:04:05"), len(bios), len(instances))
 	color.Green("[%v] Enter number of threads: (0 for unlimited)", time.Now().Format("15:04:05"))
@@ -178,6 +229,7 @@ func LaunchBioChanger() {
 	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
 	}
+	TotalCount = len(instances)
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {
 		c.Wait()
@@ -186,66 +238,101 @@ func LaunchBioChanger() {
 			if err != nil {
 				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			}
 			err = instances[i].BioChanger(bios)
 			if err != nil {
-				color.Red("[%v] %v Error while changing bio: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+				color.Red("[%v] %v Error while changing bio: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
+				FailedCount++
 			} else {
-				color.Green("[%v] %v Bio changed successfully", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] %v Bio changed successfully", time.Now().Format("15:04:05"), instances[i].CensorToken)
+				SuccessCount++
 			}
 			err = instances[i].Ws.Close()
 			if err != nil {
 				color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			}
 			c.Done()
 		}(i)
 	}
+	title <- true 
 	c.WaitAllDone()
 }
 
 func LaunchHypeSquadChanger() {
-	color.Blue("Hype squad changer")
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		utilities.ExitSafely()
 	}
+	var TotalCount, SuccessCount, FailedCount int 
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	color.Green("[%v] Enter number of threads: (0 for unlimited)", time.Now().Format("15:04:05"))
 	var threads int
 	fmt.Scanln(&threads)
 	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
 	}
+	TotalCount = len(instances)
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {
 		c.Wait()
 		go func(i int) {
 			err := instances[i].RandomHypeSquadChanger()
 			if err != nil {
-				color.Red("[%v] %v Error while changing hype squad: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+				color.Red("[%v] %v Error while changing hype squad: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
+				FailedCount++
 			} else {
-				color.Green("[%v] %v Hype squad changed successfully", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] %v Hype squad changed successfully", time.Now().Format("15:04:05"), instances[i].CensorToken)
+				SuccessCount++
 			}
 			c.Done()
 		}(i)
 	}
+	title <- true 
 	c.WaitAllDone()
 
 }
 
 func LaunchTokenChanger() {
-	color.Blue("Token changer")
 
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 	}
+	var TotalCount, SuccessCount, FailedCount int 
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Changed, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	for i := 0; i < len(instances); i++ {
 		if instances[i].Password == "" {
-			color.Red("[%v] %v No password set. It may be wrongly formatted. Only supported format is email:pass:token", time.Now().Format("15:04:05"), instances[i].Token)
+			color.Red("[%v] %v No password set. It may be wrongly formatted. Only supported format is email:pass:token", time.Now().Format("15:04:05"), instances[i].CensorToken)
 			continue
 		}
 	}
@@ -271,7 +358,7 @@ func LaunchTokenChanger() {
 	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
 	}
-
+	TotalCount = len(instances)
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {
 		c.Wait()
@@ -281,13 +368,15 @@ func LaunchTokenChanger() {
 			}
 			newToken, err := instances[i].ChangeToken(password)
 			if err != nil {
-				color.Red("[%v] %v Error while changing token: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
-				err := utilities.WriteLine("input/changed_tokens.txt", fmt.Sprintf(`%s:%s:%s`, instances[i].Email, instances[i].Password, instances[i].Token))
+				color.Red("[%v] %v Error while changing token: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
+				FailedCount++
+				err := utilities.WriteLine("input/changed_tokens.txt", fmt.Sprintf(`%s:%s:%s`, instances[i].Email, instances[i].Password, instances[i].CensorToken))
 				if err != nil {
 					color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
 				}
 			} else {
-				color.Green("[%v] %v Token changed successfully", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] %v Token changed successfully", time.Now().Format("15:04:05"), instances[i].CensorToken)
+				SuccessCount++
 				err := utilities.WriteLine("input/changed_tokens.txt", fmt.Sprintf(`%s:%s:%s`, instances[i].Email, password, newToken))
 				if err != nil {
 					color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
@@ -297,6 +386,7 @@ func LaunchTokenChanger() {
 		}(i)
 	}
 	c.WaitAllDone()
+	title <- true 
 	color.Green("[%v] All Done", time.Now().Format("15:04:05"))
 
 }

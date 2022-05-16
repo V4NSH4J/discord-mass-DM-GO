@@ -26,6 +26,8 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 		return in.Capmonster(sitekey, url, rqData, cookie)
 	case utilities.Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.twoCaptcha(sitekey, rqData, url)
+	case in.Config.CaptchaSettings.CaptchaAPI == "capcat.xyz":
+		return in.CapCat(sitekey, rqData)
 	default:
 		return "", fmt.Errorf("unsupported captcha api: %s", in.Config.CaptchaSettings.CaptchaAPI)
 	}
@@ -51,7 +53,7 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	q.Set("sitekey", sitekey)
 	// Page URL same as referer in headers
 	q.Set("pageurl", "https://discord.com")
-	q.Set("userAgent", UserAgent)
+	q.Set("userAgent", in.UserAgent)
 	q.Set("json", "1")
 	q.Set("soft_id", "3359")
 	if rqdata != "" {
@@ -195,11 +197,11 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 	} else {
 		submitCaptcha.Task.CaptchaType = "HCaptchaTaskProxyless"
 	}
-	submitCaptcha.Task.WebsiteURL, submitCaptcha.Task.WebsiteKey, submitCaptcha.Task.UserAgent = "https://discord.com", sitekey, UserAgent
+	submitCaptcha.Task.WebsiteURL, submitCaptcha.Task.WebsiteKey, submitCaptcha.Task.UserAgent = "https://discord.com", sitekey, in.UserAgent
 	if rqdata != "" && in.Config.CaptchaSettings.CaptchaAPI == "capmonster.cloud" {
 		submitCaptcha.Task.Data = rqdata
 		// Try with true too
-		submitCaptcha.Task.IsInvisible = true 
+		submitCaptcha.Task.IsInvisible = true
 	} else if rqdata != "" && in.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
 		submitCaptcha.Task.IsInvisible = false
 		submitCaptcha.Task.Enterprise.RqData = rqdata
@@ -282,7 +284,7 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 }
 
 func (in *Instance) ReportIncorrectRecaptcha() error {
-	site := "https://api.anti-captcha.com/reportIncorrectRecaptcha"
+	site := "https://api.anti-captcha.com/reportIncorrectHCaptcha"
 	payload := CapmonsterPayload{
 		ClientKey: in.Config.CaptchaSettings.ClientKey,
 		TaskId:    in.LastID,
@@ -314,4 +316,101 @@ func (in *Instance) ReportIncorrectRecaptcha() error {
 	}
 
 	return nil
+}
+
+func (in *Instance) CapCat(sitekey, rqdata string) (string, error) {
+	postURL := "http://capcat.xyz/api/tasks"
+	x := CapCat{
+		SiteKey: sitekey,
+		RqData:  rqdata,
+		ApiKey:  in.Config.CaptchaSettings.ClientKey,
+	}
+	if in.Config.ProxySettings.ProxyForCaptcha {
+		x.IP = in.Proxy
+	} else {
+		x.IP = ""
+	}
+	payload, err := json.Marshal(x)
+	if err != nil {
+		return "", fmt.Errorf("error while marshalling payload %v", err)
+	}
+	req, err := http.NewRequest(http.MethodPost, postURL, strings.NewReader(string(payload)))
+	if err != nil {
+		return "", fmt.Errorf("error creating request [%v]", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response [%v]", err)
+	}
+	var outResponse CapCatResponse
+	err = json.Unmarshal(body, &outResponse)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling response [%v]", err)
+	}
+	if outResponse.ID == 0 {
+		return "", fmt.Errorf("error %v %v", outResponse.Msg, string(body))
+	}
+	t := time.Now()
+	for {
+		time.Sleep(5 * time.Second)
+		if time.Since(t).Seconds() >= float64(in.Config.CaptchaSettings.Timeout) || time.Since(t).Seconds() >= 300 {
+			return "", fmt.Errorf("timedout - increase timeout in config to wait longer")
+		}
+		getURL := "http://capcat.xyz/api/result/"
+		y := CapCat{
+			ID:     fmt.Sprintf("%v", outResponse.ID),
+			ApiKey: in.Config.CaptchaSettings.ClientKey,
+		}
+		payload, err = json.Marshal(y)
+		if err != nil {
+			return "", fmt.Errorf("error while marshalling payload %v", err)
+		}
+		req, err = http.NewRequest(http.MethodPost, getURL, strings.NewReader(string(payload)))
+		if err != nil {
+			return "", fmt.Errorf("error creating request [%v]", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		resp, err = http.DefaultClient.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("error sending request [%v]", err)
+		}
+		defer resp.Body.Close()
+		body, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("error reading response [%v]", err)
+		}
+		var outResponse CapCatResponse
+		err = json.Unmarshal(body, &outResponse)
+		if err != nil {
+			return "", fmt.Errorf("error unmarshalling response [%v]", err)
+		}
+		if strings.Contains(string(body), "working") {
+			continue
+		} else if outResponse.Code == 1 && outResponse.Data != "" {
+			return outResponse.Data, nil
+		} else {
+			return "", fmt.Errorf("error %v", string(body))
+		}
+	}
+}
+
+type CapCat struct {
+	ApiKey  string `json:"apikey"`
+	SiteKey string `json:"sitkey"`
+	RqData  string `json:"rqdata"`
+	IP      string `json:"ip"`
+	ID      string `json:"id,omitempty"`
+}
+
+type CapCatResponse struct {
+	ID   int    `json:"id,omitempty"`
+	Msg  string `json:"mess,omitempty"`
+	Code int    `json:"code,omitempty"`
+	Data string `json:"data,omitempty"`
 }

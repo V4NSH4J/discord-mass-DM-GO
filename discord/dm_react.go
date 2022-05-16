@@ -14,6 +14,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
@@ -25,11 +26,27 @@ import (
 )
 
 func LaunchDMReact() {
-	color.Cyan("DM On React")
 	cfg, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("Error while obtaining config and instances: %s", err)
 	}
+	// Setting the titlebar on windows
+	var ReactCount, ApproveCount, SuccessCount, LockedCount int 
+	var LastDM time.Time
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Reacts, %v Approved, %v Success, %v Failed, %v Locked, Last DM %v ago]`, ReactCount, ApproveCount, SuccessCount, ApproveCount - SuccessCount, LockedCount, time.Since(LastDM).Round(time.Second)))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	// Checking config for observer token
 	if cfg.DMonReact.Observer == "" {
 		color.Red("Set an Observer token to use DM on react")
@@ -142,7 +159,7 @@ func LaunchDMReact() {
 		for i := 0; i < len(instances); i++ {
 			if instances[i].Password == "" {
 				cfg.DMonReact.ChangeName = false
-				color.Red("[%v][!] Token %v has no password, perhaps using the wrong format. Need to use email:password:token to use the name changer", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Red("[%v][!] Token %v has no password, perhaps using the wrong format. Need to use email:password:token to use the name changer", time.Now().Format("15:04:05"), instances[i].CensorToken()[i])
 				break
 			}
 		}
@@ -217,7 +234,7 @@ func LaunchDMReact() {
 		}
 
 	}
-	color.Green("[%v][O] Successfully initialized Observer token [%v]", time.Now().Format("15:04:05"), cfg.DMonReact.Observer)
+	color.Green("[%v][O] Successfully initialized Observer token [%v]", time.Now().Format("15:04:05"), observerInstance.CensorToken())
 	// Start Listening for reactions.
 	ticker := make(chan bool)
 	kill := make(chan bool)
@@ -252,6 +269,7 @@ func LaunchDMReact() {
 							continue Listener
 						}
 						color.Cyan("[%v][O] Event received: %v reacted [%v|%v|%v|%v]", time.Now().Format("15:04:05"), event.Data.UserID, event.Data.GuildId, event.Data.MessageID, event.Data.ChannelID, event.Data.Emoji.Name)
+						ReactCount++
 						if cfg.DMonReact.MaxAntiRaidQueue > 0 {
 							if len(filteredReacts) >= cfg.DMonReact.MaxAntiRaidQueue {
 								color.Red("[%v][!] Anti-Raid queue is full, skipping this reaction [%v]", time.Now().Format("15:04:05"), event.Data.UserID)
@@ -295,6 +313,7 @@ func LaunchDMReact() {
 							}
 						}
 						// React is approved
+						ApproveCount++
 						go func() {
 							filteredReacts <- event.Data.UserID
 						}()
@@ -344,6 +363,7 @@ func LaunchDMReact() {
 			}
 		}
 		color.Red("[%v][O] Permanently disconnected Observer token", time.Now().Format("15:04:05"))
+		title <- true 
 	}()
 	// Starting token
 Token:
@@ -354,18 +374,19 @@ Token:
 			break Token
 		}
 		instance := <-tokenPool
-		color.Yellow("[%v][X] Starting token %v", time.Now().Format("15:04:05"), instance.Token)
+		color.Yellow("[%v][X] Starting token %v", time.Now().Format("15:04:05"), instance.CensorToken())
 	React:
 		for {
 			status := instance.CheckToken()
 			if status != 200 {
-				color.Red("[%v][!] Token %v may be invalid [%v], skipping!", time.Now().Format("15:04:05"), instance.Token, status)
+				color.Red("[%v][!] Token %v may be invalid [%v], skipping!", time.Now().Format("15:04:05"), instance.CensorToken(), status)
+				LockedCount++
 				continue Token
 			}
 			if cfg.DMonReact.Invite != "" && !instance.Invited {
 				err := instance.Invite(cfg.DMonReact.Invite)
 				if err != nil {
-					color.Red("[%v][!] Error while inviting Token %v: %v Switching!", time.Now().Format("15:04:05"), instance.Token, err)
+					color.Red("[%v][!] Error while inviting Token %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), err)
 					continue Token
 				}
 				instance.Invited = true
@@ -373,7 +394,7 @@ Token:
 			if instance.Cookie == "" {
 				cookie, err := instance.GetCookieString()
 				if err != nil {
-					color.Red("[%v][!] Error while getting cookie for Token %v: %v Switching!", time.Now().Format("15:04:05"), instance.Token, err)
+					color.Red("[%v][!] Error while getting cookie for Token %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), err)
 					if cfg.DMonReact.RotateTokens {
 						go func() {
 							tokenPool <- instance
@@ -387,7 +408,7 @@ Token:
 				// Opening Websocket to change name/avatar
 				err := instance.StartWS()
 				if err != nil {
-					color.Red("[%v][X] Error while opening websocket %v: %v", time.Now().Format("15:04:05"), instance.Token, err)
+					color.Red("[%v][X] Error while opening websocket %v: %v", time.Now().Format("15:04:05"), instance.CensorToken(), err)
 					if cfg.DMonReact.RotateTokens {
 						go func() {
 							tokenPool <- instance
@@ -395,13 +416,13 @@ Token:
 					}
 					continue Token
 				} else {
-					color.Green("[%v][X] Websocket opened %v", time.Now().Format("15:04:05"), instance.Token)
+					color.Green("[%v][X] Websocket opened %v", time.Now().Format("15:04:05"), instance.CensorToken())
 				}
 				if cfg.DMonReact.ChangeAvatar && !instance.ChangedAvatar {
 
 					r, err := instance.AvatarChanger(avatars[rand.Intn(len(avatars))])
 					if err != nil {
-						color.Red("[%v][X] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instance.Token, err)
+						color.Red("[%v][X] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instance.CensorToken(), err)
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
@@ -410,10 +431,10 @@ Token:
 						continue Token
 					} else {
 						if r.StatusCode == 204 || r.StatusCode == 200 {
-							color.Green("[%v][X] %v Avatar changed successfully", time.Now().Format("15:04:05"), instance.Token)
+							color.Green("[%v][X] %v Avatar changed successfully", time.Now().Format("15:04:05"), instance.CensorToken())
 							instance.ChangedAvatar = true
 						} else {
-							color.Red("[%v][X] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instance.Token, r.StatusCode)
+							color.Red("[%v][X] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instance.CensorToken(), r.StatusCode)
 							if cfg.DMonReact.RotateTokens {
 								go func() {
 									tokenPool <- instance
@@ -427,7 +448,7 @@ Token:
 				if cfg.DMonReact.ChangeName && !instance.ChangedName {
 					r, err := instance.NameChanger(names[rand.Intn(len(names))])
 					if err != nil {
-						color.Red("[%v]][X] %v Error while changing name: %v", time.Now().Format("15:04:05"), instance.Token, err)
+						color.Red("[%v]][X] %v Error while changing name: %v", time.Now().Format("15:04:05"), instance.CensorToken(), err)
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
@@ -446,10 +467,10 @@ Token:
 						continue Token
 					}
 					if r.StatusCode == 200 || r.StatusCode == 204 {
-						color.Green("[%v][X] %v Changed name successfully", time.Now().Format("15:04:05"), instance.Token)
+						color.Green("[%v][X] %v Changed name successfully", time.Now().Format("15:04:05"), instance.CensorToken())
 						instance.ChangedName = true
 					} else {
-						color.Red("[%v][X] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instance.Token, r.Status, string(body))
+						color.Red("[%v][X] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instance.CensorToken(), r.Status, string(body))
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
@@ -464,18 +485,18 @@ Token:
 					if err != nil {
 						color.Red("[%v][X] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
 					} else {
-						color.Green("[%v][X] Websocket closed %v", time.Now().Format("15:04:05"), instance.Token)
+						color.Green("[%v][X] Websocket closed %v", time.Now().Format("15:04:05"), instance.CensorToken())
 					}
 				}
 			}
 			if cfg.DMonReact.ServerID != "" && (instance.TimeServerCheck.Second() >= 120 || instance.TimeServerCheck.IsZero()) {
 				r, err := instance.ServerCheck(cfg.DMonReact.ServerID)
 				if err != nil {
-					color.Red("[%v][!] Error while checking if token %v is present in server %v: %v Switching!", time.Now().Format("15:04:05"), instance.Token, cfg.DMonReact.ServerID, err)
+					color.Red("[%v][!] Error while checking if token %v is present in server %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID, err)
 					continue Token
 				} else {
 					if r != 200 && r != 204 {
-						color.Red("[%v][!] Token %v is not present in server %v: %v Switching!", time.Now().Format("15:04:05"), instance.Token, cfg.DMonReact.ServerID, err)
+						color.Red("[%v][!] Token %v is not present in server %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID, err)
 						continue Token
 					}
 				}
@@ -492,7 +513,7 @@ Token:
 			case uuid := <-filteredReacts:
 				instance.Count++
 				if cfg.DMonReact.MaxDMsPerToken != 0 && instance.Count >= cfg.DMonReact.MaxDMsPerToken {
-					color.Red("[%v] %v Max DMs reached, switching token", time.Now().Format("15:04:05"), instance.Token)
+					color.Red("[%v] %v Max DMs reached, switching token", time.Now().Format("15:04:05"), instance.CensorToken())
 					continue Token
 				}
 				t := time.Now()
@@ -538,7 +559,9 @@ Token:
 					continue React
 				}
 				if resp.StatusCode == 200 {
-					color.Green("[%v][X] Token %v DM'd %v [%vms]", time.Now().Format("15:04:05"), instance.Token, uuid, time.Since(t).Milliseconds())
+					color.Green("[%v][X] Token %v DM'd %v [%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+					SuccessCount++
+					LastDM = time.Now()
 					completed = append(completed, uuid)
 					err = utilities.WriteLine("input/completed.txt", uuid)
 					if err != nil {
@@ -553,7 +576,7 @@ Token:
 					if cfg.DMonReact.LeaveTokenOnRateLimit && cfg.DMonReact.ServerID != "" {
 						re := instance.Leave(cfg.DMonReact.ServerID)
 						if re == 200 || re == 204 {
-							color.Green("[%v][!] Token %v left server %v", time.Now().Format("15:04:05"), instance.Token, cfg.DMonReact.ServerID)
+							color.Green("[%v][!] Token %v left server %v", time.Now().Format("15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID)
 						} else {
 							color.Red("[%v][!] Error while leaving server %v: %v", time.Now().Format("15:04:05"), cfg.DMonReact.ServerID, re)
 						}
@@ -570,7 +593,7 @@ Token:
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [DMs Closed or No mutual servers] [%vms]", time.Now().Format("15:04:05"), instance.Token, uuid, time.Since(t).Milliseconds())
+					color.Red("[%v][X] Token %v failed to DM %v [DMs Closed or No mutual servers] [%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
 					continue React
 				} else if resp.StatusCode == 403 && response.Code == 40002 || resp.StatusCode == 401 || resp.StatusCode == 405 {
 					failed = append(failed, uuid)
@@ -578,7 +601,7 @@ Token:
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [Locked/Disabled][%vms]", time.Now().Format("15:04:05"), instance.Token, uuid, time.Since(t).Milliseconds())
+					color.Red("[%v][X] Token %v failed to DM %v [Locked/Disabled][%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
 					continue React
 				} else if resp.StatusCode == 429 {
 					failed = append(failed, uuid)
@@ -586,11 +609,11 @@ Token:
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [Rate Limited][%vms]", time.Now().Format("15:04:05"), instance.Token, uuid, time.Since(t).Milliseconds())
+					color.Red("[%v][X] Token %v failed to DM %v [Rate Limited][%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
 					time.Sleep(5 * time.Second)
 					continue React
 				} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
-					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instance.Token)
+					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instance.CensorToken())
 					if instance.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
 						err := instance.ReportIncorrectRecaptcha()
 						if err != nil {
@@ -599,18 +622,18 @@ Token:
 							color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), instance.LastID)
 						}
 					}
-				
+
 				} else {
 					failed = append(failed, uuid)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [%v][%vms]", time.Now().Format("15:04:05"), instance.Token, uuid, string(body), time.Since(t).Milliseconds())
+					color.Red("[%v][X] Token %v failed to DM %v [%v][%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, string(body), time.Since(t).Milliseconds())
 					continue React
 				}
 			case <-ticker:
-				color.Yellow("[%v][X] %v Refreshing token", time.Now().Format("15:04:05"), instance.Token)
+				color.Yellow("[%v][X] %v Refreshing token", time.Now().Format("15:04:05"), instance.CensorToken())
 				continue React
 			}
 		}

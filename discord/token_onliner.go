@@ -18,7 +18,6 @@ import (
 )
 
 func LaunchTokenOnliner() {
-	color.Blue("Token Onliner")
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("Error while getting necessary data %v", err)
@@ -32,7 +31,7 @@ func LaunchTokenOnliner() {
 			if err != nil {
 				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
 			} else {
-				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
 			}
 			wg.Done()
 		}(i)

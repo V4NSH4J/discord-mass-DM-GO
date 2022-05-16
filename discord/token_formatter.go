@@ -15,7 +15,6 @@ import (
 )
 
 func LaunchTokenFormatter() {
-	color.Cyan("Email:Password:Token to Token")
 	Tokens, err := utilities.ReadLines("tokens.txt")
 	if err != nil {
 		color.Red("Error while opening tokens.txt: %v", err)

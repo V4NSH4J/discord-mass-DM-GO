@@ -27,9 +27,6 @@ import (
 )
 
 func LaunchMassDM() {
-
-	color.Cyan("Mass DM Advertiser/Spammer")
-	color.White("This will DM everyone in memberids.txt from your tokens")
 	members, err := utilities.ReadLines("memberids.txt")
 	if err != nil {
 		color.Red("Error while opening memberids.txt: %v", err)
@@ -114,6 +111,7 @@ func LaunchMassDM() {
 	var failed []string
 	var dead []string
 	var failedCount = 0
+	var openedChannels = 0
 	completed, err = utilities.ReadLines("completed.txt")
 	if err != nil {
 		color.Red("Error while opening completed.txt: %v", err)
@@ -154,11 +152,19 @@ func LaunchMassDM() {
 			mem <- members[i]
 		}
 	}()
+	ticker := make(chan bool)
 	// Setting information to windows titlebar by github.com/foxzsz
 	go func() {
+		Out:
 		for {
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %v avg. dms, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), len(instances)-len(dead)))
+			select {
+			case<- ticker: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %v avg. dms, %v avg. channels, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), openedChannels/len(instances),len(instances)-len(dead)))
 			_ = cmd.Run()
+			}
+
 		}
 	}()
 	var wg sync.WaitGroup
@@ -175,10 +181,10 @@ func LaunchMassDM() {
 					break
 				}
 				member := <-mem
-
+				instances[i].LastIDstr = ""
 				// Breaking loop if maximum DMs reached
 				if cfg.DirectMessage.MaxDMS != 0 && instances[i].Count >= cfg.DirectMessage.MaxDMS {
-					color.Yellow("[%v] Maximum DMs reached for %v", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Yellow("[%v] Maximum DMs reached for %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					break
 				}
 				// Start websocket connection if not already connected and reconnect if dead
@@ -187,7 +193,7 @@ func LaunchMassDM() {
 					if err != nil {
 						color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
 					} else {
-						color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].Token)
+						color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					}
 				}
 				if cfg.DirectMessage.Websocket && cfg.DirectMessage.Receive && instances[i].Ws != nil && !instances[i].Receiver {
@@ -231,7 +237,7 @@ func LaunchMassDM() {
 				status := instances[i].CheckToken()
 				if status != 200 && status != 204 && status != 429 && status != -1 {
 					failedCount++
-					color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, status, failedCount)
+					color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), status, failedCount)
 					failed = append(failed, member)
 					dead = append(dead, instances[i].Token)
 					err := utilities.WriteLines("failed.txt", member)
@@ -252,12 +258,12 @@ func LaunchMassDM() {
 						}
 						if r != 200 && r != 204 && r != 429 {
 							if tryjoinchoice == 0 {
-								color.Red("[%v] Stopping token %v [Not in server]", time.Now().Format("15:04:05"), instances[i].Token)
+								color.Red("[%v] Stopping token %v [Not in server]", time.Now().Format("15:04:05"), instances[i].CensorToken())
 
 								break
 							} else {
 								if instances[i].Retry >= maxattempts {
-									color.Red("[%v] Stopping token %v [Max server rejoin attempts]", time.Now().Format("15:04:05"), instances[i].Token)
+									color.Red("[%v] Stopping token %v [Max server rejoin attempts]", time.Now().Format("15:04:05"), instances[i].CensorToken())
 									break
 								}
 								err := instances[i].Invite(invite)
@@ -288,7 +294,7 @@ func LaunchMassDM() {
 					}
 					if len(info.Mutual) == 0 {
 						failedCount++
-						color.Red("[%v] Token %v failed to DM %v [No Mutual Server] [%v]", time.Now().Format("15:04:05"), instances[i].Token, info.User.Username+info.User.Discriminator, failedCount)
+						color.Red("[%v] Token %v failed to DM %v [No Mutual Server] [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), info.User.Username+info.User.Discriminator, failedCount)
 						err = utilities.WriteLine("input/failed.txt", member)
 						if err != nil {
 							fmt.Println(err)
@@ -342,6 +348,7 @@ func LaunchMassDM() {
 					time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomDelayOpenChannel)) * time.Second)
 				}
 				resp, err := instances[i].SendMessage(snowflake, member)
+				openedChannels++
 				if err != nil {
 					failedCount++
 					color.Red("[%v] Error while sending message: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
@@ -383,11 +390,11 @@ func LaunchMassDM() {
 					}
 					completed = append(completed, member)
 					session = append(session, member)
-					color.Green("[%v] Token %v sent DM to %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, len(session))
+					color.Green("[%v][%v] Token %v sent DM to %v", time.Now().Format("15:04:05"), len(session),instances[i].CensorToken(), user)
 					if cfg.DirectMessage.Websocket && cfg.DirectMessage.Call && instances[i].Ws != nil {
 						err := instances[i].Call(snowflake)
 						if err != nil {
-							color.Red("[%v] %v Error while calling %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
+							color.Red("[%v] %v Error while calling %v: %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), user, err)
 						}
 						// Unfriended people can't ring.
 						//
@@ -434,12 +441,12 @@ func LaunchMassDM() {
 						fmt.Println(err)
 					}
 					mem <- member
-					color.Yellow("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:04:05"), instances[i].Token, int(cfg.DirectMessage.LongDelay/60))
+					color.Yellow("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:04:05"), instances[i].CensorToken(), int(cfg.DirectMessage.LongDelay/60))
 					time.Sleep(time.Duration(cfg.DirectMessage.LongDelay) * time.Second)
 					if cfg.SuspicionAvoidance.RandomRateLimitDelay != 0 {
 						time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomRateLimitDelay)) * time.Second)
 					}
-					color.Yellow("[%v] Token %v continuing!", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Yellow("[%v] Token %v continuing!", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					// Forbidden - DM's are closed
 				} else if resp.StatusCode == 403 && response.Code == 50007 {
 					failedCount++
@@ -448,7 +455,7 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v] Token %v failed to DM %v User has DMs closed or not present in server %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, string(body), failedCount)
+					color.Red("[%v][%v] Token %v failed to DM %v User has DMs closed or not present in server %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), failedCount,user, string(body))
 					// Forbidden - Locked or Disabled
 				} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
 					failedCount++
@@ -457,7 +464,7 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v] Token %v is locked or disabled. Stopping instance. %v %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, resp.StatusCode, string(body), failedCount)
+					color.Red("[%v][%v] Token %v is locked or disabled. Stopping instance. %v %v", time.Now().Format("15:04:05"), failedCount, instances[i].CensorToken(), resp.StatusCode, string(body))
 					dead = append(dead, instances[i].Token)
 					// Stop token if locked or disabled
 					if cfg.DirectMessage.Stop {
@@ -471,15 +478,15 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v] Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, string(body), failedCount)
+					color.Red("[%v][%v] Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", time.Now().Format("15:04:05"), failedCount,instances[i].CensorToken(), user, string(body))
 					// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
 				} else if resp.StatusCode == 429 {
 					failed = append(failed, member)
-					color.Red("[%v] Token %v is being rate limited. Sleeping for 10 seconds", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Red("[%v] Token %v is being rate limited. Sleeping for 10 seconds", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					time.Sleep(10 * time.Second)
 				} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
 					mem <- member
-					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					if instances[i].Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
 						err := instances[i].ReportIncorrectRecaptcha()
 						if err != nil {
@@ -490,7 +497,7 @@ func LaunchMassDM() {
 					}
 					instances[i].Retry++
 					if instances[i].Retry >= cfg.CaptchaSettings.MaxCaptchaDM && cfg.CaptchaSettings.MaxCaptchaDM != 0 {
-						color.Red("[%v] Stopping token %v max captcha solves reached", time.Now().Format("15:04:05"), instances[i].Token)
+						color.Red("[%v] Stopping token %v max captcha solves reached", time.Now().Format("15:04:05"), instances[i].CensorToken())
 						break
 					}
 				} else {
@@ -500,7 +507,7 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, user, response.Code, resp.Status, response.Message, failedCount)
+					color.Red("[%v][%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:04:05"), failedCount,instances[i].CensorToken(), user, response.Code, resp.Status, response.Message)
 				}
 				time.Sleep(time.Duration(cfg.DirectMessage.Delay) * time.Second)
 				if cfg.SuspicionAvoidance.RandomIndividualDelay != 0 {
@@ -512,9 +519,9 @@ func LaunchMassDM() {
 	wg.Wait()
 
 	color.Green("[%v] Threads have finished! Writing to file", time.Now().Format("15:04:05"))
-
+	ticker <- true 
 	elapsed := time.Since(start)
-	color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(completed), len(failed), len(dead), len(instances)-len(dead))
+	color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(session), len(failed), len(dead), len(instances)-len(dead))
 	var left []string
 	if cfg.DirectMessage.Remove {
 		for i := 0; i < len(instances); i++ {
@@ -557,7 +564,6 @@ type jsonResponse struct {
 }
 
 func LaunchSingleDM() {
-	color.Cyan("Single DM Spammer")
 	color.White("Enter 0 for one message; Enter 1 for continuous spam")
 	var choice int
 	fmt.Scanln(&choice)
@@ -649,9 +655,9 @@ func LaunchSingleDM() {
 						fmt.Println(err)
 					}
 					if resp.StatusCode == 200 {
-						color.Green("[%v] Token %v DM'd %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, victim, c)
+						color.Green("[%v] Token %v DM'd %v [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), victim, c)
 					} else {
-						color.Red("[%v] Token %v failed to DM %v", time.Now().Format("15:04:05"), instances[i].Token, victim)
+						color.Red("[%v] Token %v failed to DM %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), victim)
 					}
 					c++
 				}

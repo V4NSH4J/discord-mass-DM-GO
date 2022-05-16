@@ -8,6 +8,7 @@ package discord
 
 import (
 	"fmt"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -17,7 +18,6 @@ import (
 )
 
 func LaunchServerChecker() {
-	color.White("Check if your tokens are still in the server")
 	_, instances, err := instance.GetEverything()
 	if err != nil {
 		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
@@ -25,6 +25,20 @@ func LaunchServerChecker() {
 	}
 	var serverid string
 	var inServer []string
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Present in Server]`, len(inServer)))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
 	color.Green("[%v] Enter server ID: ", time.Now().Format("15:04:05"))
 	fmt.Scanln(&serverid)
 	var wg sync.WaitGroup
@@ -34,22 +48,23 @@ func LaunchServerChecker() {
 			defer wg.Done()
 			r, err := instances[i].ServerCheck(serverid)
 			if err != nil {
-				color.Red("[%v] %v Error while checking server: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+				color.Red("[%v] %v Error while checking server: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
 			} else {
 				if r == 200 || r == 204 {
-					color.Green("[%v] %v is in server %v ", time.Now().Format("15:04:05"), instances[i].Token, serverid)
+					color.Green("[%v] %v is in server %v ", time.Now().Format("15:04:05"), instances[i].CensorToken, serverid)
 					inServer = append(inServer, instances[i].Token)
 				} else if r == 429 {
-					color.Green("[%v] %v is rate limited", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Green("[%v] %v is rate limited", time.Now().Format("15:04:05"), instances[i].CensorToken)
 				} else if r == 400 {
 					color.Red("[%v] Bad request - Invalid Server ID", time.Now().Format("15:04:05"))
 				} else {
-					color.Red("[%v] %v is not in server [%v] [%v]", time.Now().Format("15:04:05"), instances[i].Token, serverid, r)
+					color.Red("[%v] %v is not in server [%v] [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken, serverid, r)
 				}
 			}
 		}(i)
 	}
 	wg.Wait()
+	title <- true 
 	color.Green("[%v] All done. Do you wish to save only tokens in the server to tokens.txt ? (y/n)", time.Now().Format("15:04:05"))
 	var save string
 	fmt.Scanln(&save)

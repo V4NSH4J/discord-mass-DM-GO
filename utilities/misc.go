@@ -78,7 +78,12 @@ func ExitSafely() {
 
 func VersionCheck(version string) {
 	link := "https://pastebin.com/raw/CCaVBSPv"
-	resp, err := http.Get(link)
+	client := &http.Client{Timeout: time.Second * 15}
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return 
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return
 	}
@@ -107,7 +112,11 @@ func VersionCheck(version string) {
 	}
 
 	link = "https://pastebin.com/CCaVBSPv"
-	resp, err = http.Get(link)
+	req, err = http.NewRequest("GET", link, nil)
+	if err != nil {
+		return
+	}
+	resp, err = client.Do(req)
 	if err != nil {
 		return
 	}

@@ -9,6 +9,7 @@ package discord
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
@@ -28,15 +29,15 @@ func LaunchinviteJoiner() {
 	}
 	switch invitechoice {
 	case 1:
-		color.Cyan("Single Invite Mode")
-		color.White("This will join your tokens from tokens.txt to a server")
 		_, instances, err := instance.GetEverything()
 		if err != nil {
 			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		}
-		color.White("[%v] Enter your invite CODE (The part after discord.gg/): ", time.Now().Format("15:04:05"))
+
+		color.White("[%v] Enter your invite code [Only the CODE or the Link: ", time.Now().Format("15:04:05"))
 		var invite string
 		fmt.Scanln(&invite)
+		invite = processInvite(invite)
 		color.White("[%v] Enter number of Threads (0: Unlimited Threads. 1: For using proper delay. It may be a good idea to use less threads if you're looking to solve captchas): ", time.Now().Format("15:04:05"))
 		var threads int
 		fmt.Scanln(&threads)
@@ -117,7 +118,7 @@ func LaunchinviteJoiner() {
 			c.Wait()
 			go func(i int) {
 				for j := 0; j < len(invites); j++ {
-					err := instances[i].Invite(invites[j])
+					err := instances[i].Invite(processInvite(invites[j]))
 					if err != nil {
 						color.Red("[%v] Error while joining: %v", time.Now().Format("15:04:05"), err)
 					}
@@ -128,5 +129,13 @@ func LaunchinviteJoiner() {
 		}
 		c.WaitAllDone()
 		color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
+	}
+}
+
+func processInvite(rawInvite string) string {
+	if !strings.Contains(rawInvite, "/") {
+		return rawInvite
+	} else {
+		return strings.Split(rawInvite, "/")[len(strings.Split(rawInvite, "/"))-1]
 	}
 }

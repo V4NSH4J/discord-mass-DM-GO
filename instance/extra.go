@@ -59,41 +59,40 @@ func GetReactions(channel string, message string, token string, emoji string, af
 	return UIDS, nil
 }
 
-func (in *Instance) ContextProperties(invite, cookie string) (string, string, error) {
-	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue="+invite+"&with_counts=true&with_expiration=true"
-	fmt.Println(site)
+func (in *Instance) ContextProperties(invite, cookie string) (string, error) {
+	site := "https://discord.com/api/v9/invites/" + invite + "?inputValue=" + invite + "&with_counts=true&with_expiration=true"
 	req, err := http.NewRequest("GET", site, nil)
 	if err != nil {
-		return "", "",err
+		return "", err
 	}
 	req = in.xContextPropertiesHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
-		return "", "",err
+		return "", err
 	}
 	if resp.StatusCode != 200 {
-		return "", "",fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
+		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
 	}
 	body, err := utilities.ReadBody(*resp)
 	if err != nil {
-		return "", "",err
+		return "", err
 	}
 	if !strings.Contains(string(body), "guild") && !strings.Contains(string(body), "id") && !strings.Contains(string(body), "channel") && !strings.Contains(string(body), "code") {
-		return "", "",fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
+		return "", fmt.Errorf("Error while getting invite context %v", resp.StatusCode)
 	}
 	var guildInfo map[string]interface{}
 	err = json.Unmarshal(body, &guildInfo)
 	if err != nil {
-		return "", "",err
+		return "", err
 	}
 	guildID := (guildInfo["guild"].(map[string]interface{}))["id"].(string)
 	channelID := (guildInfo["channel"].(map[string]interface{}))["id"].(string)
 	channelType := (guildInfo["channel"].(map[string]interface{}))["type"].(float64)
 	x, err := XContextGen(guildID, channelID, channelType)
 	if err != nil {
-		return "", "",err
+		return "", err
 	}
-	return x, guildInfo["code"].(string),nil 
+	return x, nil
 
 }
 
@@ -179,6 +178,8 @@ func (in *Instance) Invite(Code string) error {
 	var payload invitePayload
 	var rqData string
 	var rqToken string
+	var j int
+	var reported []string
 	for i := 0; i < in.Config.CaptchaSettings.MaxCaptchaInv; i++ {
 		if solvedKey == "" || in.Config.CaptchaSettings.CaptchaAPI == "" {
 			payload = invitePayload{}
@@ -199,11 +200,11 @@ func (in *Instance) Invite(Code string) error {
 			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
 			continue
 		}
-		XContext, invCode,err := in.ContextProperties(Code, cookie)
+		XContext, err := in.ContextProperties(Code, cookie)
 		if err != nil {
-			return fmt.Errorf("Error while getting context %v", err)
+			XContext = ""
 		}
-		url := fmt.Sprintf("https://discord.com/api/v9/invites/%s", invCode)
+		url := fmt.Sprintf("https://discord.com/api/v9/invites/%s", Code)
 		req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
 		if err != nil {
 			color.Red("Error while making http request %v \n", err)
@@ -224,6 +225,17 @@ func (in *Instance) Invite(Code string) error {
 			continue
 		}
 		if strings.Contains(string(body), "captcha_sitekey") {
+			if j > 1 {
+				if in.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" && in.LastID != 0 && !utilities.Contains(reported, string(in.LastID)) {
+					reported = append(reported, string(in.LastID))
+					err := in.ReportIncorrectRecaptcha()
+					if err != nil {
+						color.Red("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
+					} else {
+						color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), in.LastID)
+					}
+				}
+			}
 			var resp map[string]interface{}
 			err = json.Unmarshal(body, &resp)
 			if err != nil {
@@ -238,16 +250,17 @@ func (in *Instance) Invite(Code string) error {
 				rqToken = resp["captcha_rqtoken"].(string)
 			}
 			if in.Config.CaptchaSettings.CaptchaAPI == "" {
-				color.Red("[%v][X] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.Token)
+				color.Red("[%v][X] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.CensorToken())
 				break
 			} else {
-				color.Yellow("[%v][X] Captcha detected %v [%v]", time.Now().Format("15:04:05"), in.Token, i)
+				color.Yellow("[%v][X] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.CensorToken(), cap, i)
 			}
 			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {
 				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue
 			}
+			j++
 			continue
 		}
 		if strings.Contains(string(body), "1015") {
@@ -262,7 +275,7 @@ func (in *Instance) Invite(Code string) error {
 			return err
 		}
 		if resp.StatusCode == 200 {
-			color.Green("[%v][X] %v joint guild", time.Now().Format("15:04:05"), in.Token)
+			color.Green("[%v][X] %v joint guild %v", time.Now().Format("15:04:05"), in.CensorToken(), Code)
 			if Join.VerificationForm {
 				if len(Join.GuildObj.ID) != 0 {
 					Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
@@ -350,22 +363,6 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 	}
 
 	return resp, nil
-
-}
-
-func (in *Instance) CheckToken() int {
-	url := "https://discord.com/api/v9/users/@me/affinities/guilds"
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return -1
-	}
-	req.Header.Set("authorization", in.Token)
-
-	resp, err := in.Client.Do(CommonHeaders(req))
-	if err != nil {
-		return -1
-	}
-	return resp.StatusCode
 
 }
 

@@ -17,7 +17,6 @@ import (
 
 func LaunchGetMessage() {
 	// Uses ?around & ?limit parameters to discord's REST API to get messages to get the exact message needed
-	color.Cyan("Get Message - This will get the message from Discord which you want to send.")
 	color.White("Enter your token: \n")
 	var token string
 	fmt.Scanln(&token)

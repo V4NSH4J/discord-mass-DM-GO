@@ -49,7 +49,10 @@ type Instance struct {
 	ChangedName     bool
 	ChangedAvatar   bool
 	LastID          int
-	LastIDstr       string 
+	LastIDstr       string
+	Mode            int
+	UserAgent       string
+	XSuper          string
 }
 
 func (in *Instance) StartWS() error {
@@ -83,6 +86,8 @@ func GetEverything() (Config, []Instance, error) {
 	var tokens []string
 	var proxies []string
 	var proxy string
+	var xsuper string
+	var ua string
 
 	// Load config
 	cfg, err = GetConfig()
@@ -106,6 +111,19 @@ func GetEverything() (Config, []Instance, error) {
 	if !cfg.ProxySettings.ProxyFromFile && cfg.ProxySettings.ProxyForCaptcha {
 		color.Red("[!] You must enabe proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
+	}
+	if cfg.CaptchaSettings.CaptchaAPI == "capcat.xyz" {
+		color.Red("[!] You're using a third party Captcha solution, proceed with caution.")
+	}
+	if cfg.OtherSettings.Mode == 1 {
+		// Discord App
+		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.61 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkRpc2NvcmQgQ2xpZW50IiwicmVsZWFzZV9jaGFubmVsIjoicHRiIiwiY2xpZW50X3ZlcnNpb24iOiIwLjAuNjEiLCJvc192ZXJzaW9uIjoiMjEuNC4wIiwib3NfYXJjaCI6ImFybTY0Iiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTI3MzA3LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
+	} else if cfg.OtherSettings.Mode == 2 {
+		// Mobile
+		ua, xsuper = "Discord/32249 CFNetwork/1331.0.7 Darwin/21.4.0", "eyJvcyI6ImlPUyIsImJyb3dzZXIiOiJEaXNjb3JkIGlPUyIsImRldmljZSI6ImlQYWQxMywxNiIsInN5c3RlbV9sb2NhbGUiOiJlbi1JTiIsImNsaWVudF92ZXJzaW9uIjoiMTI0LjAiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJkZXZpY2VfYWR2ZXJ0aXNlcl9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImRldmljZV92ZW5kb3JfaWQiOiJBMTgzNkNFRC1BRDI5LTRGRTAtQjVDNC0zODQ0NDU0MEFFQTciLCJicm93c2VyX3VzZXJfYWdlbnQiOiIiLCJicm93c2VyX3ZlcnNpb24iOiIiLCJvc192ZXJzaW9uIjoiMTUuNC4xIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzIyNDcsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9"
+	} else {
+		// Browser
+		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:100.0) Gecko/20100101 Firefox/100.0", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkZpcmVmb3giLCJkZXZpY2UiOiIiLCJzeXN0ZW1fbG9jYWxlIjoiZW4tVVMiLCJicm93c2VyX3VzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMC4xNTsgcnY6MTAwLjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTAwLjAiLCJicm93c2VyX3ZlcnNpb24iOiIxMDAuMCIsIm9zX3ZlcnNpb24iOiIxMC4xNSIsInJlZmVycmVyIjoiaHR0cHM6Ly93d3cuZ29vZ2xlLmNvbS8iLCJyZWZlcnJpbmdfZG9tYWluIjoid3d3Lmdvb2dsZS5jb20iLCJzZWFyY2hfZW5naW5lIjoiZ29vZ2xlIiwicmVmZXJyZXJfY3VycmVudCI6IiIsInJlZmVycmluZ19kb21haW5fY3VycmVudCI6IiIsInJlbGVhc2VfY2hhbm5lbCI6InN0YWJsZSIsImNsaWVudF9idWlsZF9udW1iZXIiOjEyNzEzNSwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
 	}
 
 	// Load instances
@@ -154,7 +172,7 @@ func GetEverything() (Config, []Instance, error) {
 		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
-		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password})
+		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper})
 	}
 	if len(instances) == 0 {
 		color.Red("[!] You may be using 0 tokens")
@@ -187,4 +205,26 @@ func SetMessages(instances []Instance, messages []Message) error {
 	}
 
 	return nil
+}
+
+func (in *Instance) CensorToken() string {
+	if len(in.Token) == 0 {
+		return ""
+	}
+	if in.Config.OtherSettings.CensorToken {
+		var censored string
+		l := len(in.Token)
+		uncensoredPart := int(2 * l / 3)
+		for i := 0; i < l; i++ {
+			if i < uncensoredPart {
+				censored += string(in.Token[i])
+			} else {
+				censored += "*"
+			}
+		}
+		return censored
+	} else {
+		return in.Token
+	}
+
 }

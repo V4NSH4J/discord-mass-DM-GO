@@ -8,6 +8,7 @@ package discord
 
 import (
 	"fmt"
+	"os/exec"
 	"sync"
 	"time"
 
@@ -17,8 +18,7 @@ import (
 )
 
 func LaunchReactionAdder() {
-	color.Cyan("Reaction Adder")
-	color.White("Note: You don't need to do this to send DMs in servers.")
+	color.White("Use Offset (milliseconds) in config to use delay while reaction adding.")
 	color.White("Menu:\n1) From message\n2) Manually")
 	var choice int
 	fmt.Scanln(&choice)
@@ -27,6 +27,22 @@ func LaunchReactionAdder() {
 		fmt.Println(err)
 		utilities.ExitSafely()
 	}
+	var TotalCount, SuccessCount, FailedCount int 
+	title := make(chan bool)
+	go func() {
+		Out:
+		for {
+			select {
+			case<- title: 
+				break Out
+			default: 
+			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
+			_ = cmd.Run()
+			}
+
+		}
+	}()
+	TotalCount = len(instances)
 	var wg sync.WaitGroup
 	wg.Add(len(instances))
 	if choice == 1 {
@@ -63,9 +79,11 @@ func LaunchReactionAdder() {
 				err := instances[i].React(channel, id, send)
 				if err != nil {
 					fmt.Println(err)
-					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					FailedCount++
 				} else {
-					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					SuccessCount++
 				}
 
 			}(i)
@@ -91,12 +109,15 @@ func LaunchReactionAdder() {
 				err := instances[i].React(channel, id, emoji)
 				if err != nil {
 					fmt.Println(err)
-					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].Token)
+					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					FailedCount++
 				}
-				color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].Token)
+				color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken)
+				SuccessCount++
 			}(i)
 		}
 		wg.Wait()
+		title <- true 
 		color.Green("[%v] Completed all threads.", time.Now().Format("15:04:05"))
 	}
 

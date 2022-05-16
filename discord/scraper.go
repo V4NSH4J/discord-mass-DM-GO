@@ -11,6 +11,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
@@ -19,7 +21,6 @@ import (
 )
 
 func LaunchScraperMenu() {
-	color.Blue("Scraping Menu")
 	cfg, _, err := instance.GetEverything()
 	if err != nil {
 		color.Red("Error while getting necessary data %v", err)
@@ -37,8 +38,21 @@ func LaunchScraperMenu() {
 		var channelid string
 		color.White("Enter channelid: ")
 		fmt.Scanln(&channelid)
-
 		Is := instance.Instance{Token: token}
+		title := make(chan bool)
+		go func() {
+			Out:
+			for {
+				select {
+				case<- title: 
+					break Out
+				default: 
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(Is.Ws.Members)))
+				_ = cmd.Run()
+				}
+	
+			}
+		}()
 		t := 0
 		for {
 			if t >= 5 {
@@ -81,7 +95,7 @@ func LaunchScraperMenu() {
 		clean := utilities.RemoveDuplicateStr(Is.Ws.Members)
 		color.Green("[%v] Removed Duplicates. Scraped %v members", time.Now().Format("15:04:05"), len(clean))
 		color.Green("[%v] Write to memberids.txt? (y/n)", time.Now().Format("15:04:05"))
-
+		title <- true 
 		var write string
 		fmt.Scanln(&write)
 		if write == "y" {
@@ -139,6 +153,20 @@ func LaunchScraperMenu() {
 
 		var allUIDS []string
 		var m string
+		title := make(chan bool)
+		go func() {
+			Out:
+			for {
+				select {
+				case<- title: 
+					break Out
+				default: 
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(allUIDS)))
+				_ = cmd.Run()
+				}
+	
+			}
+		}()
 		for {
 			if len(allUIDS) == 0 {
 				m = ""
@@ -175,6 +203,7 @@ func LaunchScraperMenu() {
 				color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
 			}
 		}
+		title <- true 
 		fmt.Println("Done")
 	}
 	if options == 3 {
@@ -196,16 +225,38 @@ func LaunchScraperMenu() {
 			utilities.ExitSafely()
 		}
 		var scraped []string
+		var queriesCompleted []string
 		// Input the number of tokens to be used
+		title := make(chan bool)
+		go func() {
+			Out:
+			for {
+				select {
+				case<- title: 
+					break Out
+				default: 
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped %v Queries Completed]`, len(scraped), len(queriesCompleted)))
+				_ = cmd.Run()
+				}
+	
+			}
+		}()
 		color.Green("[%v] How many tokens do you wish to use? You have %v ", time.Now().Format("15:04:05"), len(instances))
 		var numTokens int
 		quit := make(chan bool)
 		var allQueries []string
 		fmt.Scanln(&numTokens)
+		var chars string 
+		rawChars := " !\"#$%&'()*+,-./0123456789:;<=>?@[]^_`abcdefghijklmnopqrstuvwxyz{|}~" + cfg.ScraperSettings.ExtendedChars
+		// Removing duplicates
+		for i := 0; i < len(rawChars); i++ {
+			if !strings.Contains(rawChars[0:i], string(rawChars[i])) {
+				chars += string(rawChars[i])
+			}
+		}
 
-		chars := " !\"#$%&'()*+,-./0123456789:;<=>?@[]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 		queriesLeft := make(chan string)
-		var queriesCompleted []string
+
 
 		for i := 0; i < len(chars); i++ {
 			go func(i int) {
@@ -269,7 +320,7 @@ func LaunchScraperMenu() {
 						}
 						err := instance.ScrapeOffline(instances[i].Ws, serverid, query)
 						if err != nil {
-							color.Red("[%v] %v Error while scraping: %v", time.Now().Format("15:04:05"), instances[i].Token, err)
+							color.Red("[%v] %v Error while scraping: %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), err)
 							go func() {
 								queriesLeft <- query
 							}()
@@ -297,7 +348,7 @@ func LaunchScraperMenu() {
 								scraped = append(scraped, member.User.ID)
 							}
 						}
-						color.Green("[%v] Token %v Query %v Scraped %v [+%v]", time.Now().Format("15:04:05"), instances[i].Token, query, len(scraped), len(MemberInfo.Data.Members))
+						color.Green("[%v] Token %v Query %v Scraped %v [+%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), query, len(scraped), len(MemberInfo.Data.Members))
 
 						for i := 0; i < len(MemberInfo.Data.Members); i++ {
 							id := MemberInfo.Data.Members[i].User.ID
@@ -348,6 +399,7 @@ func LaunchScraperMenu() {
 
 		bufio.NewReader(os.Stdin).ReadBytes('\n')
 		color.Green("[%v] Stopping All instances", time.Now().Format("15:04:05"))
+		title <- true 
 		for i := 0; i < len(instances); i++ {
 			go func() {
 				quit <- true
