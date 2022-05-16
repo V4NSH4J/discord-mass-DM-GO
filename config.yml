@@ -1,7 +1,7 @@
 
 direct_message_settings:
-  individual_delay: 5
-  rate_limit_delay: 650
+  individual_delay: 60
+  rate_limit_delay: 60
   offset: 100
   max_dms_per_token: 0
   skip_completed: true
@@ -31,8 +31,8 @@ scraper_settings:
   query_brute_extra_chars: ""
 
 captcha_settings:
-  captcha_api_key: "e143cce1f9047bb21b14d58075193b2d"
-  captcha_api: "capcat.xyz"
+  captcha_api_key: ""
+  captcha_api: "anti-captcha.com"
   max_captcha_wait: 600
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
