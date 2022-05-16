@@ -31,18 +31,18 @@ func LaunchDMReact() {
 		color.Red("Error while obtaining config and instances: %s", err)
 	}
 	// Setting the titlebar on windows
-	var ReactCount, ApproveCount, SuccessCount, LockedCount int 
+	var ReactCount, ApproveCount, SuccessCount, LockedCount int
 	var LastDM time.Time
 	title := make(chan bool)
 	go func() {
-		Out:
+	Out:
 		for {
 			select {
-			case<- title: 
+			case <-title:
 				break Out
-			default: 
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Reacts, %v Approved, %v Success, %v Failed, %v Locked, Last DM %v ago]`, ReactCount, ApproveCount, SuccessCount, ApproveCount - SuccessCount, LockedCount, time.Since(LastDM).Round(time.Second)))
-			_ = cmd.Run()
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Reacts, %v Approved, %v Success, %v Failed, %v Locked, Last DM %v ago]`, ReactCount, ApproveCount, SuccessCount, ApproveCount-SuccessCount, LockedCount, time.Since(LastDM).Round(time.Second)))
+				_ = cmd.Run()
 			}
 
 		}
@@ -363,7 +363,7 @@ func LaunchDMReact() {
 			}
 		}
 		color.Red("[%v][O] Permanently disconnected Observer token", time.Now().Format("15:04:05"))
-		title <- true 
+		title <- true
 	}()
 	// Starting token
 Token:

@@ -41,16 +41,16 @@ func LaunchScraperMenu() {
 		Is := instance.Instance{Token: token}
 		title := make(chan bool)
 		go func() {
-			Out:
+		Out:
 			for {
 				select {
-				case<- title: 
+				case <-title:
 					break Out
-				default: 
-				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(Is.Ws.Members)))
-				_ = cmd.Run()
+				default:
+					cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(Is.Ws.Members)))
+					_ = cmd.Run()
 				}
-	
+
 			}
 		}()
 		t := 0
@@ -95,7 +95,7 @@ func LaunchScraperMenu() {
 		clean := utilities.RemoveDuplicateStr(Is.Ws.Members)
 		color.Green("[%v] Removed Duplicates. Scraped %v members", time.Now().Format("15:04:05"), len(clean))
 		color.Green("[%v] Write to memberids.txt? (y/n)", time.Now().Format("15:04:05"))
-		title <- true 
+		title <- true
 		var write string
 		fmt.Scanln(&write)
 		if write == "y" {
@@ -155,16 +155,16 @@ func LaunchScraperMenu() {
 		var m string
 		title := make(chan bool)
 		go func() {
-			Out:
+		Out:
 			for {
 				select {
-				case<- title: 
+				case <-title:
 					break Out
-				default: 
-				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(allUIDS)))
-				_ = cmd.Run()
+				default:
+					cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(allUIDS)))
+					_ = cmd.Run()
 				}
-	
+
 			}
 		}()
 		for {
@@ -203,7 +203,7 @@ func LaunchScraperMenu() {
 				color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
 			}
 		}
-		title <- true 
+		title <- true
 		fmt.Println("Done")
 	}
 	if options == 3 {
@@ -229,16 +229,16 @@ func LaunchScraperMenu() {
 		// Input the number of tokens to be used
 		title := make(chan bool)
 		go func() {
-			Out:
+		Out:
 			for {
 				select {
-				case<- title: 
+				case <-title:
 					break Out
-				default: 
-				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped %v Queries Completed]`, len(scraped), len(queriesCompleted)))
-				_ = cmd.Run()
+				default:
+					cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped %v Queries Completed]`, len(scraped), len(queriesCompleted)))
+					_ = cmd.Run()
 				}
-	
+
 			}
 		}()
 		color.Green("[%v] How many tokens do you wish to use? You have %v ", time.Now().Format("15:04:05"), len(instances))
@@ -246,7 +246,7 @@ func LaunchScraperMenu() {
 		quit := make(chan bool)
 		var allQueries []string
 		fmt.Scanln(&numTokens)
-		var chars string 
+		var chars string
 		rawChars := " !\"#$%&'()*+,-./0123456789:;<=>?@[]^_`abcdefghijklmnopqrstuvwxyz{|}~" + cfg.ScraperSettings.ExtendedChars
 		// Removing duplicates
 		for i := 0; i < len(rawChars); i++ {
@@ -256,7 +256,6 @@ func LaunchScraperMenu() {
 		}
 
 		queriesLeft := make(chan string)
-
 
 		for i := 0; i < len(chars); i++ {
 			go func(i int) {
@@ -399,7 +398,7 @@ func LaunchScraperMenu() {
 
 		bufio.NewReader(os.Stdin).ReadBytes('\n')
 		color.Green("[%v] Stopping All instances", time.Now().Format("15:04:05"))
-		title <- true 
+		title <- true
 		for i := 0; i < len(instances); i++ {
 			go func() {
 				quit <- true

@@ -155,14 +155,14 @@ func LaunchMassDM() {
 	ticker := make(chan bool)
 	// Setting information to windows titlebar by github.com/foxzsz
 	go func() {
-		Out:
+	Out:
 		for {
 			select {
-			case<- ticker: 
+			case <-ticker:
 				break Out
-			default: 
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %v avg. dms, %v avg. channels, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), openedChannels/len(instances),len(instances)-len(dead)))
-			_ = cmd.Run()
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%d sent, %v failed, %d locked, %v avg. dms, %v avg. channels, %d tokens left]`, len(session), len(failed), len(dead), len(session)/len(instances), openedChannels/len(instances), len(instances)-len(dead)))
+				_ = cmd.Run()
 			}
 
 		}
@@ -390,7 +390,7 @@ func LaunchMassDM() {
 					}
 					completed = append(completed, member)
 					session = append(session, member)
-					color.Green("[%v][%v] Token %v sent DM to %v", time.Now().Format("15:04:05"), len(session),instances[i].CensorToken(), user)
+					color.Green("[%v][%v] Token %v sent DM to %v", time.Now().Format("15:04:05"), len(session), instances[i].CensorToken(), user)
 					if cfg.DirectMessage.Websocket && cfg.DirectMessage.Call && instances[i].Ws != nil {
 						err := instances[i].Call(snowflake)
 						if err != nil {
@@ -455,7 +455,7 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][%v] Token %v failed to DM %v User has DMs closed or not present in server %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), failedCount,user, string(body))
+					color.Red("[%v][%v] Token %v failed to DM %v User has DMs closed or not present in server %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), failedCount, user, string(body))
 					// Forbidden - Locked or Disabled
 				} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
 					failedCount++
@@ -478,7 +478,7 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][%v] Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", time.Now().Format("15:04:05"), failedCount,instances[i].CensorToken(), user, string(body))
+					color.Red("[%v][%v] Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", time.Now().Format("15:04:05"), failedCount, instances[i].CensorToken(), user, string(body))
 					// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
 				} else if resp.StatusCode == 429 {
 					failed = append(failed, member)
@@ -507,7 +507,7 @@ func LaunchMassDM() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					color.Red("[%v][%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:04:05"), failedCount,instances[i].CensorToken(), user, response.Code, resp.Status, response.Message)
+					color.Red("[%v][%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:04:05"), failedCount, instances[i].CensorToken(), user, response.Code, resp.Status, response.Message)
 				}
 				time.Sleep(time.Duration(cfg.DirectMessage.Delay) * time.Second)
 				if cfg.SuspicionAvoidance.RandomIndividualDelay != 0 {
@@ -519,7 +519,7 @@ func LaunchMassDM() {
 	wg.Wait()
 
 	color.Green("[%v] Threads have finished! Writing to file", time.Now().Format("15:04:05"))
-	ticker <- true 
+	ticker <- true
 	elapsed := time.Since(start)
 	color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(session), len(failed), len(dead), len(instances)-len(dead))
 	var left []string

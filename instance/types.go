@@ -66,8 +66,8 @@ type UserInf struct {
 }
 
 type Guilds struct {
-	ID string `json:"id"`
-	Type int `json:"type"`
+	ID   string `json:"id"`
+	Type int    `json:"type"`
 }
 
 type captchaDetected struct {

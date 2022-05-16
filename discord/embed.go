@@ -8,18 +8,18 @@ package discord
 
 import (
 	"bytes"
-	"net/http"
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 
-	"github.com/fatih/color"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
+	"github.com/fatih/color"
 )
 
 type ImageEmbed struct {
 	Url       string `json:"url"`
-	Thumbnail bool `json:"thumbnail"`
+	Thumbnail bool   `json:"thumbnail"`
 }
 type ProviderEmbed struct {
 	Url  string `json:"url"`
@@ -30,20 +30,20 @@ type AuthorEmbed struct {
 	Name string `json:"name"`
 }
 type Embed struct {
-	Title 		string `json:"title"`
-	Description string `json:"description"`
-	Color 		string `json:"color"`
-	Redirect 	string `json:"redirect"`
-	Author 		AuthorEmbed `json:"author"`
-	Image 		ImageEmbed `json:"image"`
-	Provider 	ProviderEmbed `json:"provider"`
+	Title       string        `json:"title"`
+	Description string        `json:"description"`
+	Color       string        `json:"color"`
+	Redirect    string        `json:"redirect"`
+	Author      AuthorEmbed   `json:"author"`
+	Image       ImageEmbed    `json:"image"`
+	Provider    ProviderEmbed `json:"provider"`
 }
 
 type EmbedJSONResponse struct {
-	EmbedData 	Embed `json:"embed"`
-	Timestamp 	string `json:"timestamp"`
-	Id 			string `json:"id"`
-	Link 		string `json:"link"`
+	EmbedData Embed  `json:"embed"`
+	Timestamp string `json:"timestamp"`
+	Id        string `json:"id"`
+	Link      string `json:"link"`
 }
 
 func LanuchEmbed() {
@@ -85,4 +85,3 @@ func LanuchEmbed() {
 		color.Red(err)
 	}
 }
-

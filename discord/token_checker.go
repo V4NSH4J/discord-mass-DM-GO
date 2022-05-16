@@ -33,16 +33,16 @@ func LaunchTokenChecker() {
 		threads = len(instances)
 	}
 	title := make(chan bool)
-	var valid, invalid int 
+	var valid, invalid int
 	go func() {
-		Out:
+	Out:
 		for {
 			select {
-			case<- title: 
+			case <-title:
 				break Out
-			default: 
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Unchecked %v Valid %v Invalid]`, len(instances)-valid-invalid, valid, invalid))
-			_ = cmd.Run()
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Unchecked %v Valid %v Invalid]`, len(instances)-valid-invalid, valid, invalid))
+				_ = cmd.Run()
 			}
 
 		}
@@ -79,8 +79,6 @@ func LaunchTokenChecker() {
 		utilities.ExitSafely()
 		return
 	}
-	title <- true 
+	title <- true
 	color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
 }
-
-

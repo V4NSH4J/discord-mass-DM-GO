@@ -32,7 +32,7 @@ func (in *Instance) GetCookieString() (string, error) {
 		url := "https://discord.com"
 
 		req, err := http.NewRequest("GET", url, nil)
-	
+
 		if err != nil {
 			color.Red("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
 			return "", fmt.Errorf("error while making request to get cookie %v", err)
@@ -44,7 +44,7 @@ func (in *Instance) GetCookieString() (string, error) {
 			return "", fmt.Errorf("error while getting response from cookie request %v", err)
 		}
 		defer resp.Body.Close()
-	
+
 		if resp.Cookies() == nil {
 			color.Red("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
 			return "", fmt.Errorf("there are no cookies in response")
@@ -57,7 +57,7 @@ func (in *Instance) GetCookieString() (string, error) {
 		// if strings.Contains(CfRay, "-BOM") {
 		// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
 		// }
-	
+
 		// if CfRay != "" {
 		// 	body, err := ioutil.ReadAll(resp.Body)
 		// 	if err != nil {
@@ -109,7 +109,6 @@ func (in *Instance) GetCookieString() (string, error) {
 		}
 		return cookies, nil
 	}
-
 
 }
 func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
@@ -280,7 +279,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		}
 		if !strings.Contains(string(body), "captcha") {
 			return http.Response{}, fmt.Errorf("error while sending message %v", string(body))
-		} 
+		}
 		if in.Config.CaptchaSettings.ClientKey == "" {
 			return http.Response{}, fmt.Errorf("captcha detected but no client key set")
 		}

@@ -27,17 +27,17 @@ func LaunchReactionAdder() {
 		fmt.Println(err)
 		utilities.ExitSafely()
 	}
-	var TotalCount, SuccessCount, FailedCount int 
+	var TotalCount, SuccessCount, FailedCount int
 	title := make(chan bool)
 	go func() {
-		Out:
+	Out:
 		for {
 			select {
-			case<- title: 
+			case <-title:
 				break Out
-			default: 
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount - SuccessCount - FailedCount))
-			_ = cmd.Run()
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount-SuccessCount-FailedCount))
+				_ = cmd.Run()
 			}
 
 		}
@@ -79,10 +79,10 @@ func LaunchReactionAdder() {
 				err := instances[i].React(channel, id, send)
 				if err != nil {
 					fmt.Println(err)
-					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					FailedCount++
 				} else {
-					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					SuccessCount++
 				}
 
@@ -109,15 +109,15 @@ func LaunchReactionAdder() {
 				err := instances[i].React(channel, id, emoji)
 				if err != nil {
 					fmt.Println(err)
-					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken())
 					FailedCount++
 				}
-				color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken)
+				color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken())
 				SuccessCount++
 			}(i)
 		}
 		wg.Wait()
-		title <- true 
+		title <- true
 		color.Green("[%v] Completed all threads.", time.Now().Format("15:04:05"))
 	}
 

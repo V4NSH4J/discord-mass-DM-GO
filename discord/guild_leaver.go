@@ -24,17 +24,17 @@ func LaunchGuildLeaver() {
 		utilities.ExitSafely()
 
 	}
-	var LeftCount, TotalCount, FailedCount int 
+	var LeftCount, TotalCount, FailedCount int
 	title := make(chan bool)
 	go func() {
-		Out:
+	Out:
 		for {
 			select {
-			case<- title: 
+			case <-title:
 				break Out
-			default: 
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Successfully Left, %v Failed, %v Unprocessed]`, LeftCount, FailedCount, TotalCount - LeftCount - FailedCount ))
-			_ = cmd.Run()
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Successfully Left, %v Failed, %v Unprocessed]`, LeftCount, FailedCount, TotalCount-LeftCount-FailedCount))
+				_ = cmd.Run()
 			}
 
 		}
@@ -63,7 +63,7 @@ func LaunchGuildLeaver() {
 			p := instances[i].Leave(serverid)
 			if p == 0 {
 				color.Red("[%v] Error while leaving", time.Now().Format("15:04:05"))
-				FailedCount++ 
+				FailedCount++
 			}
 			if p == 200 || p == 204 {
 				color.Green("[%v] %v Left server", instances[i].CensorToken(), time.Now().Format("15:04:05"))
@@ -77,6 +77,6 @@ func LaunchGuildLeaver() {
 		}(i)
 	}
 	c.WaitAllDone()
-	title <- true 
+	title <- true
 	color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
 }

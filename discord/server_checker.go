@@ -27,14 +27,14 @@ func LaunchServerChecker() {
 	var inServer []string
 	title := make(chan bool)
 	go func() {
-		Out:
+	Out:
 		for {
 			select {
-			case<- title: 
+			case <-title:
 				break Out
-			default: 
-			cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Present in Server]`, len(inServer)))
-			_ = cmd.Run()
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Present in Server]`, len(inServer)))
+				_ = cmd.Run()
 			}
 
 		}
@@ -48,23 +48,23 @@ func LaunchServerChecker() {
 			defer wg.Done()
 			r, err := instances[i].ServerCheck(serverid)
 			if err != nil {
-				color.Red("[%v] %v Error while checking server: %v", time.Now().Format("15:04:05"), instances[i].CensorToken, err)
+				color.Red("[%v] %v Error while checking server: %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), err)
 			} else {
 				if r == 200 || r == 204 {
-					color.Green("[%v] %v is in server %v ", time.Now().Format("15:04:05"), instances[i].CensorToken, serverid)
+					color.Green("[%v] %v is in server %v ", time.Now().Format("15:04:05"), instances[i].CensorToken(), serverid)
 					inServer = append(inServer, instances[i].Token)
 				} else if r == 429 {
-					color.Green("[%v] %v is rate limited", time.Now().Format("15:04:05"), instances[i].CensorToken)
+					color.Green("[%v] %v is rate limited", time.Now().Format("15:04:05"), instances[i].CensorToken())
 				} else if r == 400 {
 					color.Red("[%v] Bad request - Invalid Server ID", time.Now().Format("15:04:05"))
 				} else {
-					color.Red("[%v] %v is not in server [%v] [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken, serverid, r)
+					color.Red("[%v] %v is not in server [%v] [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), serverid, r)
 				}
 			}
 		}(i)
 	}
 	wg.Wait()
-	title <- true 
+	title <- true
 	color.Green("[%v] All done. Do you wish to save only tokens in the server to tokens.txt ? (y/n)", time.Now().Format("15:04:05"))
 	var save string
 	fmt.Scanln(&save)

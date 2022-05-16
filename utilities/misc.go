@@ -81,7 +81,7 @@ func VersionCheck(version string) {
 	client := &http.Client{Timeout: time.Second * 15}
 	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
-		return 
+		return
 	}
 	resp, err := client.Do(req)
 	if err != nil {
