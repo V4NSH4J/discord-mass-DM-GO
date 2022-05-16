@@ -89,13 +89,15 @@ func LaunchNameChanger() {
 				color.Red("[%v] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), r.Status, string(body))
 				FailedCount++
 			}
-			err = instances[i].Ws.Close()
-			if err != nil {
-				color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
-			} else {
-				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+			if instances[i].Ws.Conn != nil {
+				err = instances[i].Ws.Close()
+				if err != nil {
+					color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				}
+				c.Done()
 			}
-			c.Done()
 		}(i)
 	}
 	c.WaitAllDone()
@@ -181,13 +183,15 @@ func LaunchAvatarChanger() {
 					FailedCount++
 				}
 			}
-			err = instances[i].Ws.Close()
-			if err != nil {
-				color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
-			} else {
-				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+			if instances[i].Ws.Conn != nil {
+				err = instances[i].Ws.Close()
+				if err != nil {
+					color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				}
+				c.Done()
 			}
-			c.Done()
 		}(i)
 	}
 	c.WaitAllDone()
@@ -248,13 +252,15 @@ func LaunchBioChanger() {
 				color.Green("[%v] %v Bio changed successfully", time.Now().Format("15:04:05"), instances[i].CensorToken())
 				SuccessCount++
 			}
-			err = instances[i].Ws.Close()
-			if err != nil {
-				color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
-			} else {
-				color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+			if instances[i].Ws.Conn != nil {
+				err = instances[i].Ws.Close()
+				if err != nil {
+					color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+				} else {
+					color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				}
+				c.Done()
 			}
-			c.Done()
 		}(i)
 	}
 	title <- true
