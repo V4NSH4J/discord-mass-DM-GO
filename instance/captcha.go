@@ -325,26 +325,44 @@ func (in *Instance) CapCat(sitekey, rqdata string) (string, error) {
 		RqData:  rqdata,
 		ApiKey:  in.Config.CaptchaSettings.ClientKey,
 	}
-	if in.Config.ProxySettings.ProxyForCaptcha {
-		x.IP = in.Proxy
-	} else {
-		x.IP = ""
-	}
-	payload, err := json.Marshal(x)
-	if err != nil {
-		return "", fmt.Errorf("error while marshalling payload %v", err)
-	}
-	req, err := http.NewRequest(http.MethodPost, postURL, strings.NewReader(string(payload)))
+	ipAPI := "https://api.myip.com"
+	req, err := http.NewRequest("GET", ipAPI, nil)
 	if err != nil {
 		return "", fmt.Errorf("error creating request [%v]", err)
 	}
-	req.Header.Set("Content-Type", "application/json")
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("error sending request [%v]", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response [%v]", err)
+	}
+	if !strings.Contains(string(body), "ip") {
+		return "", fmt.Errorf("error invalid response [%v]", string(body))
+	}
+	var ipResponse map[string]interface{}
+	err = json.Unmarshal(body, &ipResponse)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling response [%v]", err)
+	}
+	x.IP = ipResponse["ip"].(string)
+	payload, err := json.Marshal(x)
+	if err != nil {
+		return "", fmt.Errorf("error while marshalling payload %v", err)
+	}
+	req, err = http.NewRequest(http.MethodPost, postURL, strings.NewReader(string(payload)))
+	if err != nil {
+		return "", fmt.Errorf("error creating request [%v]", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", fmt.Errorf("error reading response [%v]", err)
 	}
