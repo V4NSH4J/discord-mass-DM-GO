@@ -53,6 +53,8 @@ type Instance struct {
 	Mode            int
 	UserAgent       string
 	XSuper          string
+	Reacted         []ReactInfo
+	ReactChannel    chan(ReactInfo)
 }
 
 func (in *Instance) StartWS() error {
@@ -177,10 +179,7 @@ func GetEverything() (Config, []Instance, error) {
 	if len(instances) == 0 {
 		color.Red("[!] You may be using 0 tokens")
 	}
-	var empty Config
-	if cfg == empty {
-		color.Red("[!] You may be using a malformed config.json")
-	}
+
 	return cfg, instances, nil
 
 }

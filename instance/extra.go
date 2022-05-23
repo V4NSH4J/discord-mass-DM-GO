@@ -317,7 +317,6 @@ func (in *Instance) Leave(serverid string) int {
 func (in *Instance) React(channelID string, MessageID string, Emoji string) error {
 	encodedID := url.QueryEscape(Emoji)
 	site := "https://discord.com/api/v9/channels/" + channelID + "/messages/" + MessageID + "/reactions/" + encodedID + "/@me"
-
 	req, err := http.NewRequest("PUT", site, nil)
 	if err != nil {
 		return err
@@ -381,7 +380,6 @@ func FindMessage(channel string, messageid string, token string) (string, error)
 		return "", err
 	}
 	defer resp.Body.Close()
-
 	var message []Message
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -390,10 +388,12 @@ func FindMessage(channel string, messageid string, token string) (string, error)
 
 	err = json.Unmarshal(body, &message)
 	if err != nil {
+		fmt.Println(string(body))
 		return "", err
 	}
 	msg, err := json.Marshal(message[0])
 	if err != nil {
+		fmt.Println(string(body))
 		return "", err
 	}
 	return string(msg), nil
@@ -430,6 +430,7 @@ func GetRxn(channel string, messageid string, token string) (Message, error) {
 	return message[0], nil
 }
 
+
 func (in *Instance) ServerCheck(serverid string) (int, error) {
 	url := "https://discord.com/api/v9/guilds/" + serverid
 	req, err := http.NewRequest("GET", url, nil)
@@ -447,4 +448,53 @@ func (in *Instance) ServerCheck(serverid string) (int, error) {
 	defer resp.Body.Close()
 
 	return resp.StatusCode, nil
+}
+
+func (in *Instance) EndRelation(snowflake string) (int, error) {
+	link := fmt.Sprintf("https://discord.com/api/v9/users/@me/relationships/%s", snowflake)
+	req, err := http.NewRequest("DELETE", link, nil)
+	if err != nil {
+		return -1, err
+	}
+	cookies, err := in.GetCookieString()
+	if err != nil {
+		return -1, err
+	}
+	req = in.AtMeHeaders(req, cookies)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	return resp.StatusCode, nil	
+}
+
+func (in *Instance) PressButton(actionRow, button int, guildID string, msg Message) (int, error) {
+	site := "https://discord.com/api/v9/interactions"
+	data := map[string]interface{}{"component_type": msg.Components[actionRow].Buttons[button].Type, "custom_id": msg.Components[actionRow].Buttons[button].CustomID, "hash": msg.Components[actionRow].Buttons[button].Hash}
+	values := map[string]interface{}{"application_id": msg.Author.ID, "channel_id": msg.ChannelID, "type": 3, "data": data, "guild_id": guildID, "message_flags": msg.Flags, "message_id": msg.MessageId, "nonce": utilities.Snowflake(), "session_id": in.Ws.sessionID}
+	jsonData, err := json.Marshal(values)
+	if err != nil {
+		return -1, err
+	}
+	req, err := http.NewRequest("POST", site, strings.NewReader(string(jsonData)))
+	if err != nil {
+		return -1, err
+	}
+	cookies, err := in.GetCookieString()
+	if err != nil {
+		return -1, err
+	}
+	req = in.AtMeHeaders(req, cookies)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return -1, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return -1, err 
+	}
+	fmt.Println(string(body))
+	return resp.StatusCode, nil
+
 }

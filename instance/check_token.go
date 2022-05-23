@@ -51,86 +51,90 @@ func (in *Instance) AtMe() (int, TokenInfo, error) {
 	return resp.StatusCode, info, nil
 }
 
-func (in *Instance) Guilds() (int, int, error) {
+func (in *Instance) Guilds() (int, int, []string, error) {
 	url := "https://discord.com/api/v9/users/@me/guilds"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while making request %v", err)
+		return -1, -1, nil, fmt.Errorf("error while making request %v", err)
 	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while getting cookie %v", err)
+		return -1, -1, nil, fmt.Errorf("error while getting cookie %v", err)
 	}
 	req = in.AtMeHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while sending request %v", err)
+		return -1, -1, nil, fmt.Errorf("error while sending request %v", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return -1, -1, fmt.Errorf("Error while reading response %v", err)
+		return -1, -1, nil, fmt.Errorf("error while reading response %v", err)
 	}
 	var info []Guilds
 	err = json.Unmarshal(body, &info)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while unmarshalling response %v", err)
+		return -1, -1, nil, fmt.Errorf("error while unmarshalling response %v", err)
 	}
-	return resp.StatusCode, len(info), nil
+	var guilds []string
+	for i := 0; i < len(info); i++ {
+		guilds = append(guilds, info[i].ID)
+	}
+	return resp.StatusCode, len(info), guilds, nil
 }
 
-func (in *Instance) Channels() (int, int, error) {
+func (in *Instance) Channels() (int, int, []Guilds, error) {
 	url := "https://discord.com/api/v9/users/@me/channels"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while making request %v", err)
+		return -1, -1, nil, fmt.Errorf("error while making request %v", err)
 	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while getting cookie %v", err)
+		return -1, -1, nil, fmt.Errorf("error while getting cookie %v", err)
 	}
 	req = in.AtMeHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while sending request %v", err)
+		return -1, -1, nil, fmt.Errorf("error while sending request %v", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while reading response %v", err)
+		return -1, -1, nil, fmt.Errorf("error while reading response %v", err)
 	}
 	var info []Guilds
 	err = json.Unmarshal(body, &info)
 	if err != nil {
-		return -1, -1, fmt.Errorf("error while unmarshalling response %v", err)
+		return -1, -1, nil, fmt.Errorf("error while unmarshalling response %v", err)
 	}
-	return resp.StatusCode, len(info), nil
+	return resp.StatusCode, len(info), info, nil
 }
 
-func (in *Instance) Relationships() (int, int, int, int, int, error) {
+func (in *Instance) Relationships() (int, int, int, int, int, []Guilds, error) {
 	url := "https://discord.com/api/v9/users/@me/relationships"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return -1, -1, -1, -1, -1, fmt.Errorf("error while making request %v", err)
+		return -1, -1, -1, -1, -1, nil, fmt.Errorf("error while making request %v", err)
 	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
-		return -1, -1, -1, -1, -1, fmt.Errorf("error while getting cookie %v", err)
+		return -1, -1, -1, -1, -1, nil, fmt.Errorf("error while getting cookie %v", err)
 	}
 	req = in.AtMeHeaders(req, cookie)
 	resp, err := in.Client.Do(req)
 	if err != nil {
-		return -1, -1, -1, -1, -1, fmt.Errorf("error while sending request %v", err)
+		return -1, -1, -1, -1, -1, nil, fmt.Errorf("error while sending request %v", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return -1, -1, -1, -1, -1, fmt.Errorf("error while reading response %v", err)
+		return -1, -1, -1, -1, -1, nil, fmt.Errorf("error while reading response %v", err)
 	}
 	var info []Guilds
 	err = json.Unmarshal(body, &info)
 	if err != nil {
-		return -1, -1, -1, -1, -1, fmt.Errorf("error while unmarshalling response %v", err)
+		return -1, -1, -1, -1, -1, nil, fmt.Errorf("error while unmarshalling response %v", err)
 	}
 	var friend, blocked, incoming, outgoing int
 	for i := 0; i < len(info); i++ {
@@ -144,6 +148,6 @@ func (in *Instance) Relationships() (int, int, int, int, int, error) {
 			outgoing++
 		}
 	}
-	return resp.StatusCode, friend, blocked, incoming, outgoing, nil
+	return resp.StatusCode, friend, blocked, incoming, outgoing, info, nil
 
 }

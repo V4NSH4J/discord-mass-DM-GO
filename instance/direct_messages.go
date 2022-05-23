@@ -278,7 +278,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 			return http.Response{}, fmt.Errorf("error while reading body %v", err)
 		}
 		if !strings.Contains(string(body), "captcha") {
-			return http.Response{}, fmt.Errorf("error while sending message %v", string(body))
+			return http.Response{}, nil
 		}
 		if in.Config.CaptchaSettings.ClientKey == "" {
 			return http.Response{}, fmt.Errorf("captcha detected but no client key set")

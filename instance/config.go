@@ -27,6 +27,7 @@ type Config struct {
 	OtherSettings      OtherSettings      `yaml:"other_settings"`
 	SuspicionAvoidance SuspicionAvoidance `yaml:"suspicion_avoidance"`
 	DMonReact          DMonReact          `yaml:"dm_on_react"`
+	AutoReact          AutoReact          `yaml:"auto_react"`
 }
 type DirectMessage struct {
 	Delay      int  `yaml:"individual_delay"`
@@ -102,6 +103,21 @@ type DMonReact struct {
 	RotateTokens          bool   `yaml:"rotate_tokens"`
 	MaxAntiRaidQueue      int    `yaml:"max_anti_raid_queue"`
 	MaxDMsPerToken        int    `yaml:"max_dms_per_token"`
+}
+
+type AutoReact struct {
+	Observer  string   `yaml:"observer_token"`
+	Servers   []string `yaml:"servers"`
+	Channels  []string `yaml:"channels"`
+	Messages  []string `yaml:"messages"`
+	Users     []string `yaml:"users"`
+	Emojis    []string `yaml:"emojis"`
+	ReactWith []string `yaml:"react_with"`
+	ReactAll  bool     `yaml:"react_all"`
+	Delay     int      `yaml:"delay_between_reacts"`
+	Subscribe []string `yaml:"subscribe_to_servers"`
+	Randomness int     `minimum_percent_react`
+	IndividualDelay int `yaml:"individual_delay"`
 }
 
 func GetConfig() (Config, error) {

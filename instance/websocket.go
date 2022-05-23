@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 )
 
@@ -116,7 +117,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 		return nil, fmt.Errorf("error while sending authentication message: %v", err)
 	}
 
-	if err = c.awaitEvent(EventNameReady); err != nil {
+	if c.sessionID,err = c.awaitEvent(EventNameReady); err != nil {
 		c.Conn.Close()
 		in.wsFatalHandler(err)
 		return nil, fmt.Errorf("error while waiting for ready event: %v", err)
@@ -136,7 +137,7 @@ func (c *Connection) ReadHello() (int, error) {
 	}
 	var body Event
 	if err := json.Unmarshal(message, &body); err != nil {
-		return 0, fmt.Errorf("Error while Unmarshalling incoming websocket message: %v", err)
+		return 0, fmt.Errorf("Error while Unmarshalling incoming hello websocket message: %v", err)
 	}
 	if body.Op != OpcodeHello {
 		return 0, fmt.Errorf("Expected OpcodeHello but got %v", body.Op)
@@ -170,19 +171,19 @@ func (c *Connection) Ping(interval time.Duration) {
 	}()
 }
 
-func (c *Connection) awaitEvent(e string) error {
+func (c *Connection) awaitEvent(e string) (string,error) {
 	_, b, err := c.Conn.ReadMessage()
 	if err != nil {
-		return fmt.Errorf("error while reading message from websocket: %v", err)
+		return "", fmt.Errorf("error while reading message from websocket: %v", err)
 	}
 	var body Event
 	if err = json.Unmarshal(b, &body); err != nil {
-		return fmt.Errorf("error while unmarshalling incoming websocket message: %v", err)
+		return "",fmt.Errorf("error while unmarshalling incoming websocket message: %v", err)
 	}
 	if body.EventName != e {
-		return fmt.Errorf("unexpected event name for received websocket message: %v, expected %v", body.EventName, e)
+		return "",fmt.Errorf("unexpected event name for received websocket message: %v, expected %v", body.EventName, e)
 	}
-	return nil
+	return body.Data.SessionID, nil
 }
 
 func (c *Connection) listen() {
@@ -199,6 +200,8 @@ func (c *Connection) listen() {
 		if err := json.Unmarshal(b, &body); err != nil {
 			// All messages which don't decode properly are likely caused by the
 			// data object and are ignored for now.
+
+			color.Red("Error while Unmarshalling incoming websocket message: %v %v", err, string(b))
 			continue
 		}
 

@@ -91,8 +91,8 @@ type Data struct {
 	ThreadMemberLists interface{}            `json:"thread_member_lists,omitempty"`
 	// Emoji React
 	UserID    string `json:"user_id,omitempty"`
-	MessageID string `json:"message_id,omitempty"`
 	Emoji     Emoji  `json:"emoji,omitempty"`
+	MessageID string `json:"message_id,omitempty"`
 }
 
 type Ops struct {

@@ -191,11 +191,36 @@ type Reaction struct {
 }
 
 type Message struct {
-	Content   string     `json:"content,omitempty"`
-	Embeds    []Embed    `json:"embeds,omitempty"`
-	Reactions []Reaction `json:"reactions,omitempty"`
-	Author    User       `json:"author,omitempty"`
-	GuildID   string     `json:"guild_id,omitempty"`
+	Content    string             `json:"content,omitempty"`
+	ChannelID  string             `json:"channel_id,omitempty"`
+	Embeds     []Embed            `json:"embeds,omitempty"`
+	Reactions  []Reaction         `json:"reactions,omitempty"`
+	Author     User               `json:"author,omitempty"`
+	GuildID    string             `json:"guild_id,omitempty"`
+	MessageId  string             `json:"id,omitempty"`
+	Components []MessageComponent `json:"components,omitempty"`
+	Flags      int                `json:"flags,omitempty"`
+}
+
+type MessageComponent struct {
+	Type    int       `json:"type"`
+	Buttons []Buttons `json:"components"`
+}
+
+type Buttons struct {
+	Type     int         `json:"type,omitempty"`
+	Style    int         `json:"style,omitempty"`
+	Label    string      `json:"label,omitempty"`
+	CustomID string      `json:"custom_id,omitempty"`
+	Hash     string      `json:"hash,omitempty"`
+	Emoji    ButtonEmoji `json:"emoji,omitempty"`
+	Disabled bool        `json:"disabled,omitempty"`
+}
+
+type ButtonEmoji struct {
+	Name     string `json:"name,omitempty"`
+	ID       string `json:"id,omitempty"`
+	Animated bool   `json:"animated,omitempty"`
 }
 
 type CallEvent struct {
@@ -241,4 +266,10 @@ type TokenInfo struct {
 	Email             string `json:"email"`
 	Verified          bool   `json:"verified"`
 	Phone             string `json:"phone"`
+}
+
+type ReactInfo struct {
+	ChannelID string
+	MessageID string
+	Emoji     string
 }
