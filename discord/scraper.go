@@ -47,10 +47,13 @@ func LaunchScraperMenu() {
 				case <-title:
 					break Out
 				default:
-					cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(Is.Ws.Members)))
-					_ = cmd.Run()
+					if Is.Ws != nil {
+						if Is.Ws.Conn != nil {
+							cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Scraped]`, len(Is.Ws.Members)))
+							_ = cmd.Run()
+						}
+					}
 				}
-
 			}
 		}()
 		t := 0
