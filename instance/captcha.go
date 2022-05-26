@@ -284,7 +284,7 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 }
 
 func (in *Instance) ReportIncorrectRecaptcha() error {
-	site := "https://api.anti-captcha.com/reportIncorrectHCaptcha"
+	site := "https://api.anti-captcha.com/reportIncorrectHcaptcha"
 	payload := CapmonsterPayload{
 		ClientKey: in.Config.CaptchaSettings.ClientKey,
 		TaskId:    in.LastID,
