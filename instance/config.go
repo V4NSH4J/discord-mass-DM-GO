@@ -116,7 +116,7 @@ type AutoReact struct {
 	ReactAll  bool     `yaml:"react_all"`
 	Delay     int      `yaml:"delay_between_reacts"`
 	Subscribe []string `yaml:"subscribe_to_servers"`
-	Randomness int     `minimum_percent_react`
+	Randomness int     `yaml:"minimum_percent_react"`
 	IndividualDelay int `yaml:"individual_delay"`
 }
 
