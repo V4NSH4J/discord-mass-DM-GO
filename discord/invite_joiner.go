@@ -29,7 +29,7 @@ func LaunchinviteJoiner() {
 	}
 	switch invitechoice {
 	case 1:
-		_, instances, err := instance.GetEverything()
+		cfg, instances, err := instance.GetEverything()
 		if err != nil {
 			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		}
@@ -55,6 +55,24 @@ func LaunchinviteJoiner() {
 		color.White("[%v] Enter random delay to be added upon base delay (0 for none)", time.Now().Format("15:04:05"))
 		var random int
 		fmt.Scanln(&random)
+		color.White("[%v] Use additional adding reaction verification passing. 0) No 1) Yes", time.Now().Format("15:04:05"))
+		var verif int
+		fmt.Scanln(&verif)
+		var channelid string
+		var msgid string
+		var emoji string
+
+		if verif == 1{
+			color.White("[%v] ID of the channel with verification message", time.Now().Format("15:04:05"))
+			fmt.Scanln(&channelid)
+
+			color.White("[%v] ID of the message with verification reaction", time.Now().Format("15:04:05"))
+			fmt.Scanln(&msgid)
+
+			color.Red("If you have a message, please use choice 1. If you want to add a custom emoji. Follow these instructions, if you don't, it won't work.\n If it's a default emoji which appears on the emoji keyboard, just copy it as TEXT not how it appears on Discord with the colons. Type it as text, it might look like 2 question marks on console but ignore.\n If it's a custom emoji (Nitro emoji) type it like this -> name:emojiID To get the emoji ID, copy the emoji link and copy the emoji ID from the URL.\nIf you do not follow this, it will not work. Don't try to do impossible things like trying to START a nitro reaction with a non-nitro account.")
+			color.White("Enter emoji")
+			fmt.Scanln(&emoji)
+		}
 		var delay int
 		if random > 0 {
 			delay = base + rand.Intn(random)
@@ -68,6 +86,15 @@ func LaunchinviteJoiner() {
 				err := instances[i].Invite(invite)
 				if err != nil {
 					color.Red("[%v] Error while joining: %v", time.Now().Format("15:04:05"), err)
+				}
+				if verif == 1{
+					time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
+					err := instances[i].React(channelid, msgid, emoji)
+					if err != nil {
+						fmt.Println(err)
+						color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken())
+					}
+					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken())
 				}
 				time.Sleep(time.Duration(delay) * time.Second)
 				c.Done()
