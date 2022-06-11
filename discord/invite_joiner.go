@@ -34,7 +34,7 @@ func LaunchinviteJoiner() {
 			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
 		}
 
-		color.White("[%v] Enter your invite code [Only the CODE or the Link: ", time.Now().Format("15:04:05"))
+		color.White("[%v] Enter your invite code [Only the CODE or the Link]: ", time.Now().Format("15:04:05"))
 		var invite string
 		fmt.Scanln(&invite)
 		invite = processInvite(invite)
