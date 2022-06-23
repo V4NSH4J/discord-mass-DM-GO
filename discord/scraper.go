@@ -30,13 +30,13 @@ func LaunchScraperMenu() {
 	fmt.Scanln(&options)
 	if options == 1 {
 		var token string
-		color.White("Enter token: ")
+		color.White("Token Used To Scrape (an individual Token must be Added here): ")
 		fmt.Scanln(&token)
 		var serverid string
-		color.White("Enter serverid: ")
+		color.White("Server ID To Scrape: ")
 		fmt.Scanln(&serverid)
 		var channelid string
-		color.White("Enter channelid: ")
+		color.White("Channel ID To Scrape: ")
 		fmt.Scanln(&channelid)
 		Is := instance.Instance{Token: token}
 		title := make(chan bool)
@@ -118,13 +118,13 @@ func LaunchScraperMenu() {
 	}
 	if options == 2 {
 		var token string
-		color.White("Enter token: ")
+		color.White("Enter The Token Going to be Used to Scrape: ")
 		fmt.Scanln(&token)
 		var messageid string
-		color.White("Enter messageid: ")
+		color.White("Enter Message ID To Scrape: ")
 		fmt.Scanln(&messageid)
 		var channelid string
-		color.White("Enter channelid: ")
+		color.White("Channel ID In Which The Messsage is Located: ")
 		fmt.Scanln(&channelid)
 		color.White("1) Get Emoji from Message\n2) Enter Emoji manually")
 		var option int
@@ -244,7 +244,7 @@ func LaunchScraperMenu() {
 
 			}
 		}()
-		color.Green("[%v] How many tokens do you wish to use? You have %v ", time.Now().Format("15:04:05"), len(instances))
+		color.Green("[%v] You Currently Have %v Token(s), How many Do you Wish to Scrape with?: ", time.Now().Format("15:04:05"), len(instances))
 		var numTokens int
 		quit := make(chan bool)
 		var allQueries []string
