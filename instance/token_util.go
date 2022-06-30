@@ -56,6 +56,38 @@ func (in *Instance) NameChanger(name string) (http.Response, error) {
 
 }
 
+// @me Discord Patch request to change Nickname
+func (in *Instance) NickNameChanger(name string, guildid int) (http.Response, error) {
+
+	url := fmt.Sprintf("https://discord.com/api/v9/guilds/%d/members/@me", guildid)
+
+	data := NickNameChange{
+		Nickname: name,
+	}
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return http.Response{}, err
+	}
+
+	req, err := http.NewRequest("PATCH", url, strings.NewReader(string(bytes)))
+
+	if err != nil {
+		return http.Response{}, err
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+	}
+
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
+	if err != nil {
+		return http.Response{}, err
+	}
+
+	return *resp, nil
+
+}
+
 // @me Discord Patch request to change Avatar
 func (in *Instance) AvatarChanger(avatar string) (http.Response, error) {
 

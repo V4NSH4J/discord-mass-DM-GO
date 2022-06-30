@@ -273,3 +273,7 @@ type ReactInfo struct {
 	MessageID string
 	Emoji     string
 }
+
+type NickNameChange struct {
+	Nickname string `json:"nick"`
+}
