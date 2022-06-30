@@ -1,5 +1,1 @@
-premium.residential.proxyrack.net:10000
-premium.residential.proxyrack.net:10001
-premium.residential.proxyrack.net:10002
-premium.residential.proxyrack.net:10003
-premium.residential.proxyrack.net:10004
+
