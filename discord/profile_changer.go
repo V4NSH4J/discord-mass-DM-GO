@@ -403,3 +403,71 @@ func LaunchTokenChanger() {
 	color.Green("[%v] All Done", time.Now().Format("15:04:05"))
 
 }
+
+func LaunchServerNicknameChanger() {
+	_, instances, err := instance.GetEverything()
+	if err != nil {
+		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
+	}
+	var TotalCount, SuccessCount, FailedCount int
+	title := make(chan bool)
+	go func() {
+	Out:
+		for {
+			select {
+			case <-title:
+				break Out
+			default:
+				cmd := exec.Command("cmd", "/C", "title", fmt.Sprintf(`DMDGO [%v Success, %v Failed, %v Unprocessed]`, SuccessCount, FailedCount, TotalCount-SuccessCount-FailedCount))
+				_ = cmd.Run()
+			}
+
+		}
+	}()
+	color.Red("NOTE: Nicknames are changed randomly from the file.")
+	nicknames, err := utilities.ReadLines("nicknames.txt")
+	if err != nil {
+		color.Red("[%v] Error while reading nicknames.txt: %v", time.Now().Format("15:04:05"), err)
+		utilities.ExitSafely()
+	}
+
+	var guildid int
+	color.Green("[%v] Enter guild id in which nicknames should be changed", time.Now().Format("15:04:05"))
+	fmt.Scanln(&guildid)
+
+	color.Green("[%v] Enter number of threads: (0 for unlimited)", time.Now().Format("15:04:05"))
+	var threads int
+	fmt.Scanln(&threads)
+	if threads > len(instances) || threads == 0 {
+		threads = len(instances)
+	}
+	TotalCount = len(instances)
+	c := goccm.New(threads)
+	for i := 0; i < len(instances); i++ {
+		c.Wait()
+		go func(i int) {
+			r, err := instances[i].NickNameChanger(nicknames[rand.Intn(len(nicknames))], guildid)
+			if err != nil {
+				color.Red("[%v] %v Error while changing nickname: %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), err)
+				FailedCount++
+				return
+			}
+			body, err := utilities.ReadBody(r)
+			if err != nil {
+				fmt.Println(err)
+			}
+			if r.StatusCode == 200 || r.StatusCode == 204 {
+				color.Green("[%v] %v Changed nickname successfully", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				SuccessCount++
+			} else {
+				color.Red("[%v] %v Error while changing nickname: %v %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), r.Status, string(body))
+				FailedCount++
+			}
+			c.Done()
+		}(i)
+	}
+	c.WaitAllDone()
+	title <- true
+	color.Green("[%v] All Done", time.Now().Format("15:04:05"))
+
+}

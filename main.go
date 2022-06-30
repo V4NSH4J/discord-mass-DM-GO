@@ -32,7 +32,7 @@ func main() {
 
 // Options menu
 func Options() {
-	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) DM on React\n |- 16) Hypesquad Changer\n |- 17) Mass token changer\n |- 18) Create Embed\n |- 19) Login Into Token [Input]\n |- 20) Auto React [Token]\n |- 21) Token Nuker [Token]\n |- 22) Button Press [Token]\n |- 23) Credits & Info\n |- 24) Exit")
+	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) DM on React\n |- 16) Hypesquad Changer\n |- 17) Mass token changer\n |- 18) Create Embed\n |- 19) Login Into Token [Input]\n |- 20) Auto React [Token]\n |- 21) Token Nuker [Token]\n |- 22) Button Press [Token]\n |- 23) Guild Nickname Changer\n |- 24) Credits & Info\n |- 25) Exit")
 	color.White("\nEnter your choice: ")
 	var choice int
 	fmt.Scanln(&choice)
@@ -107,8 +107,11 @@ func Options() {
 		color.Cyan("Button Press [BETA]")
 		discord.LaunchButtonClicker()
 	case 23:
-		color.Blue("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation")
+		color.Cyan("Nickname Changer [GUILD]")
+		discord.LaunchServerNicknameChanger()
 	case 24:
+		color.Blue("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation")
+	case 25:
 		os.Exit(0)
 	}
 	time.Sleep(1 * time.Second)
