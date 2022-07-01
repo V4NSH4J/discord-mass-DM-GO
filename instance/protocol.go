@@ -6,6 +6,8 @@
 
 package instance
 
+import "time"
+
 const (
 	OpcodeDispatch = iota
 	OpcodeHeartbeat
@@ -76,6 +78,7 @@ type Event struct {
 type Data struct {
 	Message
 	Identify
+	PresenceChange
 	ClientState       ClientState            `json:"client_state,omitempty"`
 	HeartbeatInterval int                    `json:"heartbeat_interval,omitempty"`
 	SessionID         string                 `json:"session_id,omitempty"`
@@ -104,13 +107,24 @@ type Userinfo struct {
 	Member Member `json:"member,omitempty"`
 }
 type Member struct {
-	User User `json:"user,omitempty"`
+	User                       User        `json:"user,omitempty"`
+	Roles                      []string    `json:"roles"`
+	PremiumSince               interface{} `json:"premium_since"`
+	Pending                    bool        `json:"pending"`
+	Nick                       string      `json:"nick"`
+	Mute                       bool        `json:"mute"`
+	JoinedAt                   time.Time   `json:"joined_at"`
+	Flags                      int         `json:"flags"`
+	Deaf                       bool        `json:"deaf"`
+	CommunicationDisabledUntil interface{} `json:"communication_disabled_until"`
+	Avatar                     interface{} `json:"avatar"`
 }
 type User struct {
 	ID            string `json:"id"`
 	Username      string `json:"username"`
 	Discriminator string `json:"discriminator"`
 	Avatar        string `json:"avatar"`
+	Bot           bool   `json:"bot"`
 }
 
 type Identify struct {

@@ -8,13 +8,17 @@ package instance
 
 import (
 	"strings"
-	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func Scrape(ws *Connection, Guild string, Channel string, index int) error {
+	if index == 0 {
+		err := Subscribe(ws, Guild, Channel)
+		if err != nil {
+			return err
+		}
+	}
 	var x []interface{}
 	if index == 0 {
 		x = []interface{}{[2]int{0, 99}}
@@ -27,12 +31,7 @@ func Scrape(ws *Connection, Guild string, Channel string, index int) error {
 	}
 
 	payload := Data{
-		GuildId:           Guild,
-		Typing:            true,
-		Threads:           true,
-		Activities:        true,
-		Members:           nil,
-		ThreadMemberLists: nil,
+		GuildId: Guild,
 		Channels: map[string]interface{}{
 			Channel: x,
 		},
@@ -88,7 +87,7 @@ func ScrapeOffline(c *Connection, guild string, query string) error {
 
 func FindNextQueries(query string, lastName string, completedQueries []string, chars string) []string {
 	if query == "" {
-		color.Red("[%v] Query is empty", time.Now().Format("15:04:05"))
+		utilities.LogErr("query is empty")
 		return nil
 	}
 	lastName = strings.ToLower(lastName)
@@ -118,12 +117,16 @@ func FindNextQueries(query string, lastName string, completedQueries []string, c
 	return nextQueries
 }
 
-func Subscribe(ws *Connection, guildid string) error {
+func Subscribe(ws *Connection, guildid, Channel string) error {
 	payload := Data{
 		GuildId:    guildid,
 		Typing:     true,
 		Threads:    true,
 		Activities: true,
+		Members:    []Member{},
+		Channels: map[string]interface{}{
+			Channel: []interface{}{[2]int{0, 99}},
+		},
 	}
 
 	err := ws.WriteJSONe(&Event{
@@ -134,5 +137,4 @@ func Subscribe(ws *Connection, guildid string) error {
 		return err
 	}
 	return nil
-
 }

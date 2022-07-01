@@ -7,36 +7,54 @@
 package discord
 
 import (
-	"strings"
+	"fmt"
+	"os"
 	"time"
 
+	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func LaunchTokenFormatter() {
-	Tokens, err := utilities.ReadLines("tokens.txt")
+	cfg, instances, err := instance.GetEverything()
 	if err != nil {
-		color.Red("Error while opening tokens.txt: %v", err)
-		utilities.ExitSafely()
-		return
+		utilities.LogErr("Error while getting neccessary information %v", err)
 	}
-	if len(Tokens) == 0 {
-		color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
-		return
-	}
-	var onlytokens []string
-	for i := 0; i < len(Tokens); i++ {
-		if strings.Contains(Tokens[i], ":") {
-			token := strings.Split(Tokens[i], ":")[2]
-			onlytokens = append(onlytokens, token)
+	var tokenFile, changedFile string
+	if cfg.OtherSettings.Logs {
+		path := fmt.Sprintf(`logs/token_formatter/DMDGO-TF-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			utilities.LogErr("Error creating logs directory: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating token file: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX.Close()
+		ChangedFileX, err := os.Create(fmt.Sprintf(`%s/changed.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating success file: %s", err)
+			utilities.ExitSafely()
+		}
+		ChangedFileX.Close()
+		tokenFile, changedFile = tokenFileX.Name(), ChangedFileX.Name()
+		for i := 0; i < len(instances); i++ {
+			instances[i].WriteInstanceToFile(tokenFile)
 		}
 	}
-	t := utilities.TruncateLines("tokens.txt", onlytokens)
-	if t != nil {
-		color.Red("[%v] Error while truncating tokens.txt: %v", time.Now().Format("15:04:05"), t)
-		utilities.ExitSafely()
-		return
+	var tokens []string
+
+	for i := 0; i < len(instances); i++ {
+		if cfg.OtherSettings.Logs {
+			instances[i].Email = ""
+			instances[i].Password = ""
+			instances[i].WriteInstanceToFile(changedFile)
+		}
+		tokens = append(tokens, instances[i].Token)
 	}
+	_ = utilities.TruncateLines("tokens.txt", tokens)
+	utilities.LogSuccess("Token formatter has finished")
 }

@@ -57,9 +57,9 @@ func (in *Instance) NameChanger(name string) (http.Response, error) {
 }
 
 // @me Discord Patch request to change Nickname
-func (in *Instance) NickNameChanger(name string, guildid int) (http.Response, error) {
+func (in *Instance) NickNameChanger(name string, guildid string) (http.Response, error) {
 
-	url := fmt.Sprintf("https://discord.com/api/v9/guilds/%d/members/@me", guildid)
+	url := fmt.Sprintf("https://discord.com/api/v9/guilds/%s/members/@me", guildid)
 
 	data := NickNameChange{
 		Nickname: name,

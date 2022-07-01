@@ -9,18 +9,20 @@ package instance
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/gorilla/websocket"
 )
 
 // Define WebSocket connection struct
 type Connection struct {
-	Members       []string
+	Members       []Member
+	Token         string
 	OfflineScrape chan []byte
 	AllMembers    []string
 	Messages      chan []byte
@@ -67,6 +69,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	}
 
 	c := Connection{
+		Token:         in.Token,
 		Conn:          ws,
 		in:            make(chan string),
 		out:           make(chan []byte),
@@ -81,6 +84,18 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	if err != nil {
 		c.Conn.Close()
 		return nil, err
+	}
+	presences := []string{"online", "idle", "dnd", "offline"}
+	if in.Config.OtherSettings.GatewayStatus < 0 || in.Config.OtherSettings.GatewayStatus > 4 {
+		in.Config.OtherSettings.GatewayStatus = 0
+	}
+	var presence string
+	if in.Config.OtherSettings.GatewayStatus == 4 {
+		r := rand.Intn(4)
+		presence = presences[r]
+
+	} else {
+		presence = presences[in.Config.OtherSettings.GatewayStatus]
 	}
 	// Authenticate with Discord
 	err = c.Conn.WriteJSON(&Event{
@@ -105,7 +120,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 				},
 				Capabilities: 61,
 				Presence: Presence{
-					Status: "online",
+					Status: presence,
 					Since:  0,
 					AFK:    false,
 				},
@@ -117,7 +132,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 		return nil, fmt.Errorf("error while sending authentication message: %v", err)
 	}
 
-	if c.sessionID,err = c.awaitEvent(EventNameReady); err != nil {
+	if c.sessionID, err = c.awaitEvent(EventNameReady); err != nil {
 		c.Conn.Close()
 		in.wsFatalHandler(err)
 		return nil, fmt.Errorf("error while waiting for ready event: %v", err)
@@ -171,17 +186,17 @@ func (c *Connection) Ping(interval time.Duration) {
 	}()
 }
 
-func (c *Connection) awaitEvent(e string) (string,error) {
+func (c *Connection) awaitEvent(e string) (string, error) {
 	_, b, err := c.Conn.ReadMessage()
 	if err != nil {
 		return "", fmt.Errorf("error while reading message from websocket: %v", err)
 	}
 	var body Event
 	if err = json.Unmarshal(b, &body); err != nil {
-		return "",fmt.Errorf("error while unmarshalling incoming websocket message: %v", err)
+		return "", fmt.Errorf("error while unmarshalling incoming websocket message: %v", err)
 	}
 	if body.EventName != e {
-		return "",fmt.Errorf("unexpected event name for received websocket message: %v, expected %v", body.EventName, e)
+		return "", fmt.Errorf("unexpected event name for received websocket message: %v, expected %v", body.EventName, e)
 	}
 	return body.Data.SessionID, nil
 }
@@ -200,8 +215,6 @@ func (c *Connection) listen() {
 		if err := json.Unmarshal(b, &body); err != nil {
 			// All messages which don't decode properly are likely caused by the
 			// data object and are ignored for now.
-
-			color.Red("Error while Unmarshalling incoming websocket message: %v %v", err, string(b))
 			continue
 		}
 
@@ -226,7 +239,7 @@ func (c *Connection) listen() {
 			for i := 0; i < len(body.Data.Ops); i++ {
 				if body.Data.Ops[i].Op == "SYNC" {
 					for j := 0; j < len(body.Data.Ops[i].Items); j++ {
-						c.Members = append(c.Members, body.Data.Ops[i].Items[j].Member.User.ID)
+						c.Members = append(c.Members, body.Data.Ops[i].Items[j].Member)
 					}
 				}
 			}
@@ -239,9 +252,7 @@ func (c *Connection) listen() {
 				c.sessionID = body.Data.SessionID
 			}
 			if body.EventName == EventNameMessageCreate || body.EventName == EventNameMessageUpdate {
-				go func() {
-					c.Messages <- b
-				}()
+				utilities.WriteLines("received.txt", fmt.Sprintf(`Token: %v\nMessage:%v\nAuthor:%v`, c.Token, body.Data.Message.Content, body.Data.Message.Author.Username))
 
 			}
 		case OpcodeInvalidSession:
@@ -256,6 +267,7 @@ func (c *Connection) listen() {
 }
 
 func (c *Connection) Close() error {
+	c.fatalHandler = func(err error) {}
 	c.closeChan <- struct{}{}
 	err := c.Conn.WriteControl(
 		websocket.CloseMessage,

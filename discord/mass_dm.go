@@ -7,8 +7,6 @@
 package discord
 
 import (
-	"bufio"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -23,85 +21,128 @@ import (
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func LaunchMassDM() {
 	members, err := utilities.ReadLines("memberids.txt")
 	if err != nil {
-		color.Red("Error while opening memberids.txt: %v", err)
-		utilities.ExitSafely()
+		utilities.LogErr("Error while opening MemberIDs file %s", err)
+		return
 	}
 	cfg, instances, err := instance.GetEverything()
 	if err != nil {
-		color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
+		utilities.LogErr("Error while getting config or instances %s", err)
+		return
+	}
+	var tokenFile, completedUsersFile, failedUsersFile, lockedFile, quarantinedFile, logsFile string
+	if cfg.OtherSettings.Logs {
+		path := fmt.Sprintf(`logs/mass_dm/DMDGO-MASSDM-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			utilities.LogErr("Error creating logs directory: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating token file: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX.Close()
+		completedUsersFileX, err := os.Create(fmt.Sprintf(`%s/success.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating success file: %s", err)
+			utilities.ExitSafely()
+		}
+		completedUsersFileX.Close()
+		failedUsersFileX, err := os.Create(fmt.Sprintf(`%s/failed.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		failedUsersFileX.Close()
+		lockedFileX, err := os.Create(fmt.Sprintf(`%s/locked.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		lockedFileX.Close()
+		quarantinedFileX, err := os.Create(fmt.Sprintf(`%s/quarantined.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		quarantinedFileX.Close()
+		LogsX, err := os.Create(fmt.Sprintf(`%s/logs.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		LogsX.Close()
+		tokenFile, completedUsersFile, failedUsersFile, lockedFile, quarantinedFile, logsFile = tokenFileX.Name(), completedUsersFileX.Name(), failedUsersFileX.Name(), lockedFileX.Name(), quarantinedFileX.Name(), LogsX.Name()
+		for i := 0; i < len(instances); i++ {
+			instances[i].WriteInstanceToFile(tokenFile)
+		}
+	}
+	if cfg.OtherSettings.Logs {
+		utilities.WriteLinesPath(logsFile, fmt.Sprintf("Start Time: %v", time.Now()))
 	}
 	var msg instance.Message
-	color.White("Press 1 to use messages from file or press 2 to enter a message: ")
-	var messagechoice int
-	fmt.Scanln(&messagechoice)
+	messagechoice := utilities.UserInputInteger("Enter 1 to use message from file, 2 to use message from console: ")
 	if messagechoice != 1 && messagechoice != 2 {
-		color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Invalid choice")
+		return
 	}
 	if messagechoice == 2 {
-		color.White("Enter your message, use \\n for changing lines. You can also set a constant message in message.json")
-		scanner := bufio.NewScanner(os.Stdin)
-		var text string
-		if scanner.Scan() {
-			text = scanner.Text()
-		}
-
+		text := utilities.UserInput("Enter your message, use \\n for changing lines. You can also set a constant message in message.json")
 		msg.Content = text
 		msg.Content = strings.Replace(msg.Content, "\\n", "\n", -1)
 		var msgs []instance.Message
 		msgs = append(msgs, msg)
 		err := instance.SetMessages(instances, msgs)
 		if err != nil {
-			color.Red("[%v] Error while setting messages: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while setting messages: %s", err)
+			return
 		}
 	} else {
 		var msgs []instance.Message
 		err := instance.SetMessages(instances, msgs)
 		if err != nil {
-			color.Red("[%v] Error while setting messages: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while setting messages: %s", err)
+			return
 		}
 	}
-	color.White("[%v] Do you wish to use Advanced Settings? 0: No, 1: Yes: ", time.Now().Format("15:04:05"))
-	var advancedchoice int
+	if cfg.OtherSettings.Logs {
+		if len(instances) > 0 {
+			utilities.WriteLinesPath(logsFile, fmt.Sprintf("Messages Loaded: %v", instances[0].Messages))
+		}
+	}
+	advancedchoice := utilities.UserInputInteger("Do you wish to use Advanced Settings? 0: No, 1: Yes: ")
+
 	var checkchoice int
 	var serverid string
 	var tryjoinchoice int
 	var invite string
 	var maxattempts int
-	fmt.Scanln(&advancedchoice)
 	if advancedchoice != 0 && advancedchoice != 1 {
-		color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Invalid choice")
+		return
 	}
 	if advancedchoice == 1 {
-		color.White("[%v] Do you wish to check if token is still in server before every DM? [0: No, 1: Yes]", time.Now().Format("15:04:05"))
-		fmt.Scanln(&checkchoice)
+		checkchoice := utilities.UserInputInteger("Do you wish to check if token is still in server before every DM? [0: No, 1: Yes]")
 		if checkchoice != 0 && checkchoice != 1 {
-			color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-			utilities.ExitSafely()
+			utilities.LogErr("Invalid choice")
+			return
 		}
 		if checkchoice == 1 {
-			color.White("[%v] Enter Server ID", time.Now().Format("15:04:05"))
-			fmt.Scanln(&serverid)
-			color.White("[%v] Do you wish to try rejoining the server if token is not in server? [0: No, 1: Yes]", time.Now().Format("15:04:05"))
-			fmt.Scanln(&tryjoinchoice)
+			serverid = utilities.UserInput("Enter the server ID: ")
+			tryjoinchoice := utilities.UserInputInteger("Do you wish to try rejoining the server if token is not in server? [0: No, 1: Yes]")
 			if tryjoinchoice != 0 && tryjoinchoice != 1 {
-				color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-				utilities.ExitSafely()
+				utilities.LogErr("Invalid choice")
+				return
 			}
 			if tryjoinchoice == 1 {
-				color.White("[%v] Enter a permanent invite code", time.Now().Format("15:04:05"))
-				fmt.Scanln(&invite)
-				color.White("[%v] Enter max rejoin attempts", time.Now().Format("15:04:05"))
-				fmt.Scanln(&maxattempts)
+				invite = utilities.UserInput("Enter a permanent invite code")
+				maxattempts = utilities.UserInputInteger("Enter max rejoin attempts")
 			}
 		}
 	}
@@ -114,35 +155,47 @@ func LaunchMassDM() {
 	var openedChannels = 0
 	completed, err = utilities.ReadLines("completed.txt")
 	if err != nil {
-		color.Red("Error while opening completed.txt: %v", err)
-		utilities.ExitSafely()
+		utilities.LogErr("Error while opening completed.txt %s", err)
+		return
 	}
 	if cfg.DirectMessage.Skip {
 		members = utilities.RemoveSubset(members, completed)
+		if cfg.OtherSettings.Logs {
+			utilities.WriteLinesPath(logsFile, fmt.Sprintf("Users blacklisted from completed.txt: %v", len(completed)))
+		}
 	}
 	if cfg.DirectMessage.SkipFailed {
 		failedSkip, err := utilities.ReadLines("failed.txt")
 		if err != nil {
-			color.Red("Error while opening failed.txt: %v", err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while opening failed.txt %s", err)
+			return
+		}
+		if cfg.OtherSettings.Logs {
+			utilities.WriteLinesPath(logsFile, fmt.Sprintf("Users blacklisted from failed.txt: %v", len(failedSkip)))
 		}
 		members = utilities.RemoveSubset(members, failedSkip)
 	}
 	if len(instances) == 0 {
-		color.Red("[%v] Enter your tokens in tokens.txt ", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Enter your tokens in tokens.txt")
+		if cfg.OtherSettings.Logs {
+			utilities.WriteLinesPath(logsFile, fmt.Sprintf("Tokens loaded: %v", len(instances)))
+		}
+		return
 	}
 	if len(members) == 0 {
-		color.Red("[%v] Enter your member ids in memberids.txt or ensure that all of them are not in completed.txt", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Enter your memberids and ensure they're not all in completed.txt or failed.txt")
+		return
 	}
 	if len(members) < len(instances) {
 		instances = instances[:len(members)]
 	}
+	if cfg.OtherSettings.Logs {
+		utilities.WriteLinesPath(logsFile, fmt.Sprintf("Unique members loaded: %v", len(members)))
+	}
 	msgs := instances[0].Messages
 	for i := 0; i < len(msgs); i++ {
 		if msgs[i].Content == "" && msgs[i].Embeds == nil {
-			color.Red("[%v] WARNING: Message %v is empty", time.Now().Format("15:04:05"), i)
+			utilities.LogWarn("Message %v is empty", i)
 		}
 	}
 	// Send members to a channel
@@ -184,65 +237,40 @@ func LaunchMassDM() {
 				instances[i].LastIDstr = ""
 				// Breaking loop if maximum DMs reached
 				if cfg.DirectMessage.MaxDMS != 0 && instances[i].Count >= cfg.DirectMessage.MaxDMS {
-					color.Yellow("[%v] Maximum DMs reached for %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+					utilities.LogInfo("Maximum DMs reached for %v", instances[i].CensorToken())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token max DMs reached", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
 					break
 				}
 				// Start websocket connection if not already connected and reconnect if dead
 				if cfg.DirectMessage.Websocket && instances[i].Ws == nil {
 					err := instances[i].StartWS()
 					if err != nil {
-						color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+						utilities.LogFailed("Error while opening websocket: %v", err)
 					} else {
-						color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+						utilities.LogSuccess("Websocket opened %v", instances[i].CensorToken())
 					}
-				}
-				if cfg.DirectMessage.Websocket && cfg.DirectMessage.Receive && instances[i].Ws != nil && !instances[i].Receiver {
-					instances[i].Receiver = true
-					go func() {
-						for {
-							if !instances[i].Receiver {
-								break
-							}
-							mes := <-instances[i].Ws.Messages
-							if !strings.Contains(string(mes), "guild_id") {
-								var mar instance.Event
-								err := json.Unmarshal(mes, &mar)
-								if err != nil {
-									color.Red("[%v] Error while unmarshalling websocket message: %v", time.Now().Format("15:04:05"), err)
-									continue
-								}
-								if instances[i].ID == "" {
-									tokenPart := strings.Split(instances[i].Token, ".")[0]
-									dec, err := base64.StdEncoding.DecodeString(tokenPart)
-									if err != nil {
-										color.Red("[%v] Error while decoding token: %v", time.Now().Format("15:04:05"), err)
-										continue
-									}
-									instances[i].ID = string(dec)
-								}
-								if mar.Data.Author.ID == instances[i].ID {
-									continue
-								}
-								color.Green("[%v] %v#%v sent a message to %v : %v", time.Now().Format("15:04:05"), mar.Data.Author.Username, mar.Data.Author.Discriminator, instances[i].Token, mar.Data.Content)
-								newStr := "Username: " + mar.Data.Author.Username + "#" + mar.Data.Author.Discriminator + "\nID: " + mar.Data.Author.ID + "\n" + "Message: " + mar.Data.Content + "\n"
-								err = utilities.WriteLines("received.txt", newStr)
-								if err != nil {
-									color.Red("[%v] Error while opening received.txt: %v", time.Now().Format("15:04:05"), err)
-								}
-							}
-						}
-					}()
 				}
 				// Check if token is valid
 				status := instances[i].CheckToken()
 				if status != 200 && status != 204 && status != 429 && status != -1 {
 					failedCount++
-					color.Red("[%v] Token %v might be locked - Stopping instance and adding members to failed list. %v [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), status, failedCount)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
+					utilities.LogLocked("Token %v might be locked - Stopping instance and adding members to failed list. %v [%v]", instances[i].CensorToken(), status, failedCount)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token locked", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
 					failed = append(failed, member)
 					dead = append(dead, instances[i].Token)
+					if cfg.OtherSettings.Logs {
+						instances[i].WriteInstanceToFile(lockedFile)
+					}
 					err := utilities.WriteLines("failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					if cfg.DirectMessage.Stop {
 						break
@@ -253,22 +281,30 @@ func LaunchMassDM() {
 					if checkchoice == 1 {
 						r, err := instances[i].ServerCheck(serverid)
 						if err != nil {
-							color.Red("[%v] Error while checking server: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while checking server %s", err)
 							continue
 						}
 						if r != 200 && r != 204 && r != 429 {
 							if tryjoinchoice == 0 {
-								color.Red("[%v] Stopping token %v [Not in server]", time.Now().Format("15:04:05"), instances[i].CensorToken())
-
+								utilities.LogFailed("Token %s is not present in server %s", instances[i].CensorToken(), serverid)
+								if cfg.OtherSettings.Logs {
+									utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token not present in server %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), serverid))
+								}
 								break
 							} else {
 								if instances[i].Retry >= maxattempts {
-									color.Red("[%v] Stopping token %v [Max server rejoin attempts]", time.Now().Format("15:04:05"), instances[i].CensorToken())
+									if cfg.OtherSettings.Logs {
+										utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token max rejoin attempts", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+									}
+									utilities.LogFailed("Stopping token %v [Max server rejoin attempts]", instances[i].CensorToken())
 									break
 								}
 								err := instances[i].Invite(invite)
 								if err != nil {
-									color.Red("[%v] Error while joining server: %v", time.Now().Format("15:04:05"), err)
+									utilities.LogFailed("Error while joining server: %v", err)
+									if cfg.OtherSettings.Logs {
+										utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token error while joining server %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), err))
+									}
 									instances[i].Retry++
 									continue
 								}
@@ -283,10 +319,13 @@ func LaunchMassDM() {
 					info, err := instances[i].UserInfo(member)
 					if err != nil {
 						failedCount++
-						color.Red("[%v] Error while getting user info: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(failedUsersFile, member)
+						}
+						utilities.LogErr("Error while getting user info: %v [%v]", err, failedCount)
 						err = utilities.WriteLine("input/failed.txt", member)
 						if err != nil {
-							fmt.Println(err)
+							utilities.LogErr("Error while writing to failed.txt %s", err)
 						}
 						failed = append(failed, member)
 
@@ -294,10 +333,16 @@ func LaunchMassDM() {
 					}
 					if len(info.Mutual) == 0 {
 						failedCount++
-						color.Red("[%v] Token %v failed to DM %v [No Mutual Server] [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), info.User.Username+info.User.Discriminator, failedCount)
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(failedUsersFile, member)
+						}
+						utilities.LogFailed("Token %v failed to DM %v [No Mutual Server] [%v]", instances[i].CensorToken(), info.User.Username+info.User.Discriminator, failedCount)
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token failed to DM %v [No mutuals]", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
+						}
 						err = utilities.WriteLine("input/failed.txt", member)
 						if err != nil {
-							fmt.Println(err)
+							utilities.LogErr("Error while writing to failed.txt %s", err)
 						}
 						failed = append(failed, member)
 						continue
@@ -307,28 +352,31 @@ func LaunchMassDM() {
 					if cfg.DirectMessage.Friend && cfg.DirectMessage.Websocket {
 						x, err := strconv.Atoi(info.User.Discriminator)
 						if err != nil {
-							color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while converting discriminator to int: %v", err)
 							continue
 						}
 						resp, err := instances[i].Friend(info.User.Username, x)
 						if err != nil {
-							color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while sending friend request: %v", err)
 							continue
 						}
 						if resp.StatusCode != 204 && err != nil {
 							if !errors.Is(err, io.ErrUnexpectedEOF) {
 								body, err := utilities.ReadBody(*resp)
 								if err != nil {
-									color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), fmt.Sprintf("error reading body: %v", err))
+									utilities.LogErr("Error while reading body: %v", err)
 									continue
 								}
-								color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), string(body))
+								utilities.LogFailed("Error while sending friend request: %v", body)
 								continue
 							}
-							color.Red("[%v] Error while adding friend: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while sending friend request: %v", err)
 							continue
 						} else {
-							color.Green("[%v] Added friend %v", time.Now().Format("15:04:05"), info.User.Username+"#"+info.User.Discriminator)
+							utilities.LogSuccess("Friend request sent to %v", info.User.Username+info.User.Discriminator)
+							if cfg.OtherSettings.Logs {
+								utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token friended %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
+							}
 						}
 					}
 				}
@@ -336,10 +384,16 @@ func LaunchMassDM() {
 				snowflake, err := instances[i].OpenChannel(member)
 				if err != nil {
 					failedCount++
-					color.Red("[%v] Error while opening DM channel: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
+					utilities.LogErr("Error while opening DM channel: %v [%v]", err, failedCount)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token error %v while opening channel", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), err))
+					}
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					failed = append(failed, member)
 					continue
@@ -347,25 +401,17 @@ func LaunchMassDM() {
 				if cfg.SuspicionAvoidance.RandomDelayOpenChannel != 0 {
 					time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomDelayOpenChannel)) * time.Second)
 				}
-				resp, err := instances[i].SendMessage(snowflake, member)
+				respCode, body, err := instances[i].SendMessage(snowflake, member)
 				openedChannels++
 				if err != nil {
 					failedCount++
-					color.Red("[%v] Error while sending message: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
-					err = utilities.WriteLine("input/failed.txt", member)
-					if err != nil {
-						fmt.Println(err)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
 					}
-					failed = append(failed, member)
-					continue
-				}
-				body, err := utilities.ReadBody(resp)
-				if err != nil {
-					failedCount++
-					color.Red("[%v] Error while reading body: %v [%v]", time.Now().Format("15:04:05"), err, failedCount)
+					utilities.LogErr("Error while sending message: %v [%v]", err, failedCount)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					failed = append(failed, member)
 					continue
@@ -374,140 +420,215 @@ func LaunchMassDM() {
 				errx := json.Unmarshal(body, &response)
 				if errx != nil {
 					failedCount++
-					color.Red("[%v] Error while unmarshalling body: %v [%v]", time.Now().Format("15:04:05"), errx, failedCount)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
+					utilities.LogErr("Error while unmarshalling body: %v [%v]", errx, failedCount)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					failed = append(failed, member)
 					continue
 				}
 				// Everything is fine, continue as usual
-				if resp.StatusCode == 200 {
+				if respCode == 200 {
 					err = utilities.WriteLine("input/completed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to completed.txt %s", err)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(completedUsersFile, member)
 					}
 					completed = append(completed, member)
 					session = append(session, member)
-					color.Green("[%v][%v] Token %v sent DM to %v", time.Now().Format("15:04:05"), len(session), instances[i].CensorToken(), user)
+					utilities.LogSuccess("Token %v sent DM to %v", len(session), instances[i].CensorToken(), user)
 					if cfg.DirectMessage.Websocket && cfg.DirectMessage.Call && instances[i].Ws != nil {
 						err := instances[i].Call(snowflake)
 						if err != nil {
-							color.Red("[%v] %v Error while calling %v: %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), user, err)
+							utilities.LogErr("Token %v Error while calling %v: %v", instances[i].CensorToken(), user, err)
 						}
 						// Unfriended people can't ring.
 						//
 						// resp, err := instance.Ring(instances[i].Client, instances[i].Token, snowflake)
 						// if err != nil {
-						//      color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, err)
+						//      color.Red("%v Error while ringing %v: %v", instances[i].Token, user, err)
 						// }
 						// if resp == 200 || resp == 204 {
-						//      color.Green("[%v] %v Ringed %v", time.Now().Format("15:04:05"), instances[i].Token, user)
+						//      color.Green("%v Ringed %v", instances[i].Token, user)
 						// } else {
-						//      color.Red("[%v] %v Error while ringing %v: %v", time.Now().Format("15:04:05"), instances[i].Token, user, resp)
+						//      color.Red("%v Error while ringing %v: %v", instances[i].Token, user, resp)
 						// }
 
 					}
 					if cfg.DirectMessage.Block {
 						r, err := instances[i].BlockUser(member)
 						if err != nil {
-							color.Red("[%v] Error while blocking user: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while blocking user: %v", err)
 						} else {
 							if r == 204 {
-								color.Green("[%v] Blocked %v", time.Now().Format("15:04:05"), user)
+								utilities.LogSuccess("Blocked %v", user)
+								if cfg.OtherSettings.Logs {
+									utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token blocked user %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
+								}
 							} else {
-								color.Red("[%v] Error while blocking user: %v", time.Now().Format("15:04:05"), r)
+								utilities.LogErr("Error while blocking user: %v", r)
 							}
 						}
 					}
 					if cfg.DirectMessage.Close {
 						r, err := instances[i].CloseDMS(snowflake)
 						if err != nil {
-							color.Red("[%v] Error while closing DM: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while closing DM: %v", err)
 						} else {
 							if r == 200 {
-								color.Green("[%v] Succesfully closed DM %v", time.Now().Format("15:04:05"), user)
+								utilities.LogSuccess("Closed %v", user)
+								if cfg.OtherSettings.Logs {
+									utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token closed DM of user %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
+								}
 							} else {
-								color.Red("[%v] Failed to close DM %v", time.Now().Format("15:04:05"), user)
+								utilities.LogErr("Error while closing DM: %v", r)
 							}
 						}
 					}
 					// Forbidden - Token is being rate limited
-				} else if resp.StatusCode == 403 && response.Code == 40003 {
-
+				} else if response.Code == 20026 {
+					utilities.LogLocked("Token %v is Quarantined, considering it locked", instances[i].CensorToken())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token quarantined", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
+					failedCount++
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
+					failed = append(failed, member)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
+					}
+					dead = append(dead, instances[i].Token)
+					if cfg.OtherSettings.Logs {
+						instances[i].WriteInstanceToFile(lockedFile)
+					}
+					if cfg.OtherSettings.Logs {
+					}
+					// Stop token if locked or disabled
+					if cfg.DirectMessage.Stop {
+						break
+					}
+					if cfg.OtherSettings.Logs {
+						instances[i].WriteInstanceToFile(quarantinedFile)
+					}
+
+				} else if respCode == 403 && response.Code == 40003 {
+					err = utilities.WriteLine("input/failed.txt", member)
+					if err != nil {
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					mem <- member
-					color.Yellow("[%v] Token %v sleeping for %v minutes!", time.Now().Format("15:04:05"), instances[i].CensorToken(), int(cfg.DirectMessage.LongDelay/60))
+					utilities.LogInfo("Token %v sleeping for %v minutes!", instances[i].CensorToken(), int(cfg.DirectMessage.LongDelay/60))
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token rate limited, sleeping for %v seconds", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), cfg.DirectMessage.LongDelay))
+					}
 					time.Sleep(time.Duration(cfg.DirectMessage.LongDelay) * time.Second)
 					if cfg.SuspicionAvoidance.RandomRateLimitDelay != 0 {
 						time.Sleep(time.Duration(rand.Intn(cfg.SuspicionAvoidance.RandomRateLimitDelay)) * time.Second)
 					}
-					color.Yellow("[%v] Token %v continuing!", time.Now().Format("15:04:05"), instances[i].CensorToken())
+					utilities.LogInfo("Token %v continuing!", instances[i].CensorToken())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token continuing", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
 					// Forbidden - DM's are closed
-				} else if resp.StatusCode == 403 && response.Code == 50007 {
+				} else if respCode == 403 && response.Code == 50007 {
 					failedCount++
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
 					failed = append(failed, member)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					color.Red("[%v][%v] Token %v failed to DM %v User has DMs closed or not present in server %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), failedCount, user, string(body))
+					utilities.LogFailed("Token %v failed to DM %v User has DMs closed or not present in server %v", instances[i].CensorToken(), failedCount, user, string(body))
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token failed to DM %v [DMs closed or no mutual servers]", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
+					}
 					// Forbidden - Locked or Disabled
-				} else if (resp.StatusCode == 403 && response.Code == 40002) || resp.StatusCode == 401 || resp.StatusCode == 405 {
+				} else if (respCode == 403 && response.Code == 40002) || respCode == 401 || respCode == 405 {
 					failedCount++
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
 					failed = append(failed, member)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					color.Red("[%v][%v] Token %v is locked or disabled. Stopping instance. %v %v", time.Now().Format("15:04:05"), failedCount, instances[i].CensorToken(), resp.StatusCode, string(body))
+					utilities.LogFailed("Token %v is locked or disabled. Stopping instance. %v %v", failedCount, instances[i].CensorToken(), respCode, string(body))
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token locked or disabled", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
 					dead = append(dead, instances[i].Token)
+					if cfg.OtherSettings.Logs {
+						instances[i].WriteInstanceToFile(lockedFile)
+					}
 					// Stop token if locked or disabled
 					if cfg.DirectMessage.Stop {
 						break
 					}
 					// Forbidden - Invalid token
-				} else if resp.StatusCode == 403 && response.Code == 50009 {
+				} else if respCode == 403 && response.Code == 50009 {
 					failedCount++
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
 					failed = append(failed, member)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					color.Red("[%v][%v] Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", time.Now().Format("15:04:05"), failedCount, instances[i].CensorToken(), user, string(body))
+					utilities.LogFailed("Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", failedCount, instances[i].CensorToken(), user, string(body))
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token channel verification level too high", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
 					// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
-				} else if resp.StatusCode == 429 {
+				} else if respCode == 429 {
 					failed = append(failed, member)
-					color.Red("[%v] Token %v is being rate limited. Sleeping for 10 seconds", time.Now().Format("15:04:05"), instances[i].CensorToken())
+					utilities.LogFailed("Token %v is being rate limited. Sleeping for 10 seconds", instances[i].CensorToken())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token rate limited", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
+					}
 					time.Sleep(10 * time.Second)
-				} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
+				} else if respCode == 400 && strings.Contains(string(body), "captcha") {
 					mem <- member
-					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instances[i].CensorToken())
+					utilities.LogFailed("Token %v Captcha was solved incorrectly", instances[i].CensorToken())
 					if instances[i].Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
 						err := instances[i].ReportIncorrectRecaptcha()
 						if err != nil {
-							color.Red("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogFailed("Error while reporting incorrect hcaptcha: %v", err)
 						} else {
-							color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), instances[i].LastID)
+							utilities.LogSuccess("Succesfully reported incorrect hcaptcha [%v]", instances[i].LastID)
 						}
 					}
 					instances[i].Retry++
 					if instances[i].Retry >= cfg.CaptchaSettings.MaxCaptchaDM && cfg.CaptchaSettings.MaxCaptchaDM != 0 {
-						color.Red("[%v] Stopping token %v max captcha solves reached", time.Now().Format("15:04:05"), instances[i].CensorToken())
+						utilities.LogFailed("Stopping token %v max captcha solves reached", instances[i].CensorToken())
 						break
 					}
 				} else {
 					failedCount++
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, member)
+					}
 					failed = append(failed, member)
 					err = utilities.WriteLine("input/failed.txt", member)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					color.Red("[%v][%v] Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", time.Now().Format("15:04:05"), failedCount, instances[i].CensorToken(), user, response.Code, resp.Status, response.Message)
+					utilities.LogFailed("Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", failedCount, instances[i].CensorToken(), user, response.Code, respCode, response.Message)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token failed to DM %v error %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), user, response.Message))
+					}
 				}
 				time.Sleep(time.Duration(cfg.DirectMessage.Delay) * time.Second)
 				if cfg.SuspicionAvoidance.RandomIndividualDelay != 0 {
@@ -518,10 +639,13 @@ func LaunchMassDM() {
 	}
 	wg.Wait()
 
-	color.Green("[%v] Threads have finished! Writing to file", time.Now().Format("15:04:05"))
+	utilities.LogSuccess("Threads have finished! Writing to file")
 	ticker <- true
 	elapsed := time.Since(start)
-	color.Green("[%v] DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", time.Now().Format("15:04:05"), elapsed.Seconds(), len(session), len(failed), len(dead), len(instances)-len(dead))
+	utilities.LogSuccess("DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", elapsed.Seconds(), len(session), len(failed), len(dead), len(instances)-len(dead))
+	if cfg.OtherSettings.Logs {
+		utilities.WriteLinesPath(logsFile, fmt.Sprintf("DM advertisement took %v. Successfully sent DMs to %v IDs. Failed to send DMs to %v IDs. %v tokens are dis-functional & %v tokens are functioning", elapsed.Seconds(), len(session), len(failed), len(dead), len(instances)-len(dead)))
+	}
 	var left []string
 	if cfg.DirectMessage.Remove {
 		for i := 0; i < len(instances); i++ {
@@ -535,17 +659,17 @@ func LaunchMassDM() {
 		}
 		err := utilities.Truncate("input/tokens.txt", left)
 		if err != nil {
-			fmt.Println(err)
+			utilities.LogErr("Error while writing to failed.txt %s", err)
 		}
-		color.Green("Updated tokens.txt")
+		utilities.LogSuccess("Updated tokens.txt")
 	}
 	if cfg.DirectMessage.RemoveM {
 		m := utilities.RemoveSubset(members, completed)
 		err := utilities.Truncate("input/memberids.txt", m)
 		if err != nil {
-			fmt.Println(err)
+			utilities.LogErr("Error while writing to failed.txt %s", err)
 		}
-		color.Green("Updated memberids.txt")
+		utilities.LogSuccess("Updated memberids.txt")
 
 	}
 	if cfg.DirectMessage.Websocket {
@@ -564,75 +688,58 @@ type jsonResponse struct {
 }
 
 func LaunchSingleDM() {
-	color.White("Enter 0 for one message; Enter 1 for continuous spam")
-	var choice int
-	fmt.Scanln(&choice)
+	choice := utilities.UserInputInteger("Enter 0 for one message; Enter 1 for continuous spam")
 	cfg, instances, err := instance.GetEverything()
 	if err != nil {
-		fmt.Println(err)
-		utilities.ExitSafely()
+		utilities.LogErr("Error while getting config or instances%s", err)
+		return
 	}
 	var msg instance.Message
-	color.White("Press 1 to use message from file or press 2 to enter a message: ")
-	var messagechoice int
-	fmt.Scanln(&messagechoice)
+	messagechoice := utilities.UserInputInteger("Enter 1 to use message from file, 2 to use message from console: ")
 	if messagechoice != 1 && messagechoice != 2 {
-		color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Invalid choice")
+		return
 	}
 	if messagechoice == 2 {
-		color.White("Enter your message, use \\n for changing lines. To use an embed, put message in message.json: ")
-		scanner := bufio.NewScanner(os.Stdin)
-		var text string
-		if scanner.Scan() {
-			text = scanner.Text()
-		}
-
+		text := utilities.UserInput("Enter your message, use \\n for changing lines. You can also set a constant message in message.json")
 		msg.Content = text
 		msg.Content = strings.Replace(msg.Content, "\\n", "\n", -1)
 		var msgs []instance.Message
 		msgs = append(msgs, msg)
 		err := instance.SetMessages(instances, msgs)
 		if err != nil {
-			color.Red("[%v] Error while setting messages: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while setting messages: %s", err)
+			return
 		}
 	} else {
 		var msgs []instance.Message
 		err := instance.SetMessages(instances, msgs)
 		if err != nil {
-			color.Red("[%v] Error while setting messages: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while setting messages: %s", err)
+			return
 		}
 	}
 
-	color.White("Ensure a common link and enter victim's ID: ")
-	var victim string
-	fmt.Scanln(&victim)
+	victim := utilities.UserInput("Ensure a common link and enter victim's ID: ")
 	var wg sync.WaitGroup
 	wg.Add(len(instances))
 	if choice == 0 {
 		for i := 0; i < len(instances); i++ {
 			time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
-
 			go func(i int) {
 				defer wg.Done()
 				snowflake, err := instances[i].OpenChannel(victim)
 				if err != nil {
-					fmt.Println(err)
+					utilities.LogErr("Error while opening channel %s", err)
 				}
-				resp, err := instances[i].SendMessage(snowflake, victim)
+				respCode, body, err := instances[i].SendMessage(snowflake, victim)
 				if err != nil {
-					fmt.Println(err)
+					utilities.LogErr("Error while sending message%s", err)
 				}
-				body, err := utilities.ReadBody(resp)
-				if err != nil {
-					fmt.Println(err)
-				}
-				if resp.StatusCode == 200 {
-					color.Green("[%v] Token %v DM'd %v", time.Now().Format("15:04:05"), instances[i].Token, victim)
+				if respCode == 200 {
+					utilities.LogSuccess("Token %v DM'd %v", instances[i].Token, victim)
 				} else {
-					color.Red("[%v] Token %v failed to DM %v [%v]", time.Now().Format("15:04:05"), instances[i].Token, victim, string(body))
+					utilities.LogFailed("Token %v failed to DM %v [%v]", instances[i].Token, victim, string(body))
 				}
 			}(i)
 		}
@@ -648,16 +755,16 @@ func LaunchSingleDM() {
 				for {
 					snowflake, err := instances[i].OpenChannel(victim)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while opening channel %s", err)
 					}
-					resp, err := instances[i].SendMessage(snowflake, victim)
+					respCode, _, err := instances[i].SendMessage(snowflake, victim)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while sending message %s", err)
 					}
-					if resp.StatusCode == 200 {
-						color.Green("[%v] Token %v DM'd %v [%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), victim, c)
+					if respCode == 200 {
+						utilities.LogSuccess("Token %v DM'd %v [%v]", instances[i].CensorToken(), victim, c)
 					} else {
-						color.Red("[%v] Token %v failed to DM %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), victim)
+						utilities.LogFailed("Token %v failed to DM %v", instances[i].CensorToken(), victim)
 					}
 					c++
 				}
@@ -665,5 +772,5 @@ func LaunchSingleDM() {
 			wg.Wait()
 		}
 	}
-	color.Green("[%v] Threads have finished!", time.Now().Format("15:04:05"))
+	utilities.LogSuccess("All threads finished")
 }

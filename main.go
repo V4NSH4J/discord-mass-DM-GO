@@ -13,105 +13,106 @@ import (
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/discord"
+	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-
-	"github.com/fatih/color"
+	"github.com/gookit/color"
 )
 
 var CaptchaServices []string
 
 func main() {
-	version := "1.10.0"
-	CaptchaServices = []string{"capmonster.cloud", "2captcha.com", "rucaptcha.com", "anti-captcha.com"}
+	version := "1.10.1"
+	cfg, err := instance.GetConfig()
+	if err == nil {
+		CaptchaServices = []string{"capmonster.cloud", "2captcha.com", "rucaptcha.com", "anti-captcha.com", cfg.CaptchaSettings.Self}
+	} else {
+		CaptchaServices = []string{"capmonster.cloud", "2captcha.com", "rucaptcha.com", "anti-captcha.com"}
+	}
+
 	rand.Seed(time.Now().UTC().UnixNano())
-	color.Blue(logo + " v" + version + "\n")
-	color.Green("Made by https://github.com/V4NSH4J\nStar repository on github for updates!")
+	color.Blue.Printf(logo + " v" + version + "\n")
+	color.Green.Printf("Made by https://github.com/V4NSH4J\nStar repository on github for updates!\n")
 	utilities.VersionCheck(version)
 	Options()
 }
 
 // Options menu
 func Options() {
-	color.White("Menu:\n |- 01) Invite Joiner [Token]\n |- 02) Mass DM advertiser [Token]\n |- 03) Single DM spam [Token]\n |- 04) Reaction Adder [Token]\n |- 05) Get message [Input]\n |- 06) Email:Pass:Token to Token [Email:Password:Token]\n |- 07) Token Checker [Token]\n |- 08) Guild Leaver [Token]\n |- 09) Token Onliner [Token]\n |- 10) Scraping Menu [Input]\n |- 11) Name Changer [Email:Password:Token]\n |- 12) Profile Picture Changer [Token]\n |- 13) Token Servers Check [Token]\n |- 14) Bio Changer [Token]\n |- 15) DM on React\n |- 16) Hypesquad Changer\n |- 17) Mass token changer\n |- 18) Create Embed\n |- 19) Login Into Token [Input]\n |- 20) Auto React [Token]\n |- 21) Token Nuker [Token]\n |- 22) Button Press [Token]\n |- 23) Guild Nickname Changer\n |- 24) Credits & Info\n |- 25) Exit")
-	color.White("\nEnter your choice: ")
-	var choice int
-	fmt.Scanln(&choice)
+	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Credits & Help", "Exit"})
+	choice := utilities.UserInputInteger("Enter your choice!")
 	switch choice {
 	default:
-		color.Red("Invalid choice!")
+		color.Red.Printf("Invalid choice!\n")
 		Options()
 	case 1:
-		color.Cyan("Invite Joiner")
+		color.Cyan.Printf("Invite Joiner\n")
 		discord.LaunchinviteJoiner()
 	case 2:
-		color.Cyan("Mass DM advertiser")
+		color.Cyan.Printf("Mass DM advertiser\n")
 		discord.LaunchMassDM()
 	case 3:
-		color.Cyan("Single DM spam")
+		color.Cyan.Printf("Single DM spam\n")
 		discord.LaunchSingleDM()
 	case 4:
-		color.Cyan("Reaction Adder")
+		color.Cyan.Printf("Reaction Adder\n")
 		discord.LaunchReactionAdder()
 	case 5:
-		color.Cyan("Get message")
-		discord.LaunchGetMessage()
-	case 6:
-		color.Cyan("Email:Pass:Token to Token")
+		color.Cyan.Printf("Email:Pass:Token to Token\n")
 		discord.LaunchTokenFormatter()
-	case 7:
-		color.Cyan("Token Checker")
+	case 6:
+		color.Cyan.Printf("Token Checker\n")
 		discord.LaunchTokenChecker()
-	case 8:
-		color.Cyan("Guild Leaver")
+	case 7:
+		color.Cyan.Printf("Guild Leaver\n")
 		discord.LaunchGuildLeaver()
-	case 9:
-		color.Cyan("Token Onliner")
+	case 8:
+		color.Cyan.Printf("Token Onliner\n")
 		discord.LaunchTokenOnliner()
-	case 10:
-		color.Cyan("Scraping Menu")
+	case 9:
+		color.Cyan.Printf("Scraping Menu\n")
 		discord.LaunchScraperMenu()
-	case 11:
-		color.Cyan("Name Changer")
+	case 10:
+		color.Cyan.Printf("Name Changer\n")
 		discord.LaunchNameChanger()
-	case 12:
-		color.Cyan("Profile Picture Changer")
+	case 11:
+		color.Cyan.Printf("Profile Picture Changer\n")
 		discord.LaunchAvatarChanger()
-	case 13:
-		color.Cyan("Token Servers Check")
+	case 12:
+		color.Cyan.Printf("Token Servers Check\n")
 		discord.LaunchServerChecker()
-	case 14:
-		color.Cyan("Bio Changer")
+	case 13:
+		color.Cyan.Printf("Bio Changer\n")
 		discord.LaunchBioChanger()
-	case 15:
-		color.Cyan("DM on React")
+	case 14:
+		color.Cyan.Printf("DM on React\n")
 		discord.LaunchDMReact()
-	case 16:
-		color.Cyan("Hypesquad Changer")
+	case 15:
+		color.Cyan.Printf("Hypesquad Changer\n")
 		discord.LaunchHypeSquadChanger()
-	case 17:
-		color.Cyan("Mass token changer")
+	case 16:
+		color.Cyan.Printf("Mass token changer\n")
 		discord.LaunchTokenChanger()
-	case 18:
-		color.Cyan("Create Embed")
+	case 17:
+		color.Cyan.Printf("Create Embed\n")
 		discord.LanuchEmbed()
-	case 19:
-		color.Cyan("Login into Token")
+	case 18:
+		color.Cyan.Printf("Login into Token\n")
 		discord.LaunchTokenLogin()
-	case 20:
-		color.Cyan("Auto React [BETA]")
-		discord.LaunchAutoReact()
-	case 21:
-		color.Cyan("Token Nuker [BETA]")
+	case 19:
+		color.Cyan.Printf("Token Nuker\n")
 		discord.LaunchTokenNuker()
-	case 22:
-		color.Cyan("Button Press [BETA]")
+	case 20:
+		color.Cyan.Printf("Button Press\n")
 		discord.LaunchButtonClicker()
-	case 23:
-		color.Cyan("Nickname Changer [GUILD]")
+	case 21:
+		color.Cyan.Printf("Server Nickname Changer\n")
 		discord.LaunchServerNicknameChanger()
+	case 22:
+		color.Cyan.Printf("Friend Request Spammer\n")
+		discord.LaunchFriendRequestSpammer()
+	case 23:
+		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
 	case 24:
-		color.Blue("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation")
-	case 25:
 		os.Exit(0)
 	}
 	time.Sleep(1 * time.Second)

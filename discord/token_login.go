@@ -5,25 +5,22 @@ import (
 	"fmt"
 	"os"
 	"strings"
-	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/chromedp/cdproto/runtime"
 	"github.com/chromedp/chromedp"
-	"github.com/fatih/color"
 )
 
 func LaunchTokenLogin() {
 	var token string
-	color.Red("You NEED Google Chrome installed to run this function.")
-	color.White("[%v] Enter your token: ", time.Now().Format("15:04:05"))
-	fmt.Scanln(&token)
+	utilities.LogWarn("You NEED Google Chrome installed to use this functionalit")
+	token = utilities.UserInput("Enter a token which you want to login into: ")
 	// Navigate to discord.com/login
 	// We have to place this token into local storage
 	// Refresh the page
 	byt, err := os.ReadFile("instance/tokenLogin.js")
 	if err != nil {
-		color.Red("Error while reading tokenLogin Javascript file %v", err)
+		utilities.LogErr("Error while opening tokenLogin.js %v", err)
 		utilities.ExitSafely()
 	}
 	x := strings.ReplaceAll(string(byt), "asdfgh", token)
@@ -48,10 +45,10 @@ func LaunchTokenLogin() {
 			}
 			return nil
 		})); err != nil {
-		color.Red("Error while Evaluating %v", err)
+		utilities.LogErr("Error while running chromedp. Error while evaluating %v", err)
 		utilities.ExitSafely()
 	}
-	color.Green("Press ENTER to close window and continue program")
+	utilities.LogInfo("Press ENTER to close browser and continue program")
 	fmt.Scanln()
 
 }

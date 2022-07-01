@@ -59,6 +59,47 @@ func WriteLines(filename string, line string) error {
 
 }
 
+func WriteLinesPath(pathx string, line string) error {
+	ex, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	ex = filepath.ToSlash(ex)
+	f, err := os.OpenFile(path.Join(path.Dir(ex)+"/"+pathx), os.O_RDWR|os.O_APPEND, 0660)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer f.Close()
+	_, err2 := f.WriteString(line + "\n")
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	return nil
+
+}
+func WriteLinesWholePath(pathx string, line string) error {
+	ex, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	ex = filepath.ToSlash(ex)
+	f, err := os.OpenFile(path.Join(pathx), os.O_RDWR|os.O_APPEND, 0660)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer f.Close()
+	_, err2 := f.WriteString(line + "\n")
+	if err2 != nil {
+		log.Fatal(err2)
+	}
+	return nil
+
+}
+
 func TruncateLines(filename string, line []string) error {
 	ex, err := os.Executable()
 	if err != nil {
@@ -201,4 +242,30 @@ func GetEmbed() ([]byte, string) {
 		bytes, _ := io.ReadAll(file)
 		return bytes, ""
 	}
+}
+
+func WriteRoleFile(memberid, path, role string) error{
+	// Checking wether the role file exits
+	roleFile := fmt.Sprintf(`%v/%v.txt`, path, role)
+	_, err := os.Stat(roleFile)
+	if err == nil {
+		err = WriteLinesPath(roleFile, memberid)
+		if err != nil {
+			return err
+		}
+	} else if os.IsNotExist(err) {
+		roleFileX, err := os.Create(roleFile)
+		if err != nil {
+			return err
+		}
+		defer roleFileX.Close()
+		err = WriteLinesPath(roleFile, memberid)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Some other error
+		return err
+	}
+	return nil 
 }

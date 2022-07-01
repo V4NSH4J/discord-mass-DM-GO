@@ -9,38 +9,68 @@ package discord
 import (
 	"fmt"
 	"math/rand"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 	"github.com/zenthangplus/goccm"
 )
 
 func LaunchinviteJoiner() {
-	var invitechoice int
-	color.White("Invite Menu:\n1) Single Invite\n2) Multiple Invites from file")
-	fmt.Scanln(&invitechoice)
+	utilities.PrintMenu([]string{"Single Invite", "Multiple Invites from File"})
+	invitechoice := utilities.UserInputInteger("Enter your choice:")
 	if invitechoice != 1 && invitechoice != 2 {
-		color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Invalid choice")
 		return
 	}
 	switch invitechoice {
 	case 1:
 		cfg, instances, err := instance.GetEverything()
 		if err != nil {
-			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("Error while getting config or instances %s", err)
+		}
+		var tokenFile, jointFile, failedFile, reactedFile string
+		if cfg.OtherSettings.Logs {
+			path := fmt.Sprintf(`logs/invite_joiner/DMDGO-IJ-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+			err := os.MkdirAll(path, 0755)
+			if err != nil && !os.IsExist(err) {
+				utilities.LogErr("Error creating logs directory: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating token file: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFileX.Close()
+			jointFileX, err := os.Create(fmt.Sprintf(`%s/joint.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating joint file: %s", err)
+				utilities.ExitSafely()
+			}
+			jointFileX.Close()
+			failedFileX, err := os.Create(fmt.Sprintf(`%s/failed.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating failed file: %s", err)
+				utilities.ExitSafely()
+			}
+			failedFileX.Close()
+			reactedFileX, err := os.Create(fmt.Sprintf(`%s/reacted.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating reacted file: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFile, jointFile, failedFile, reactedFile = tokenFileX.Name(), jointFileX.Name(), failedFileX.Name(), reactedFileX.Name()
+			for i := 0; i < len(instances); i++ {
+				instances[i].WriteInstanceToFile(tokenFile)
+			}
 		}
 
-		color.White("[%v] Enter your invite code [Only the CODE or the Link: ", time.Now().Format("15:04:05"))
-		var invite string
-		fmt.Scanln(&invite)
+		invite := utilities.UserInput("Enter your Invite Code or Link:")
 		invite = processInvite(invite)
-		color.White("[%v] Enter number of Threads (0: Unlimited Threads. 1: For using proper delay. It may be a good idea to use less threads if you're looking to solve captchas): ", time.Now().Format("15:04:05"))
-		var threads int
-		fmt.Scanln(&threads)
+		threads := utilities.UserInputInteger("Enter number of threads (0 for maximum):")
 
 		if threads > len(instances) {
 			threads = len(instances)
@@ -48,31 +78,20 @@ func LaunchinviteJoiner() {
 		if threads == 0 {
 			threads = len(instances)
 		}
-
-		color.White("[%v] Enter base delay for joining in seconds (0 for none)", time.Now().Format("15:04:05"))
-		var base int
-		fmt.Scanln(&base)
-		color.White("[%v] Enter random delay to be added upon base delay (0 for none)", time.Now().Format("15:04:05"))
-		var random int
-		fmt.Scanln(&random)
-		color.White("[%v] Use additional adding reaction verification passing. 0) No 1) Yes", time.Now().Format("15:04:05"))
-		var verif int
-		fmt.Scanln(&verif)
+		verif := utilities.UserInputInteger("Use additional adding reaction verification passing. 0) No 1) Yes")
 		var channelid string
 		var msgid string
 		var emoji string
 
-		if verif == 1{
-			color.White("[%v] ID of the channel with verification message", time.Now().Format("15:04:05"))
-			fmt.Scanln(&channelid)
+		if verif == 1 {
+			channelid = utilities.UserInput("ID of the channel with verification message")
 
-			color.White("[%v] ID of the message with verification reaction", time.Now().Format("15:04:05"))
-			fmt.Scanln(&msgid)
+			msgid = utilities.UserInput("ID of the message with verification reaction")
+			emoji = utilities.UserInput("Enter emoji")
 
-			color.Red("If you have a message, please use choice 1. If you want to add a custom emoji. Follow these instructions, if you don't, it won't work.\n If it's a default emoji which appears on the emoji keyboard, just copy it as TEXT not how it appears on Discord with the colons. Type it as text, it might look like 2 question marks on console but ignore.\n If it's a custom emoji (Nitro emoji) type it like this -> name:emojiID To get the emoji ID, copy the emoji link and copy the emoji ID from the URL.\nIf you do not follow this, it will not work. Don't try to do impossible things like trying to START a nitro reaction with a non-nitro account.")
-			color.White("Enter emoji")
-			fmt.Scanln(&emoji)
 		}
+		base := utilities.UserInputInteger("Enter base delay per thread for joining in seconds: ")
+		random := utilities.UserInputInteger("Enter random delay per thread for joining in seconds: ")
 		var delay int
 		if random > 0 {
 			delay = base + rand.Intn(random)
@@ -85,16 +104,27 @@ func LaunchinviteJoiner() {
 			go func(i int) {
 				err := instances[i].Invite(invite)
 				if err != nil {
-					color.Red("[%v] Error while joining: %v", time.Now().Format("15:04:05"), err)
+					utilities.LogFailed("%s failed to join server %v error %v", instances[i].CensorToken(), invite, err)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedFile, instances[i].Token)
+					}
+				} else {
+					utilities.LogSuccess("%s joint server %v", instances[i].CensorToken(), invite)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(jointFile, instances[i].Token)
+					}
 				}
-				if verif == 1{
-					time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
+				if verif == 1 {
 					err := instances[i].React(channelid, msgid, emoji)
 					if err != nil {
-						fmt.Println(err)
-						color.Red("[%v] %v failed to react", time.Now().Format("15:04:05"), instances[i].CensorToken())
+						utilities.LogFailed("%v failed to react to %v", instances[i].CensorToken(), emoji)
+					} else {
+						utilities.LogSuccess("%v reacted to the emoji %v", instances[i].CensorToken(), emoji)
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(reactedFile, instances[i].Token)
+						}
 					}
-					color.Green("[%v] %v reacted to the emoji", time.Now().Format("15:04:05"), instances[i].CensorToken())
+
 				}
 				time.Sleep(time.Duration(delay) * time.Second)
 				c.Done()
@@ -102,37 +132,51 @@ func LaunchinviteJoiner() {
 			}(i)
 		}
 		c.WaitAllDone()
-		color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
+		utilities.LogSuccess("All Threads Completed!")
 
 	case 2:
-		color.Cyan("Multiple Invite Mode")
-		color.White("This will join your tokens from tokens.txt to servers from invite.txt")
 		cfg, instances, err := instance.GetEverything()
 		if err != nil {
-			color.Red("[%v] Error while getting necessary data: %v", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("Error while getting config or instances %s", err)
 		}
-
-		if len(instances) == 0 {
-			color.Red("[%v] Enter your tokens in tokens.txt", time.Now().Format("15:04:05"))
-			utilities.ExitSafely()
+		var tokenFile string
+		path := fmt.Sprintf(`logs/multi_joiner/DMDGO-MJ-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		if cfg.OtherSettings.Logs {
+			err := os.MkdirAll(path, 0755)
+			if err != nil && !os.IsExist(err) {
+				utilities.LogErr("Error creating logs directory: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating token file: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFileX.Close()
+			tokenFile = tokenFileX.Name()
+			for i := 0; i < len(instances); i++ {
+				instances[i].WriteInstanceToFile(tokenFile)
+			}
 		}
 		invites, err := utilities.ReadLines("invite.txt")
 		if err != nil {
-			color.Red("Error while opening invite.txt: %v", err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while opening invite.txt file %s", err)
 			return
+		}
+		var inviteFiles []string
+		for i := 0; i < len(invites); i++ {
+			f, err := os.Create(fmt.Sprintf(`/%s.txt`, invites[i]))
+			if err != nil {
+				utilities.LogErr("Error creating invite file %v: %s", invites[i], err)
+			}
+			inviteFiles = append(inviteFiles, f.Name())
 		}
 		if len(invites) == 0 {
-			color.Red("[%v] Enter your invites in invite.txt", time.Now().Format("15:04:05"))
-			utilities.ExitSafely()
+			utilities.LogErr("No invites found in invite.txt")
 			return
 		}
-		color.White("Enter delay between 2 consecutive joins by 1 token in seconds: ")
-		var delay int
-		fmt.Scanln(&delay)
-		color.White("Enter number of Threads (0 for unlimited): ")
-		var threads int
-		fmt.Scanln(&threads)
+		delay := utilities.UserInputInteger("Enter delay between 2 consecutive joins by 1 token in seconds: ")
+		threads := utilities.UserInputInteger("Enter number of threads (0 for maximum):")
 		if threads > len(instances) {
 			threads = len(instances)
 		}
@@ -147,7 +191,12 @@ func LaunchinviteJoiner() {
 				for j := 0; j < len(invites); j++ {
 					err := instances[i].Invite(processInvite(invites[j]))
 					if err != nil {
-						color.Red("[%v] Error while joining: %v", time.Now().Format("15:04:05"), err)
+						utilities.LogFailed("Token %v failed to join %v Error: %v", instances[i].CensorToken(), invites[j], err)
+					} else {
+						utilities.LogSuccess("Token %v joined %v", instances[i].CensorToken(), invites[j])
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(inviteFiles[j], instances[i].Token)
+						}
 					}
 					time.Sleep(time.Duration(delay) * time.Second)
 				}
@@ -155,7 +204,7 @@ func LaunchinviteJoiner() {
 			}(i)
 		}
 		c.WaitAllDone()
-		color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
+		utilities.LogSuccess("All Threads Completed!")
 	}
 }
 

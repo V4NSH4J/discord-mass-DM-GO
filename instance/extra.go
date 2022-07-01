@@ -19,7 +19,6 @@ import (
 	"net/url"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func GetReactions(channel string, message string, token string, emoji string, after string) ([]string, error) {
@@ -149,26 +148,26 @@ func Bypass(client *http.Client, serverid string, token string, invite string) e
 
 	req, err = http.NewRequest("PUT", url, strings.NewReader(string(jsonData)))
 	if err != nil {
-		color.Red("Error while making http request %v \n", err)
+		utilities.LogErr("Error while making http request %v \n", err)
 		return err
 	}
 
 	req.Header.Set("authorization", token)
 	resp, err = client.Do(CommonHeaders(req))
 	if err != nil {
-		color.Red("Error while sending HTTP request bypass %v \n", err)
+		utilities.LogErr("Error while sending HTTP request bypass %v \n", err)
 		return err
 	}
 	body, err = utilities.ReadBody(*resp)
 	if err != nil {
-		color.Red("[%v] Error while reading body %v \n", time.Now().Format("15:04:05"), err)
+		utilities.LogErr("[%v] Error while reading body %v \n", time.Now().Format("15:04:05"), err)
 		return err
 	}
 
 	if resp.StatusCode == 201 || resp.StatusCode == 204 {
-		color.Green("[%v][X] Successfully bypassed token %v", time.Now().Format("15:04:05"), token)
+		utilities.LogSuccess("[%v] Successfully bypassed token %v", time.Now().Format("15:04:05"), token)
 	} else {
-		color.Red("[%v][X] Failed to bypass Token %v %v %v", time.Now().Format("15:04:05"), token, resp.StatusCode, string(body))
+		utilities.LogErr("[%v] Failed to bypass Token %v %v %v", time.Now().Format("15:04:05"), token, resp.StatusCode, string(body))
 	}
 	return nil
 }
@@ -191,13 +190,13 @@ func (in *Instance) Invite(Code string) error {
 		}
 		payload, err := json.Marshal(payload)
 		if err != nil {
-			color.Red("error while marshalling payload %v", err)
+			utilities.LogErr("error while marshalling payload %v", err)
 			continue
 		}
 
 		cookie, err := in.GetCookieString()
 		if err != nil {
-			color.Red("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("[%v] Error while Getting cookies: %v", time.Now().Format("15:04:05"), err)
 			continue
 		}
 		XContext, err := in.ContextProperties(Code, cookie)
@@ -207,7 +206,7 @@ func (in *Instance) Invite(Code string) error {
 		url := fmt.Sprintf("https://discord.com/api/v9/invites/%s", Code)
 		req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
 		if err != nil {
-			color.Red("Error while making http request %v \n", err)
+			utilities.LogErr("Error while making http request %v \n", err)
 			continue
 		}
 
@@ -215,13 +214,13 @@ func (in *Instance) Invite(Code string) error {
 
 		resp, err := in.Client.Do(req)
 		if err != nil {
-			color.Red("Error while sending HTTP request %v \n", err)
+			utilities.LogErr("Error while sending HTTP request %v \n", err)
 			continue
 		}
 
 		body, err := utilities.ReadBody(*resp)
 		if err != nil {
-			color.Red("Error while reading body %v \n", err)
+			utilities.LogErr("Error while reading body %v \n", err)
 			continue
 		}
 		if strings.Contains(string(body), "captcha_sitekey") {
@@ -230,16 +229,16 @@ func (in *Instance) Invite(Code string) error {
 					reported = append(reported, string(in.LastID))
 					err := in.ReportIncorrectRecaptcha()
 					if err != nil {
-						color.Red("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
+						utilities.LogErr("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
 					} else {
-						color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), in.LastID)
+						utilities.LogSuccess("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), in.LastID)
 					}
 				}
 			}
 			var resp map[string]interface{}
 			err = json.Unmarshal(body, &resp)
 			if err != nil {
-				color.Red("[%v] Error while Unmarshalling body: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogErr("[%v] Error while Unmarshalling body: %v", time.Now().Format("15:04:05"), err)
 				continue
 			}
 			cap := resp["captcha_sitekey"].(string)
@@ -250,32 +249,32 @@ func (in *Instance) Invite(Code string) error {
 				rqToken = resp["captcha_rqtoken"].(string)
 			}
 			if in.Config.CaptchaSettings.CaptchaAPI == "" {
-				color.Red("[%v][X] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.CensorToken())
+				utilities.LogErr("[%v] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.CensorToken())
 				break
 			} else {
-				color.Yellow("[%v][X] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.CensorToken(), cap, i)
+				utilities.LogWarn("[%v] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.CensorToken(), cap, i)
 			}
 			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {
-				color.Red("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogErr("[%v] Error while Solving Captcha: %v", time.Now().Format("15:04:05"), err)
 				continue
 			}
 			j++
 			continue
 		}
 		if strings.Contains(string(body), "1015") {
-			color.Red("Cloudflare Error 1015 - Your IP is being Rate Limited. Use proxies. If you already are, make sure proxy_from_file is enabled in your config")
+			utilities.LogErr("Cloudflare Error 1015 - Your IP is being Rate Limited. Use proxies. If you already are, make sure proxy_from_file is enabled in your config")
 			break
 		}
 
 		var Join joinresponse
 		err = json.Unmarshal(body, &Join)
 		if err != nil {
-			color.Red("Error while unmarshalling body %v %v\n", err, string(body))
+			utilities.LogErr("Error while unmarshalling body %v %v\n", err, string(body))
 			return err
 		}
 		if resp.StatusCode == 200 {
-			color.Green("[%v][X] %v joint guild %v", time.Now().Format("15:04:05"), in.CensorToken(), Code)
+			utilities.LogSuccess("[%v] %v joint guild %v", time.Now().Format("15:04:05"), in.CensorToken(), Code)
 			if Join.VerificationForm {
 				if len(Join.GuildObj.ID) != 0 {
 					Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
@@ -283,7 +282,7 @@ func (in *Instance) Invite(Code string) error {
 			}
 		}
 		if resp.StatusCode != 200 {
-			color.Red("[%v][X] %v Failed to join guild %v", time.Now().Format("15:04:05"), resp.StatusCode, string(body))
+			utilities.LogErr("[%v] %v Failed to join guild %v", time.Now().Format("15:04:05"), resp.StatusCode, string(body))
 		}
 		return nil
 
@@ -297,7 +296,7 @@ func (in *Instance) Leave(serverid string) int {
 	json_data := "{\"lurking\":false}"
 	req, err := http.NewRequest(http.MethodDelete, url, bytes.NewBuffer([]byte(json_data)))
 	if err != nil {
-		color.Red("Error: %s", err)
+		utilities.LogErr("Error: %s", err)
 		return 0
 	}
 	cookie, err := in.GetCookieString()
@@ -430,7 +429,6 @@ func GetRxn(channel string, messageid string, token string) (Message, error) {
 	return message[0], nil
 }
 
-
 func (in *Instance) ServerCheck(serverid string) (int, error) {
 	url := "https://discord.com/api/v9/guilds/" + serverid
 	req, err := http.NewRequest("GET", url, nil)
@@ -465,7 +463,7 @@ func (in *Instance) EndRelation(snowflake string) (int, error) {
 	if err != nil {
 		return -1, err
 	}
-	return resp.StatusCode, nil	
+	return resp.StatusCode, nil
 }
 
 func (in *Instance) PressButton(actionRow, button int, guildID string, msg Message) (int, error) {
@@ -492,7 +490,7 @@ func (in *Instance) PressButton(actionRow, button int, guildID string, msg Messa
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return -1, err 
+		return -1, err
 	}
 	fmt.Println(string(body))
 	return resp.StatusCode, nil

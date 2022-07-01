@@ -1,7 +1,7 @@
 
 direct_message_settings:
-  individual_delay: 300
-  rate_limit_delay: 60
+  individual_delay: 10
+  rate_limit_delay: 650
   offset: 100
   max_dms_per_token: 0
   skip_completed: true
@@ -16,6 +16,8 @@ direct_message_settings:
   skip_failed: false
   block_after_dm: false
   close_dm_after_message: false
+  multiple_message: false
+  delay_between_multiple_messages: 10
 
 proxy_settings:
   proxy_from_file: true
@@ -39,14 +41,16 @@ captcha_settings:
 
 other_settings: 
   disable_keep_alives: false
-  mode: 2
+  mode: 1
   constant_cookies: true 
-  censor_token: true 
+  censor_token: false
+  logs: true 
+  gateway_status: 4
 
 suspicion_avoidance:
-  random_individual_delay: 150
+  random_individual_delay: 0
   random_rate_limit_delay: 0
-  random_delay_before_dm: 30
+  random_delay_before_dm: 0
   typing: false
   typing_variation: 250
   typing_speed: 450
@@ -67,17 +71,3 @@ dm_on_react:
   rotate_tokens: true
   max_anti_raid_queue: 20
   max_dms_per_token: 10
-
-auto_react: 
-  observer_token: ""
-  subscribe_to_servers: [""]
-  servers: [""]
-  channels: [""]
-  messages: [""]
-  users: [""]
-  emojis: [""]
-  react_with: ["🙉"] 
-  react_all: true
-  delay_between_reacts: 15000
-  individual_delay: 3000
-  minimum_percent_react: 100 

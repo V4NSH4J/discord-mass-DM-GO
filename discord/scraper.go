@@ -17,27 +17,59 @@ import (
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func LaunchScraperMenu() {
 	cfg, _, err := instance.GetEverything()
 	if err != nil {
-		color.Red("Error while getting necessary data %v", err)
+		utilities.LogErr("Error while getting neccessary information %v", err)
+		utilities.ExitSafely()
 	}
-	color.White("1) Online Scraper (Opcode 14)\n2) Scrape from Reactions\n3) Offline Scraper (Opcode 8)")
-	var options int
-	fmt.Scanln(&options)
+	utilities.PrintMenu([]string{"Online Scraper (Opcode 14)", "Scrape from Reactions (REST API)", "Offline Scraper (Opcode 8)"})
+	options := utilities.UserInputInteger("Select an option: ")
 	if options == 1 {
-		var token string
-		color.White("Enter token: ")
-		fmt.Scanln(&token)
-		var serverid string
-		color.White("Enter serverid: ")
-		fmt.Scanln(&serverid)
-		var channelid string
-		color.White("Enter channelid: ")
-		fmt.Scanln(&channelid)
+		token := utilities.UserInput("Enter the token: ")
+		serverid := utilities.UserInput("Enter the server ID: ")
+		channelid := utilities.UserInput("Enter the channel ID: ")
+		var botsFile, avatarFile, nameFile, path, rolePath, scrapedFile string
+		if cfg.OtherSettings.Logs {
+			path = fmt.Sprintf(`logs/online_scraper/DMDGO-OS-%s-%s-%s-%s`, serverid, channelid, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+			rolePath = fmt.Sprintf(`%s/roles`, path)
+			err := os.MkdirAll(path, 0755)
+			if err != nil && !os.IsExist(err) {
+				utilities.LogErr("Error creating logs directory: %s", err)
+				utilities.ExitSafely()
+			}
+			err = os.MkdirAll(rolePath, 0755)
+			if err != nil && !os.IsExist(err) {
+				utilities.LogErr("Error creating roles directory: %s", err)
+				utilities.ExitSafely()
+			}
+			botsFileX, err := os.Create(fmt.Sprintf(`%s/bots.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating bots file: %s", err)
+				utilities.ExitSafely()
+			}
+			botsFileX.Close()
+			AvatarFileX, err := os.Create(fmt.Sprintf(`%s/avatars.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating avatars file: %s", err)
+				utilities.ExitSafely()
+			}
+			AvatarFileX.Close()
+			NameFileX, err := os.Create(fmt.Sprintf(`%s/names.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating names file: %s", err)
+				utilities.ExitSafely()
+			}
+			NameFileX.Close()
+			ScrapedFileX, err := os.Create(fmt.Sprintf(`%s/scraped.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating scraped file: %s", err)
+				utilities.ExitSafely()
+			}
+			botsFile, avatarFile, nameFile, scrapedFile = botsFileX.Name(), AvatarFileX.Name(), NameFileX.Name(), ScrapedFileX.Name()
+		}
 		Is := instance.Instance{Token: token}
 		title := make(chan bool)
 		go func() {
@@ -59,33 +91,28 @@ func LaunchScraperMenu() {
 		t := 0
 		for {
 			if t >= 5 {
-				color.Red("[%v] Couldn't connect to websocket after retrying.", time.Now().Format("15:04:05"))
+				utilities.LogErr("Couldn't connect to websocket after retrying.")
 				break
 			}
 			err := Is.StartWS()
 			if err != nil {
-				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogFailed("Error while opening websocket: %v", err)
 			} else {
 				break
 			}
 			t++
 		}
 
-		color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), Is.Token)
-		if Is.Ws != nil {
-			err := instance.Subscribe(Is.Ws, serverid)
-			if err != nil {
-				color.Red("[%v][!] Error while subscribing to server: %s", time.Now().Format("15:04:05"), err)
-			}
-		}
+		utilities.LogErr("Websocket opened %v", Is.Token)
 		i := 0
 		for {
 			err := instance.Scrape(Is.Ws, serverid, channelid, i)
 			if err != nil {
-				color.Red("[%v] Error while scraping: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogErr("Error while scraping: %v", err)
 			}
-			color.Green("[%v] Token %v Scrape Count: %v", time.Now().Format("15:04:05"), Is.Token, len(Is.Ws.Members))
+			utilities.LogSuccess("Token %v Scrape Count: %v", Is.Token, len(Is.Ws.Members))
 			if Is.Ws.Complete {
+				fmt.Scanln()
 				break
 			}
 			i++
@@ -94,58 +121,67 @@ func LaunchScraperMenu() {
 		if Is.Ws != nil {
 			Is.Ws.Close()
 		}
-		color.Green("[%v] Scraping finished. Scraped %v members", time.Now().Format("15:04:05"), len(Is.Ws.Members))
-		clean := utilities.RemoveDuplicateStr(Is.Ws.Members)
-		color.Green("[%v] Removed Duplicates. Scraped %v members", time.Now().Format("15:04:05"), len(clean))
-		color.Green("[%v] Write to memberids.txt? (y/n)", time.Now().Format("15:04:05"))
+		utilities.LogSuccess("Scraping finished. Scraped %v members", len(Is.Ws.Members))
+		if cfg.OtherSettings.Logs {
+			for i := 0; t < len(Is.Ws.Members); i++ {
+				if Is.Ws.Members[i].User.Bot {
+					utilities.WriteLinesPath(botsFile, fmt.Sprintf("%v %v %v", Is.Ws.Members[i].User.ID, Is.Ws.Members[i].User.Username, Is.Ws.Members[i].User.Discriminator))
+				}
+				if Is.Ws.Members[i].User.Avatar != "" {
+					utilities.WriteLinesPath(avatarFile, fmt.Sprintf("%v:%v", Is.Ws.Members[i].User.ID, Is.Ws.Members[i].User.Avatar))
+				}
+				if Is.Ws.Members[i].User.Username != "" {
+					utilities.WriteLinesPath(nameFile, fmt.Sprintf("%v", Is.Ws.Members[i].User.Username))
+				}
+				for x := 0; x < len(Is.Ws.Members[i].Roles); x++ {
+					utilities.WriteRoleFile(Is.Ws.Members[i].User.ID, rolePath, Is.Ws.Members[i].Roles[x])
+				}
+				utilities.WriteLinesPath(scrapedFile, Is.Ws.Members[i].User.ID)
+			}
+		}
+		var memberids []string
+		for _, member := range Is.Ws.Members {
+			memberids = append(memberids, member.User.ID)
+		}
+		clean := utilities.RemoveDuplicateStr(memberids)
+		utilities.LogSuccess("Removed Duplicates. Scraped %v members", len(clean))
+		write := utilities.UserInput("Write to memberids.txt? (y/n)")
 		title <- true
-		var write string
-		fmt.Scanln(&write)
 		if write == "y" {
 			for k := 0; k < len(clean); k++ {
 				err := utilities.WriteLines("memberids.txt", clean[k])
 				if err != nil {
-					color.Red("[%v] Error while writing to memberids.txt: %v", time.Now().Format("15:04:05"), err)
+					utilities.LogErr("Error while writing to file: %v", err)
 				}
 			}
-			color.Green("[%v] Wrote to memberids.txt", time.Now().Format("15:04:05"))
+			utilities.LogSuccess("Wrote %v members to memberids.txt", len(clean))
 			err := utilities.WriteFile("scraped/"+serverid+".txt", clean)
 			if err != nil {
-				color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogErr("Error while writing to file: %v", err)
 			}
 		}
 
 	}
 	if options == 2 {
-		var token string
-		color.White("Enter token: ")
-		fmt.Scanln(&token)
-		var messageid string
-		color.White("Enter messageid: ")
-		fmt.Scanln(&messageid)
-		var channelid string
-		color.White("Enter channelid: ")
-		fmt.Scanln(&channelid)
-		color.White("1) Get Emoji from Message\n2) Enter Emoji manually")
-		var option int
+		token := utilities.UserInput("Enter the token: ")
+		channelid := utilities.UserInput("Enter the channel ID: ")
+		messageid := utilities.UserInput("Enter the message ID: ")
+		utilities.PrintMenu([]string{"Get Emoji from Message", "Enter Emoji Manually"})
+		option := utilities.UserInputInteger("Select an option: ")
 		var send string
-		fmt.Scanln(&option)
-		var emoji string
 		if option == 2 {
-			color.White("Enter emoji [For Native Discord Emojis, just copy and paste emoji as unicode. For Custom/Nitro Emojis enter Name:EmojiID exactly in this format]: ")
-			fmt.Scanln(&emoji)
-			send = emoji
+			send = utilities.UserInput("Enter the emoji [Format emojiName or emojiName:emojiID for nitro emojis]: ")
 		} else {
 			msg, err := instance.GetRxn(channelid, messageid, token)
 			if err != nil {
-				fmt.Println(err)
+				utilities.LogErr("Error while getting message: %v", err)
 			}
-			color.White("Select Emoji")
+			var selection []string
 			for i := 0; i < len(msg.Reactions); i++ {
-				color.White("%v) %v %v", i, msg.Reactions[i].Emojis.Name, msg.Reactions[i].Count)
+				selection = append(selection, fmt.Sprintf("Emoji: %v | Count: %v", msg.Reactions[i].Emojis.Name, msg.Reactions[i].Count))
 			}
-			var index int
-			fmt.Scanln(&index)
+			utilities.PrintMenu2(selection)
+			index := utilities.UserInputInteger("Select an option: ")
 			if msg.Reactions[index].Emojis.ID == "" {
 				send = msg.Reactions[index].Emojis.Name
 
@@ -153,7 +189,6 @@ func LaunchScraperMenu() {
 				send = msg.Reactions[index].Emojis.Name + ":" + msg.Reactions[index].Emojis.ID
 			}
 		}
-
 		var allUIDS []string
 		var m string
 		title := make(chan bool)
@@ -178,54 +213,52 @@ func LaunchScraperMenu() {
 			}
 			rxn, err := instance.GetReactions(channelid, messageid, token, send, m)
 			if err != nil {
-				fmt.Println(err)
+				utilities.LogErr("Error while getting reactions: %v", err)
 				continue
 			}
 			if len(rxn) == 0 {
 				break
 			}
-			fmt.Println(rxn)
+			utilities.LogInfo("Scraped %v members", len(rxn))
 			allUIDS = append(allUIDS, rxn...)
 
 		}
-		color.Green("[%v] Scraping finished. Scraped %v lines - Removing Duplicates", time.Now().Format("15:04:05"), len(allUIDS))
+		utilities.LogInfo("Scraping finished. Scraped %v lines - Removing Duplicates", len(allUIDS))
 		clean := utilities.RemoveDuplicateStr(allUIDS)
-		color.Green("[%v] Write to memberids.txt? (y/n)", time.Now().Format("15:04:05"))
-		var write string
-		fmt.Scanln(&write)
+		path := fmt.Sprintf(`logs/reaction_scraper/DMDGO-RS-%s-%s-%s-%s`, channelid, messageid, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			utilities.LogErr("Error creating logs directory: %s", err)
+			utilities.ExitSafely()
+		}
+		scrapedFileX, err := os.Create(fmt.Sprintf(`%s/scraped.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating scraped file: %s", err)
+			utilities.ExitSafely()
+		}
+		defer scrapedFileX.Close()
+		scrapedFile := scrapedFileX.Name()
+		for i := 0; i < len(clean); i++ {
+			utilities.WriteLinesPath(scrapedFile, clean[i])
+		}
+		write := utilities.UserInput("Write to memberids.txt? (y/n)")
 		if write == "y" {
 			for k := 0; k < len(clean); k++ {
 				err := utilities.WriteLines("memberids.txt", clean[k])
 				if err != nil {
-					color.Red("[%v] Error while writing to memberids.txt: %v", time.Now().Format("15:04:05"), err)
+					utilities.LogErr("Error while writing to file: %v", err)
 				}
 			}
-			color.Green("[%v] Wrote to memberids.txt", time.Now().Format("15:04:05"))
-			err := utilities.WriteFile("scraped/"+messageid+".txt", allUIDS)
-			if err != nil {
-				color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
-			}
+			utilities.LogSuccess("Wrote %v members to memberids.txt", len(clean))
 		}
 		title <- true
-		fmt.Println("Done")
+		utilities.LogSuccess("Finished")
 	}
 	if options == 3 {
-		// Query Brute. This is a test function. Try using the compressed stream to appear legit.
-		// Make a list of possible characters - Space can only come once, double spaces are counted as single ones and Name can't start from space. Queries are NOT case-sensitive.
-		// Start from a character, check the returns. If it's less than 100, that query is complete and no need to go further down the rabbit hole.
-		// If it's more than 100 or 100 and the last name starts from the query, pick the letter after our query and go down the rabbit hole.
-		// Wait 0.5s (Or better, needs testing) Between scrapes and systematically connect and disconnect from websocket to avoid rate limiting.
-		// Global var where members get appended (even repeats, will be cleared later) list of queries completed, list of queries left to complete and last query the instance searched to be in struct
-		// Scan line for user input to stop at any point and proceed with the memberids scraped at hand.
-		// Multiple instance support. Division of queries and hence completes in lesser time.
-		// Might not need to worry about spaces at all as @ uses no spaces.
-		// Starting Websocket(s) Appending to a slice. 1 for now, add more later.
-		color.Cyan("Opcode 8 Scraper (Offline Scraper)")
-		color.White("This feature is intentionally slowed down with high delays. Please use multiple tokens and ensure they are in the server before starting to complete it quick.")
 		cfg, instances, err := instance.GetEverything()
 		if err != nil {
-			color.Red("[%v] Error while getting config: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while getting instances: %v", err)
+			return
 		}
 		var scraped []string
 		var queriesCompleted []string
@@ -244,11 +277,9 @@ func LaunchScraperMenu() {
 
 			}
 		}()
-		color.Green("[%v] How many tokens do you wish to use? You have %v ", time.Now().Format("15:04:05"), len(instances))
-		var numTokens int
+		numTokens := utilities.UserInputInteger("How many tokens do you wish to use? You have %v ", len(instances))
 		quit := make(chan bool)
 		var allQueries []string
-		fmt.Scanln(&numTokens)
 		var chars string
 		rawChars := " !\"#$%&'()*+,-./0123456789:;<=>?@[]^_`abcdefghijklmnopqrstuvwxyz{|}~" + cfg.ScraperSettings.ExtendedChars
 		// Removing duplicates
@@ -267,21 +298,67 @@ func LaunchScraperMenu() {
 		}
 
 		if numTokens > len(instances) {
-			color.Red("[%v] You only have %v tokens in your tokens.txt Using the maximum number of tokens possible", time.Now().Format("15:04:05"), len(instances))
+			utilities.LogWarn("You only have %v tokens in your tokens.txt Using the maximum number of tokens possible", len(instances))
 		} else if numTokens <= 0 {
-			color.Red("[%v] You must atleast use 1 token", time.Now().Format("15:04:05"))
+			utilities.LogErr("You must atleast use 1 token")
 			utilities.ExitSafely()
 		} else if numTokens <= len(instances) {
-			color.Green("[%v] You have %v tokens in your tokens.txt Using %v tokens", time.Now().Format("15:04:05"), len(instances), numTokens)
+			utilities.LogInfo("You have %v tokens in your tokens.txt Using %v tokens", len(instances), numTokens)
 			instances = instances[:numTokens]
 		} else {
-			color.Red("[%v] Invalid input", time.Now().Format("15:04:05"))
+			utilities.LogErr("Invalid input")
 		}
 
-		color.Green("[%v] Enter the ServerID", time.Now().Format("15:04:05"))
-		var serverid string
-		fmt.Scanln(&serverid)
-		color.Green("[%v] Press ENTER to START and STOP scraping", time.Now().Format("15:04:05"))
+		serverid := utilities.UserInput("Enter the server ID: ")
+		var tokenFile, botsFile, avatarFile, nameFile, path, rolePath, scrapedFile string
+		if cfg.OtherSettings.Logs {
+			path = fmt.Sprintf(`logs/offline_scraper/DMDGO-OS-%s-%s-%s`, serverid, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+			rolePath = fmt.Sprintf(`%s/roles`, path)
+			err := os.MkdirAll(path, 0755)
+			if err != nil && !os.IsExist(err) {
+				utilities.LogErr("Error creating logs directory: %s", err)
+				utilities.ExitSafely()
+			}
+			err = os.MkdirAll(rolePath, 0755)
+			if err != nil && !os.IsExist(err) {
+				utilities.LogErr("Error creating roles directory: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating token file: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFileX.Close()
+			botsFileX, err := os.Create(fmt.Sprintf(`%s/bots.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating bots file: %s", err)
+				utilities.ExitSafely()
+			}
+			botsFileX.Close()
+			AvatarFileX, err := os.Create(fmt.Sprintf(`%s/avatars.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating avatars file: %s", err)
+				utilities.ExitSafely()
+			}
+			AvatarFileX.Close()
+			NameFileX, err := os.Create(fmt.Sprintf(`%s/names.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating names file: %s", err)
+				utilities.ExitSafely()
+			}
+			NameFileX.Close()
+			ScrapedFileX, err := os.Create(fmt.Sprintf(`%s/scraped.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating scraped file: %s", err)
+				utilities.ExitSafely()
+			}
+			tokenFile, botsFile, avatarFile, nameFile, scrapedFile = tokenFileX.Name(), botsFileX.Name(), AvatarFileX.Name(), NameFileX.Name(), ScrapedFileX.Name()
+			for i := 0; i < len(instances); i++ {
+				instances[i].WriteInstanceToFile(tokenFile)
+			}
+		}
+		utilities.LogInfo("Press ENTER to START and STOP scraping")
 		bufio.NewReader(os.Stdin).ReadBytes('\n')
 		var namesScraped []string
 		var avatarsScraped []string
@@ -310,6 +387,9 @@ func LaunchScraperMenu() {
 					// Get a query from the channel / Await for close response
 					select {
 					case <-quit:
+						if instances[i].Ws != nil {
+							instances[i].Ws.Close()
+						}
 						return
 					default:
 						query := <-queriesLeft
@@ -322,7 +402,7 @@ func LaunchScraperMenu() {
 						}
 						err := instance.ScrapeOffline(instances[i].Ws, serverid, query)
 						if err != nil {
-							color.Red("[%v] %v Error while scraping: %v", time.Now().Format("15:04:05"), instances[i].CensorToken(), err)
+							utilities.LogErr("%v Error while scraping: %v", instances[i].CensorToken(), err)
 							go func() {
 								queriesLeft <- query
 							}()
@@ -334,7 +414,7 @@ func LaunchScraperMenu() {
 						var MemberInfo instance.Event
 						err = json.Unmarshal(memInfo, &MemberInfo)
 						if err != nil {
-							color.Red("[%v] Error while unmarshalling: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while unmarshalling: %v", err)
 							queriesLeft <- query
 							continue
 						}
@@ -350,21 +430,37 @@ func LaunchScraperMenu() {
 								scraped = append(scraped, member.User.ID)
 							}
 						}
-						color.Green("[%v] Token %v Query %v Scraped %v [+%v]", time.Now().Format("15:04:05"), instances[i].CensorToken(), query, len(scraped), len(MemberInfo.Data.Members))
+						utilities.LogSuccess("Token %v Query %v Scraped %v [+%v]", instances[i].CensorToken(), query, len(scraped), len(MemberInfo.Data.Members))
 
 						for i := 0; i < len(MemberInfo.Data.Members); i++ {
 							id := MemberInfo.Data.Members[i].User.ID
 							err := utilities.WriteLines("memberids.txt", id)
 							if err != nil {
-								color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
+								utilities.LogErr("Error while writing to file: %v", err)
 								continue
 							}
+							if cfg.OtherSettings.Logs {
+								utilities.WriteLinesPath(scrapedFile, id)
+								if MemberInfo.Data.Members[i].User.Bot {
+									utilities.WriteLinesPath(botsFile, fmt.Sprintf("%v %v %v", id, MemberInfo.Data.Members[i].User.Username, MemberInfo.Data.Members[i].User.Discriminator))
+								}
+								if MemberInfo.Data.Members[i].User.Avatar != "" {
+									utilities.WriteLinesPath(avatarFile, fmt.Sprintf("%v:%v", id, MemberInfo.Data.Members[i].User.Avatar))
+								}
+								if MemberInfo.Data.Members[i].User.Username != "" {
+									utilities.WriteLinesPath(nameFile, fmt.Sprintf("%v", MemberInfo.Data.Members[i].User.Username))
+								}
+								for x := 0; x < len(MemberInfo.Data.Members[i].Roles); x++ {
+									utilities.WriteRoleFile(id, rolePath, MemberInfo.Data.Members[i].Roles[x])
+								}
+							}
+
 							if cfg.ScraperSettings.ScrapeUsernames {
 								nom := MemberInfo.Data.Members[i].User.Username
 								if !utilities.Contains(namesScraped, nom) {
 									err := utilities.WriteLines("names.txt", nom)
 									if err != nil {
-										color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
+										utilities.LogErr("Error while writing to file: %v", err)
 										continue
 									}
 								}
@@ -374,7 +470,7 @@ func LaunchScraperMenu() {
 								if !utilities.Contains(avatarsScraped, av) {
 									err := utilities.ProcessAvatar(av, id)
 									if err != nil {
-										color.Red("[%v] Error while processing avatar: %v", time.Now().Format("15:04:05"), err)
+										utilities.LogErr("Error while processing avatar: %v", err)
 										continue
 									}
 								}
@@ -400,7 +496,7 @@ func LaunchScraperMenu() {
 		}
 
 		bufio.NewReader(os.Stdin).ReadBytes('\n')
-		color.Green("[%v] Stopping All instances", time.Now().Format("15:04:05"))
+		utilities.LogInfo("Stopping All instances")
 		title <- true
 		for i := 0; i < len(instances); i++ {
 			go func() {
@@ -408,19 +504,13 @@ func LaunchScraperMenu() {
 			}()
 		}
 
-		color.Green("[%v] Scraping Complete. %v members scraped.", time.Now().Format("15:04:05"), len(scraped))
-		color.Green("Do you wish to write to file again? (y/n) [This will remove pre-existing IDs from memberids.txt]")
-		var choice string
-		fmt.Scanln(&choice)
+		utilities.LogInfo("Scraping Complete. %v members scraped.", len(scraped))
+		choice := utilities.UserInput("Do you wish to write to file again? (y/n) [This will remove pre-existing IDs from memberids.txt]")
 		if choice == "y" || choice == "Y" {
 			clean := utilities.RemoveDuplicateStr(scraped)
 			err := utilities.TruncateLines("memberids.txt", clean)
 			if err != nil {
-				color.Red("[%v] Error while truncating file: %v", time.Now().Format("15:04:05"), err)
-			}
-			err = utilities.WriteFile("scraped/"+serverid, clean)
-			if err != nil {
-				color.Red("[%v] Error while writing to file: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogErr("Error while truncating file: %v", err)
 			}
 		}
 

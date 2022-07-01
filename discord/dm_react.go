@@ -7,10 +7,8 @@
 package discord
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -22,13 +20,13 @@ import (
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func LaunchDMReact() {
 	cfg, instances, err := instance.GetEverything()
 	if err != nil {
-		color.Red("Error while obtaining config and instances: %s", err)
+		utilities.LogErr("Error while getting config or instances %s", err)
+		return
 	}
 	// Setting the titlebar on windows
 	var ReactCount, ApproveCount, SuccessCount, LockedCount int
@@ -47,50 +45,97 @@ func LaunchDMReact() {
 
 		}
 	}()
+	var tokenFile, completedUsersFile, failedUsersFile, lockedFile, quarantinedFile, eventsFile, logsFile string
+	if cfg.OtherSettings.Logs {
+		path := fmt.Sprintf(`logs/dm_react/DMDGO-DMR-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			utilities.LogErr("Error creating logs directory: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating token file: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX.Close()
+		completedUsersFileX, err := os.Create(fmt.Sprintf(`%s/success.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating success file: %s", err)
+			utilities.ExitSafely()
+		}
+		completedUsersFileX.Close()
+		failedUsersFileX, err := os.Create(fmt.Sprintf(`%s/failed.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		failedUsersFileX.Close()
+		lockedFileX, err := os.Create(fmt.Sprintf(`%s/locked.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		lockedFileX.Close()
+		quarantinedFileX, err := os.Create(fmt.Sprintf(`%s/quarantined.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		quarantinedFileX.Close()
+		eventsFileX, err := os.Create(fmt.Sprintf(`%s/events.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		eventsFileX.Close()
+		LogsX, err := os.Create(fmt.Sprintf(`%s/logs.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		LogsX.Close()
+		tokenFile, completedUsersFile, failedUsersFile, lockedFile, quarantinedFile, eventsFile, logsFile = tokenFileX.Name(), completedUsersFileX.Name(), failedUsersFileX.Name(), lockedFileX.Name(), quarantinedFileX.Name(), eventsFileX.Name(), LogsX.Name()
+		for i := 0; i < len(instances); i++ {
+			instances[i].WriteInstanceToFile(tokenFile)
+		}
+	}
 	// Checking config for observer token
 	if cfg.DMonReact.Observer == "" {
-		color.Red("Set an Observer token to use DM on react")
-		utilities.ExitSafely()
+		utilities.LogErr("Observer token not set in config")
+		return
 	}
 	if cfg.DMonReact.ServerID == "" {
-		color.Red("Set a Server ID to use DM on react")
-		utilities.ExitSafely()
+		utilities.LogErr("Set a Server ID to use DM on react")
+		return
 	}
 	if cfg.DMonReact.Invite == "" {
-		color.Red("Set an Invite to use DM on react")
-		utilities.ExitSafely()
+		utilities.LogErr("Set an Invite to use DM on react")
+		return
 	}
 	var msg instance.Message
-	color.Green("[%v] Press 1 to use messages from file or press 2 to enter a message: ", time.Now().Format("15:04:05"))
-	var messagechoice int
-	fmt.Scanln(&messagechoice)
+	messagechoice := utilities.UserInputInteger("Enter 1 to use message from file, 2 to use message from console: ")
 	if messagechoice != 1 && messagechoice != 2 {
-		color.Red("[%v] Invalid choice", time.Now().Format("15:04:05"))
-		utilities.ExitSafely()
+		utilities.LogErr("Invalid choice")
+		return
 	}
 	if messagechoice == 2 {
-		color.Green("[%v] Enter your message, use \\n for changing lines. You can also set a constant message in message.json", time.Now().Format("15:04:05"))
-		scanner := bufio.NewScanner(os.Stdin)
-		var text string
-		if scanner.Scan() {
-			text = scanner.Text()
-		}
-
+		text := utilities.UserInput("Enter your message, use \\n for changing lines. You can also set a constant message in message.json")
 		msg.Content = text
 		msg.Content = strings.Replace(msg.Content, "\\n", "\n", -1)
 		var msgs []instance.Message
 		msgs = append(msgs, msg)
 		err := instance.SetMessages(instances, msgs)
 		if err != nil {
-			color.Red("[%v] Error while setting messages: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while setting messages: %s", err)
+			return
 		}
 	} else {
 		var msgs []instance.Message
 		err := instance.SetMessages(instances, msgs)
 		if err != nil {
-			color.Red("[%v] Error while setting messages: %v", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while setting messages: %s", err)
+			return
 		}
 	}
 	// Initializing Files & Variables
@@ -102,77 +147,81 @@ func LaunchDMReact() {
 	if cfg.DMonReact.SkipCompleted {
 		completed, err = utilities.ReadLines("completed.txt")
 		if err != nil {
-			color.Red("Error while reading completed.txt: %s", err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while reading completed.txt: %s", err)
+			return
 		}
 	}
 	if cfg.DMonReact.SkipFailed {
 		failed, err = utilities.ReadLines("failed.txt")
 		if err != nil {
-			color.Red("Error while reading failed.txt: %s", err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while reading failed.txt: %s", err)
+			return
 		}
 	}
 	if cfg.DMonReact.ChangeAvatar {
-		color.Green("[%v] Loading Avatars..", time.Now().Format("15:04:05"))
+		utilities.LogInfo("Loading Avatars..")
 		ex, err := os.Executable()
 		if err != nil {
-			color.Red("Couldn't find Exe")
-			utilities.ExitSafely()
+			utilities.LogErr("Error while getting executable path: %s", err)
+			return
 		}
 		ex = filepath.ToSlash(ex)
 		path := path.Join(path.Dir(ex) + "/input/pfps")
 
 		images, err := instance.GetFiles(path)
 		if err != nil {
-			color.Red("Couldn't find images in PFPs folder")
-			utilities.ExitSafely()
+			utilities.LogErr("Couldn't find Images in pfps folder %s", err)
+			return
 		}
-		color.Green("%v files found", len(images))
+		utilities.LogInfo("Found %d images", len(images))
 		if len(images) == 0 {
 			cfg.DMonReact.ChangeAvatar = false
-			color.Red("[%v][!] No images found in PFPs folder - Disabling avatar change", time.Now().Format("15:04:05"))
+			utilities.LogWarn("No images found in pfps folder, disabling avatar change")
 		} else {
 			for i := 0; i < len(images); i++ {
 				av, err := instance.EncodeImg(images[i])
 				if err != nil {
-					color.Red("Couldn't encode image")
+					utilities.LogErr("Error while encoding image: %s", err)
 					continue
 				}
 				avatars = append(avatars, av)
 			}
-			color.Green("%v avatars loaded", len(avatars))
+			utilities.LogInfo("%v avatars loaded", len(avatars))
 		}
 	}
 	if cfg.DMonReact.ChangeName {
 		names, err = utilities.ReadLines("names.txt")
 		if err != nil {
-			color.Red("Error while reading names.txt: %s", err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while reading names.txt: %s", err)
+			return
 		}
 		if len(names) == 0 {
 			cfg.DMonReact.ChangeName = false
-			color.Red("[%v][!] No names found in names.txt - Disabling name change", time.Now().Format("15:04:05"))
+			utilities.LogWarn("No names found in names.txt, disabling name change")
 		}
 	}
 	if cfg.DMonReact.ChangeName {
 		for i := 0; i < len(instances); i++ {
 			if instances[i].Password == "" {
 				cfg.DMonReact.ChangeName = false
-				color.Red("[%v][!] Token %v has no password, perhaps using the wrong format. Need to use email:password:token to use the name changer", time.Now().Format("15:04:05"), instances[i].CensorToken()[i])
+				utilities.LogWarn("Token %s has no password, require tokens in format email:password:token to use the name changer", instances[i].CensorToken())
 				break
 			}
 		}
 	}
 	if cfg.ProxySettings.ProxyFromFile {
 		proxies, err = utilities.ReadLines("proxies.txt")
+		if err != nil {
+			utilities.LogErr("Error while reading proxies.txt: %s", err)
+			return
+		}
 		if len(proxies) == 0 {
 			cfg.ProxySettings.ProxyFromFile = false
-			color.Red("[%v][!] No proxies found in proxies.txt - Disabling proxy usage", time.Now().Format("15:04:05"))
+			utilities.LogWarn("No proxies found in proxies.txt, disabling proxy change")
 		}
 	}
 	if cfg.CaptchaSettings.ClientKey == "" {
-		color.Red("[%v][!] You're not using a Captcha key, if anytime the token is met with a captcha, it will be switched.")
+		utilities.LogWarn("You're not using a captcha key, if you're met with a captcha the token will be cycled.")
 	}
 	tokenPool := make(chan instance.Instance, len(instances))
 	for i := 0; i < len(instances); i++ {
@@ -180,13 +229,13 @@ func LaunchDMReact() {
 			if instances[i].Token != cfg.DMonReact.Observer {
 				tokenPool <- instances[i]
 			} else {
-				color.Red("[%v][!] Skipping Observer token %v", time.Now().Format("15:04:05"), instances[i].Token)
+				utilities.LogInfo("Skipping observer token %s", instances[i].CensorToken())
 			}
 		}(i)
 	}
 
 	// All files and variables loaded and errors handled.
-	color.Green("[%v][O] Initializing Observer token [%v]", time.Now().Format("15:04:05"), cfg.DMonReact.Observer)
+	utilities.LogInfo("Initializing Observer Token from config")
 	var observerInstance instance.Instance
 	observerInstance.Token = cfg.DMonReact.Observer
 	var proxy string
@@ -200,7 +249,7 @@ func LaunchDMReact() {
 	}
 	client, err := instance.InitClient(proxy, cfg)
 	if err != nil {
-		color.Red("[%v][!] Error while initializing client: %s Using Default client for listener token", time.Now().Format("15:04:05"), err)
+		utilities.LogWarn("Error while initializing client: %s using default client for observer", err)
 		client = http.DefaultClient
 	}
 	observerInstance.Client = client
@@ -208,33 +257,32 @@ func LaunchDMReact() {
 	if cfg.DMonReact.ServerID != "" {
 		r, err := observerInstance.ServerCheck(cfg.DMonReact.ServerID)
 		if err != nil {
-			color.Red("[%v][!] Error while checking server: %s", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("Error while checking if observer token is present in server: %s", err)
 		} else {
 			if r != 200 && r != 204 {
 				// Token not in server or some other issue like rate limit
 				err := observerInstance.Invite(cfg.DMonReact.Invite)
 				if err != nil {
-					color.Red("[%v][!] Error while inviting to server: %s", time.Now().Format("15:04:05"), err)
+					utilities.LogErr("Error while inviting observer token: %s", err)
 				} else {
-					color.Green("[%v][O] Successfully invited to server", time.Now().Format("15:04:05"))
+					utilities.LogSuccess("Observer token invited to server")
 				}
 
 			}
 		}
 		r, err = observerInstance.ServerCheck(cfg.DMonReact.ServerID)
 		if err != nil {
-			color.Red("[%v][!] Error while checking server: %s", time.Now().Format("15:04:05"), err)
-			utilities.ExitSafely()
+			utilities.LogErr("Error while checking if observer token is present in server: %s", err)
+			return
 		} else {
 			if r != 200 && r != 204 {
-				color.Red("[%v][!] Error while joining server: %v - If you meant to listen to reactions globally, make serverid an empty string", time.Now().Format("15:04:05"), r)
-				// Token was tried to be invited after it was found that it might not be in the server. And after checking again the listener token may still not be present
-				utilities.ExitSafely()
+				utilities.LogErr("Invalid response code %s while checking if observer token is present in server", r)
+				return
 			}
 		}
 
 	}
-	color.Green("[%v][O] Successfully initialized Observer token [%v]", time.Now().Format("15:04:05"), observerInstance.CensorToken())
+	utilities.LogSuccess("Observer Token initialized")
 	// Start Listening for reactions.
 	ticker := make(chan bool)
 	kill := make(chan bool)
@@ -260,55 +308,58 @@ func LaunchDMReact() {
 						if observerInstance.Ws != nil {
 							observerInstance.Ws = nil
 						}
-						color.Yellow("[%v][O] Disconnected Observer token to reconnect", time.Now().Format("15:04:05"))
+						utilities.LogInfo("Disconnected observer token to reconnect")
 					case x := <-observerInstance.Ws.Reactions:
 						var event instance.Event
 						err := json.Unmarshal(x, &event)
 						if err != nil {
-							color.Red("[%v][!] Error while unmarshalling event: %s", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while unmarshalling event: %s", err)
 							continue Listener
 						}
-						color.Cyan("[%v][O] Event received: %v reacted [%v|%v|%v|%v]", time.Now().Format("15:04:05"), event.Data.UserID, event.Data.GuildId, event.Data.MessageID, event.Data.ChannelID, event.Data.Emoji.Name)
+						utilities.LogInfo("Event received: %v reacted [%v|%v|%v|%v]", event.Data.UserID, event.Data.GuildId, event.Data.MessageID, event.Data.ChannelID, event.Data.Emoji.Name)
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(eventsFile, fmt.Sprintf(`[%v] User ID: %s | Guild ID: %s | Message ID: %s | Channel ID: %s | Emoji: %s (%s)`, time.Now().Format("2006-01-02 15:04:05"), event.Data.UserID, event.Data.GuildId, event.Data.MessageID, event.Data.ChannelID, event.Data.Emoji.Name, event.Data.Emoji.ID))
+						}
 						ReactCount++
 						if cfg.DMonReact.MaxAntiRaidQueue > 0 {
 							if len(filteredReacts) >= cfg.DMonReact.MaxAntiRaidQueue {
-								color.Red("[%v][!] Anti-Raid queue is full, skipping this reaction [%v]", time.Now().Format("15:04:05"), event.Data.UserID)
+								utilities.LogErr("Anti-Raid queue is full, dropping reaction. Queue length: %s", len(filteredReacts))
 								continue Listener
 							}
 						}
 						if cfg.DMonReact.SkipCompleted {
 							if utilities.Contains(completed, event.Data.UserID) {
-								color.Cyan("[%v][O] Skipping completed user [%v]", time.Now().Format("15:04:05"), event.Data.UserID)
+								utilities.LogInfo("Skipping completed user %s", event.Data.UserID)
 								continue Listener
 							}
 						}
 						if cfg.DMonReact.SkipFailed {
 							if utilities.Contains(failed, event.Data.UserID) {
-								color.Cyan("[%v][O] Skipping failed user [%v]", time.Now().Format("15:04:05"), event.Data.UserID)
+								utilities.LogInfo("Skipping failed user %s", event.Data.UserID)
 								continue Listener
 							}
 						}
 						if cfg.DMonReact.ServerID != "" {
 							if event.Data.GuildId != cfg.DMonReact.ServerID {
-								color.Cyan("[%v][O] Skipping event from other server [%v]", time.Now().Format("15:04:05"), event.Data.GuildId)
+								utilities.LogInfo("Skipping reaction from other server %s", event.Data.GuildId)
 								continue Listener
 							}
 						}
 						if cfg.DMonReact.ChannelID != "" {
 							if event.Data.ChannelID != cfg.DMonReact.ChannelID {
-								color.Cyan("[%v][O] Skipping event from other channel [%v]", time.Now().Format("15:04:05"), event.Data.ChannelID)
+								utilities.LogInfo("Skipping reaction from other channel %s", event.Data.ChannelID)
 								continue Listener
 							}
 						}
 						if cfg.DMonReact.MessageID != "" {
 							if event.Data.MessageID != cfg.DMonReact.MessageID {
-								color.Cyan("[%v][O] Skipping event from other message [%v]", time.Now().Format("15:04:05"), event.Data.MessageID)
+								utilities.LogInfo("Skipping reaction from other message %s", event.Data.MessageID)
 								continue Listener
 							}
 						}
 						if cfg.DMonReact.Emoji != "" {
 							if event.Data.Emoji.Name != cfg.DMonReact.Emoji && fmt.Sprintf(`%v:%v`, event.Data.Emoji.Name, event.Data.Emoji.ID) != cfg.DMonReact.Emoji {
-								color.Cyan("[%v][O] Skipping event from other emoji [%v]", time.Now().Format("15:04:05"), event.Data.Emoji.Name)
+								utilities.LogInfo("Skipping reaction from other emoji %s", event.Data.Emoji.Name)
 								continue Listener
 							}
 						}
@@ -325,68 +376,74 @@ func LaunchDMReact() {
 				} else {
 					err := observerInstance.StartWS()
 					if err != nil {
-						color.Red("[%v][!] Error while starting observer websocket: %s", time.Now().Format("15:04:05"), err)
+						utilities.LogErr("Error while starting observer websocket: %s", err)
 						time.Sleep(10 * time.Second)
 						continue Listener
 					}
 					if cfg.DMonReact.ServerID != "" && observerInstance.Ws != nil {
-						err := instance.Subscribe(observerInstance.Ws, cfg.DMonReact.ServerID)
+						err := instance.Subscribe(observerInstance.Ws, cfg.DMonReact.ServerID, cfg.DMonReact.ChannelID)
 						if err != nil {
-							color.Red("[%v][!] Error while subscribing to server: %s", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while subscribing to server: %s", err)
 							time.Sleep(10 * time.Second)
 							continue Listener
 						}
 
 					}
-					color.Yellow("[%v][O] Reconnected Observer token", time.Now().Format("15:04:05"))
+					utilities.LogInfo("Reconnected observer websocket")
 					continue Listener
 				}
 			} else {
 				// Opening Websocket
 				err := observerInstance.StartWS()
 				if err != nil {
-					color.Red("[%v][!] Error while starting observer websocket: %s", time.Now().Format("15:04:05"), err)
+					utilities.LogErr("Error while starting observer websocket: %s", err)
 					time.Sleep(10 * time.Second)
 					continue Listener
 				}
 				if cfg.DMonReact.ServerID != "" && observerInstance.Ws != nil {
-					err := instance.Subscribe(observerInstance.Ws, cfg.DMonReact.ServerID)
+					err := instance.Subscribe(observerInstance.Ws, cfg.DMonReact.ServerID, cfg.DMonReact.ChannelID)
 					if err != nil {
-						color.Red("[%v][!] Error while subscribing to server: %s", time.Now().Format("15:04:05"), err)
+						utilities.LogErr("Error while subscribing to server: %s", err)
 						time.Sleep(10 * time.Second)
 						continue Listener
 					}
 
 				}
-				color.Yellow("[%v][O] Reconnected Observer token", time.Now().Format("15:04:05"))
+				utilities.LogInfo("Reconnected observer websocket")
 				continue Listener
 			}
 		}
-		color.Red("[%v][O] Permanently disconnected Observer token", time.Now().Format("15:04:05"))
+		utilities.LogInfo("Observer stopped permanently")
 		title <- true
 	}()
 	// Starting token
 Token:
 	for {
 		if len(tokenPool) == 0 {
-			color.Red("[%v][!] No more tokens available, exiting", time.Now().Format("15:04:05"))
+			utilities.LogWarn("No more tokens left, Exiting")
 			kill <- true
 			break Token
 		}
 		instance := <-tokenPool
-		color.Yellow("[%v][X] Starting token %v", time.Now().Format("15:04:05"), instance.CensorToken())
+		utilities.LogInfo("Initializing token %s", instance.CensorToken())
 	React:
 		for {
 			status := instance.CheckToken()
 			if status != 200 {
-				color.Red("[%v][!] Token %v may be invalid [%v], skipping!", time.Now().Format("15:04:05"), instance.CensorToken(), status)
+				utilities.LogFailed("Token %v may be invalid [%v], skipping!", instance.CensorToken(), status)
+				if cfg.OtherSettings.Logs {
+					instance.WriteInstanceToFile(lockedFile)
+				}
+				if cfg.OtherSettings.Logs {
+					utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v may be invalid. Response code %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), status))
+				}
 				LockedCount++
 				continue Token
 			}
 			if cfg.DMonReact.Invite != "" && !instance.Invited {
 				err := instance.Invite(cfg.DMonReact.Invite)
 				if err != nil {
-					color.Red("[%v][!] Error while inviting Token %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), err)
+					utilities.LogFailed("Error while inviting Token %v: %v Switching!", instance.CensorToken(), err)
 					continue Token
 				}
 				instance.Invited = true
@@ -394,7 +451,7 @@ Token:
 			if instance.Cookie == "" {
 				cookie, err := instance.GetCookieString()
 				if err != nil {
-					color.Red("[%v][!] Error while getting cookie for Token %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), err)
+					utilities.LogErr("Error while getting cookie for Token %v: %v Switching!", instance.CensorToken(), err)
 					if cfg.DMonReact.RotateTokens {
 						go func() {
 							tokenPool <- instance
@@ -408,7 +465,7 @@ Token:
 				// Opening Websocket to change name/avatar
 				err := instance.StartWS()
 				if err != nil {
-					color.Red("[%v][X] Error while opening websocket %v: %v", time.Now().Format("15:04:05"), instance.CensorToken(), err)
+					utilities.LogErr("Error while opening websocket %v: %v", instance.CensorToken(), err)
 					if cfg.DMonReact.RotateTokens {
 						go func() {
 							tokenPool <- instance
@@ -416,29 +473,38 @@ Token:
 					}
 					continue Token
 				} else {
-					color.Green("[%v][X] Websocket opened %v", time.Now().Format("15:04:05"), instance.CensorToken())
+					utilities.LogSuccess("Websocket opened %v", instance.CensorToken())
 				}
 				if cfg.DMonReact.ChangeAvatar && !instance.ChangedAvatar {
-
-					r, err := instance.AvatarChanger(avatars[rand.Intn(len(avatars))])
+					p := avatars[rand.Intn(len(avatars))]
+					r, err := instance.AvatarChanger(p)
 					if err != nil {
-						color.Red("[%v][X] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instance.CensorToken(), err)
+						utilities.LogErr("%v Error while changing avatar: %v", instance.CensorToken(), err)
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
 							}()
 						}
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change avatar. Error %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), err))
+						}
 						continue Token
 					} else {
 						if r.StatusCode == 204 || r.StatusCode == 200 {
-							color.Green("[%v][X] %v Avatar changed successfully", time.Now().Format("15:04:05"), instance.CensorToken())
+							utilities.LogSuccess("%v Avatar changed successfully", instance.CensorToken())
+							if cfg.OtherSettings.Logs {
+								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v changed Avatar to %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), p))
+							}
 							instance.ChangedAvatar = true
 						} else {
-							color.Red("[%v][X] %v Error while changing avatar: %v", time.Now().Format("15:04:05"), instance.CensorToken(), r.StatusCode)
+							utilities.LogErr("%v Error while changing avatar: %v", instance.CensorToken(), r.StatusCode)
 							if cfg.DMonReact.RotateTokens {
 								go func() {
 									tokenPool <- instance
 								}()
+							}
+							if cfg.OtherSettings.Logs {
+								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change avatar. %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), r.StatusCode))
 							}
 							continue Token
 						}
@@ -446,35 +512,48 @@ Token:
 
 				}
 				if cfg.DMonReact.ChangeName && !instance.ChangedName {
-					r, err := instance.NameChanger(names[rand.Intn(len(names))])
+					p := names[rand.Intn(len(names))]
+					r, err := instance.NameChanger(p)
 					if err != nil {
-						color.Red("[%v]][X] %v Error while changing name: %v", time.Now().Format("15:04:05"), instance.CensorToken(), err)
+						utilities.LogErr("%v Error while changing name: %v", instance.CensorToken(), err)
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
 							}()
+						}
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change name. Error %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), err))
 						}
 						continue Token
 					}
 					body, err := utilities.ReadBody(r)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("%v Error while reading body: %v", instance.CensorToken(), err)
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
 							}()
 						}
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change name. Error %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), err))
+						}
 						continue Token
 					}
 					if r.StatusCode == 200 || r.StatusCode == 204 {
-						color.Green("[%v][X] %v Changed name successfully", time.Now().Format("15:04:05"), instance.CensorToken())
+						utilities.LogSuccess("%v Changed name successfully", instance.CensorToken())
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v name changed to %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), p))
+						}
 						instance.ChangedName = true
 					} else {
-						color.Red("[%v][X] %v Error while changing name: %v %v", time.Now().Format("15:04:05"), instance.CensorToken(), r.Status, string(body))
+						utilities.LogErr("%v Error while changing name: %v %v", instance.CensorToken(), r.StatusCode, string(body))
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
 							}()
+						}
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change name. %v %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), r.StatusCode, string(body)))
 						}
 						continue Token
 					}
@@ -483,20 +562,26 @@ Token:
 				if instance.Ws != nil {
 					err = instance.Ws.Close()
 					if err != nil {
-						color.Red("[%v][X] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+						utilities.LogErr("Error while closing websocket: %v", err)
 					} else {
-						color.Green("[%v][X] Websocket closed %v", time.Now().Format("15:04:05"), instance.CensorToken())
+						utilities.LogSuccess("Websocket closed %v", instance.CensorToken())
 					}
 				}
 			}
 			if cfg.DMonReact.ServerID != "" && (instance.TimeServerCheck.Second() >= 120 || instance.TimeServerCheck.IsZero()) {
 				r, err := instance.ServerCheck(cfg.DMonReact.ServerID)
 				if err != nil {
-					color.Red("[%v][!] Error while checking if token %v is present in server %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID, err)
+					utilities.LogErr("Error while checking if token %v is present in server %v: %v Switching!", instance.CensorToken(), cfg.DMonReact.ServerID, err)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Error while checking if token %v is present in server %v: %v Switching!`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID, err))
+					}
 					continue Token
 				} else {
 					if r != 200 && r != 204 {
-						color.Red("[%v][!] Token %v is not present in server %v: %v Switching!", time.Now().Format("15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID, err)
+						utilities.LogFailed("Token %v is not present in server %v: Response %v Switching!", instance.CensorToken(), cfg.DMonReact.ServerID, r)
+						if cfg.OtherSettings.Logs {
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v is not present in server %v: Response %v Switching!`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID, r))
+						}
 						continue Token
 					}
 				}
@@ -513,36 +598,41 @@ Token:
 			case uuid := <-filteredReacts:
 				instance.Count++
 				if cfg.DMonReact.MaxDMsPerToken != 0 && instance.Count >= cfg.DMonReact.MaxDMsPerToken {
-					color.Red("[%v] %v Max DMs reached, switching token", time.Now().Format("15:04:05"), instance.CensorToken())
+					utilities.LogInfo("%v Max DMs per token reached, switching", instance.CensorToken())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v Max DMs reached %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), cfg.DMonReact.MaxDMsPerToken))
+					}
 					continue Token
 				}
 				t := time.Now()
 				snowflake, err := instance.OpenChannel(uuid)
 				if err != nil {
-					color.Red("[%v] Error while opening channel: %v", time.Now().Format("15:04:05"), err)
+					utilities.LogErr("Error while opening channel: %v", err)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v Error %v while opening channel`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), err))
+					}
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
 					}
 					failed = append(failed, uuid)
 					continue React
 				}
-				resp, err := instance.SendMessage(snowflake, uuid)
+				respCode, body, err := instance.SendMessage(snowflake, uuid)
 				if err != nil {
-					color.Red("[%v] Error while sending message: %v", time.Now().Format("15:04:05"), err)
-					err = utilities.WriteLine("input/failed.txt", uuid)
-					if err != nil {
-						fmt.Println(err)
+					utilities.LogErr("Error while sending message: %v", err)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v Error %v while sending message`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), err))
 					}
-					failed = append(failed, uuid)
-					continue React
-				}
-				body, err := ioutil.ReadAll(resp.Body)
-				if err != nil {
-					color.Red("[%v] Error while reading body: %v", time.Now().Format("15:04:05"), err)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
 					}
 					failed = append(failed, uuid)
 					continue React
@@ -550,25 +640,44 @@ Token:
 				var response jsonResponse
 				err = json.Unmarshal(body, &response)
 				if err != nil {
-					color.Red("[%v] Error while unmarshalling body: %v", time.Now().Format("15:04:05"), err)
+					utilities.LogErr("Error while unmarshalling body: %v", err)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
 					}
 					failed = append(failed, uuid)
 					continue React
 				}
-				if resp.StatusCode == 200 {
-					color.Green("[%v][X] Token %v DM'd %v [%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+				if respCode == 200 {
+					utilities.LogSuccess("Token %v messaged %v [%v milliseconds]", instance.CensorToken(), uuid, time.Since(t).Milliseconds())
 					SuccessCount++
 					LastDM = time.Now()
 					completed = append(completed, uuid)
 					err = utilities.WriteLine("input/completed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to completed file %v: %v", uuid, err)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(completedUsersFile, uuid)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v messaged %v [%v milliseconds]`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds()))
 					}
 					continue React
-				} else if resp.StatusCode == 403 && response.Code == 40003 {
+				} else if response.Code == 20026 {
+					utilities.LogLocked("Token %s is Quarantined. It is being stopped.", instance.CensorToken())
+					if cfg.OtherSettings.Logs {
+						instance.WriteInstanceToFile(quarantinedFile)
+					}
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v is Quarantined`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken()))
+					}
+					LockedCount++
+					continue Token
+				} else if respCode == 403 && response.Code == 40003 {
 					// Token is rate limited
 					go func() {
 						filteredReacts <- uuid
@@ -576,9 +685,16 @@ Token:
 					if cfg.DMonReact.LeaveTokenOnRateLimit && cfg.DMonReact.ServerID != "" {
 						re := instance.Leave(cfg.DMonReact.ServerID)
 						if re == 200 || re == 204 {
-							color.Green("[%v][!] Token %v left server %v", time.Now().Format("15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID)
+							utilities.LogSuccess("Token %v left server %v", instance.CensorToken(), cfg.DMonReact.ServerID)
+							if cfg.OtherSettings.Logs {
+								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v left server %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), cfg.DMonReact.ServerID))
+							}
 						} else {
-							color.Red("[%v][!] Error while leaving server %v: %v", time.Now().Format("15:04:05"), cfg.DMonReact.ServerID, re)
+							utilities.LogErr("Error while leaving server %v: %v", cfg.DMonReact.ServerID, re)
+							if cfg.OtherSettings.Logs {
+								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Error while leaving server %v: %v`, time.Now().Format("2006-01-02 15:04:05"), cfg.DMonReact.ServerID, re))
+							}
+
 						}
 					}
 					if cfg.DMonReact.RotateTokens {
@@ -587,39 +703,57 @@ Token:
 						}()
 					}
 					continue Token
-				} else if resp.StatusCode == 403 && response.Code == 50007 {
+				} else if respCode == 403 && response.Code == 50007 {
 					failed = append(failed, uuid)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [DMs Closed or No mutual servers] [%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
+					}
+					utilities.LogFailed("Token %v failed to message %v [DMs closed or no Mutual servers] [%v milliseconds]", instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v failed to messaged %v [%v milliseconds] [DMs closed or No Mutuals]`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds()))
+					}
 					continue React
-				} else if resp.StatusCode == 403 && response.Code == 40002 || resp.StatusCode == 401 || resp.StatusCode == 405 {
+				} else if respCode == 403 && response.Code == 40002 || respCode == 401 || respCode == 405 {
 					failed = append(failed, uuid)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [Locked/Disabled][%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
+					}
+					utilities.LogFailed("Token %v failed to message %v [Locked/Disabled]", instance.CensorToken(), uuid)
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v failed to messaged %v [%v milliseconds] [Locked or Disabled]`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds()))
+					}
 					continue React
-				} else if resp.StatusCode == 429 {
+				} else if respCode == 429 {
 					failed = append(failed, uuid)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [Rate Limited][%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
+					}
+					utilities.LogFailed("Token %v failed to DM %v [Rate Limited][%vms]", instance.CensorToken(), uuid, time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v failed to messaged %v [%v milliseconds] [Rate Limited]`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds()))
+					}
 					time.Sleep(5 * time.Second)
 					continue React
-				} else if resp.StatusCode == 400 && strings.Contains(string(body), "captcha") {
-					color.Red("[%v] Token %v Captcha was solved incorrectly", time.Now().Format("15:04:05"), instance.CensorToken())
+				} else if respCode == 400 && strings.Contains(string(body), "captcha") {
+					utilities.LogFailed("Token %v Captcha was solved incorrectly", instance.CensorToken())
 					if instance.Config.CaptchaSettings.CaptchaAPI == "anti-captcha.com" {
 						err := instance.ReportIncorrectRecaptcha()
 						if err != nil {
-							color.Red("[%v] Error while reporting incorrect hcaptcha: %v", time.Now().Format("15:04:05"), err)
+							utilities.LogErr("Error while reporting incorrect hcaptcha: %v", err)
 						} else {
-							color.Green("[%v] Succesfully reported incorrect hcaptcha [%v]", time.Now().Format("15:04:05"), instance.LastID)
+							utilities.LogSuccess("Reported incorrect hcaptcha %v", instance.LastID)
 						}
 					}
 
@@ -627,13 +761,19 @@ Token:
 					failed = append(failed, uuid)
 					err = utilities.WriteLine("input/failed.txt", uuid)
 					if err != nil {
-						fmt.Println(err)
+						utilities.LogErr("Error while writing to failed file %v: %v", uuid, err)
 					}
-					color.Red("[%v][X] Token %v failed to DM %v [%v][%vms]", time.Now().Format("15:04:05"), instance.CensorToken(), uuid, string(body), time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(failedUsersFile, uuid)
+					}
+					utilities.LogFailed("Token %v failed to DM %v [%v][%vms]", instance.CensorToken(), uuid, string(body), time.Since(t).Milliseconds())
+					if cfg.OtherSettings.Logs {
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v]Token %v failed to messaged %v [%v milliseconds] [%v]`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), uuid, time.Since(t).Milliseconds(), string(body)))
+					}
 					continue React
 				}
 			case <-ticker:
-				color.Yellow("[%v][X] %v Refreshing token", time.Now().Format("15:04:05"), instance.CensorToken())
+				utilities.LogInfo("Token %v is being re-checked", instance.CensorToken())
 				continue React
 			}
 		}

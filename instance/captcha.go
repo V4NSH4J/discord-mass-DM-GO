@@ -22,6 +22,8 @@ import (
 
 func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, rqToken string, url string) (string, error) {
 	switch true {
+	case in.Config.CaptchaSettings.Self != "":
+		return in.self(sitekey, rqData)
 	case utilities.Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.Capmonster(sitekey, url, rqData, cookie)
 	case utilities.Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
@@ -418,6 +420,53 @@ func (in *Instance) CapCat(sitekey, rqdata string) (string, error) {
 	}
 }
 
+func (in *Instance) self(sitekey, rqData string) (string, error) {
+	var solution string
+	var err error
+	link := in.Config.CaptchaSettings.Self
+	if link == "" {
+		return "", fmt.Errorf("self captcha not configured")
+	}
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+	selfPayload := SelfRequest{
+		Sitekey: sitekey,
+		RqData:  rqData,
+		Host:    "discord.com",
+		Proxy:   in.Proxy,
+	}
+	payloadBytes, err := json.Marshal(selfPayload)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling payload %v", err)
+	}
+	req, err := http.NewRequest(http.MethodPost, link, bytes.NewReader(payloadBytes))
+	if err != nil {
+		return "", fmt.Errorf("error creating request [%v]", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response [%v]", err)
+	}
+	var outResponse SelfResponse
+	err = json.Unmarshal(body, &outResponse)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling response [%v]", err)
+	}
+	if outResponse.Answer != "" {
+		solution = outResponse.Answer
+	} else {
+		return "", fmt.Errorf("error %v", string(body))
+	}
+	return solution, err
+}
+
 type CapCat struct {
 	ApiKey  string `json:"apikey"`
 	SiteKey string `json:"sitkey"`
@@ -431,4 +480,15 @@ type CapCatResponse struct {
 	Msg  string `json:"mess,omitempty"`
 	Code int    `json:"code,omitempty"`
 	Data string `json:"data,omitempty"`
+}
+
+type SelfRequest struct {
+	Sitekey string `json:"sitekey"`
+	RqData  string `json:"rqdata"`
+	Proxy   string `json:"proxy"`
+	Host    string `json:"host"`
+}
+
+type SelfResponse struct {
+	Answer string `json:"generated_pass_UUID"`
 }

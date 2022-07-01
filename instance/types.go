@@ -277,3 +277,14 @@ type ReactInfo struct {
 type NickNameChange struct {
 	Nickname string `json:"nick"`
 }
+type Activity struct {
+	Name string `json:"name"`
+	Type int    `json:"type"`
+}
+
+type PresenceChange struct {
+	Since      int        `json:"since,omitempty"`
+	Activities []Activity `json:"activities"`
+	Status     string     `json:"status"`
+	Afk        bool       `json:"afk"`
+}

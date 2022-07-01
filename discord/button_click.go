@@ -3,68 +3,86 @@ package discord
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
-	"github.com/fatih/color"
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/zenthangplus/goccm"
 )
 
 func LaunchButtonClicker() {
-	_, instances, err := instance.GetEverything()
+	cfg, instances, err := instance.GetEverything()
 	if err != nil {
-		color.Red("Error: %s", err)
-		return 
-	}
-	color.Cyan("Enter a token which can see the message:")
-	var token string
-	fmt.Scanln(&token)
-	color.White("Enter message ID: ")
-	var id string
-	fmt.Scanln(&id)
-	color.White("Enter channel ID: ")
-	var channel string
-	fmt.Scanln(&channel)
-	color.White("Enter Server ID: ")
-	var server string
-	fmt.Scanln(&server)
-	msg, err := instance.FindMessage(channel, id, token)
-	if err != nil {
-		color.Red("Error while finding message: %v", err)
+		utilities.LogErr("Error while getting instances or config %s", err)
 		return
 	}
-	color.Green("[%v] Message: %v", time.Now().Format("15:04:05"), msg)
-	var Msg instance.Message 
+	var tokenFile, successFile, failedFile string
+	if cfg.OtherSettings.Logs {
+		path := fmt.Sprintf(`logs/button_clicker/DMDGO-BC-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			utilities.LogErr("Error creating logs directory: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating token file: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX.Close()
+		successFileX, err := os.Create(fmt.Sprintf(`%s/success.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating success file: %s", err)
+			utilities.ExitSafely()
+		}
+		successFileX.Close()
+		failedFileX, err := os.Create(fmt.Sprintf(`%s/failed.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		failedFileX.Close()
+		tokenFile, successFile, failedFile = tokenFileX.Name(), successFileX.Name(), failedFileX.Name()
+		for i := 0; i < len(instances); i++ {
+			instances[i].WriteInstanceToFile(tokenFile)
+		}
+	}
+	token := utilities.UserInput("Enter a token which can see the message:")
+	id := utilities.UserInput("Enter the ID of the message:")
+	channel := utilities.UserInput("Enter the ID of the channel:")
+	server := utilities.UserInput("Enter the ID of the server:")
+	msg, err := instance.FindMessage(channel, id, token)
+	if err != nil {
+		utilities.LogErr("Error while finding message: %v", err)
+		return
+	}
+	utilities.LogInfo("Message found!\n %s", msg)
+	var Msg instance.Message
 	err = json.Unmarshal([]byte(msg), &Msg)
 	if err != nil {
-		color.Red("Error while marshalling message: %v", err)
+		utilities.LogErr("Error while unmarshalling message: %v", err)
 		return
 	}
 	if len(Msg.Components) == 0 {
-		color.Red("No buttons found in message")
+		utilities.LogErr("Message has no components (Buttons or similar)")
 		return
 	}
-	color.Cyan("Enter Row number: ")
 	for i := 0; i < len(Msg.Components); i++ {
-		fmt.Println(fmt.Sprintf("%v) Row %v", i, i))
+		fmt.Printf("%v) Row %v", i, i)
 	}
-	var row int
-	fmt.Scanln(&row)
-	color.Cyan("Select Button:")
-	var column int 
+	row := utilities.UserInputInteger("Enter Row number:")
 	for i := 0; i < len(Msg.Components[row].Buttons); i++ {
 		if Msg.Components[row].Buttons[i].Label != "" {
-			fmt.Println(fmt.Sprintf("%v) Button %v [%v]", i, i, Msg.Components[row].Buttons[i].Label))
+			fmt.Printf("%v) Button %v [%v]", i, i, Msg.Components[row].Buttons[i].Label)
 		} else if Msg.Components[row].Buttons[i].Emoji.Name != "" {
-			fmt.Println(fmt.Sprintf("%v) Button %v [%v]", i, i, Msg.Components[row].Buttons[i].Emoji))
+			fmt.Printf("%v) Button %v [%v]", i, i, Msg.Components[row].Buttons[i].Emoji)
 		} else {
-			fmt.Println(fmt.Sprintf("%v) Button %v [Name or Emoji not found]", i, i))
+			fmt.Printf("%v) Button %v [Name or Emoji not found]", i, i)
 		}
 	}
-	fmt.Scanln(&column)
-	color.Cyan("Enter number of threads")
-	var threads int
-	fmt.Scanln(&threads)
+	column := utilities.UserInputInteger("Select Button:")
+	threads := utilities.UserInputInteger("Enter number of threads:")
 	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
 	}
@@ -75,27 +93,37 @@ func LaunchButtonClicker() {
 			defer c.Done()
 			err := instances[i].StartWS()
 			if err != nil {
-				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogFailed("Error while starting websocket: %v", err)
 			} else {
-				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				utilities.LogSuccess("Websocket opened %s", instances[i].CensorToken())
 			}
-			respCode, err := instances[i].PressButton(row, column, server,Msg)
+			respCode, err := instances[i].PressButton(row, column, server, Msg)
 			if err != nil {
-				color.Red("Error while pressing button: %v", err)
+				utilities.LogFailed("Error while pressing button: %v", err)
+				if cfg.OtherSettings.Logs {
+					instances[i].WriteInstanceToFile(failedFile)
+				}
 				return
 			}
 			if respCode != 204 && respCode != 200 {
-				color.Red("Error while pressing button: %v", respCode)
+				utilities.LogFailed("Error while pressing button: %v", respCode)
+				if cfg.OtherSettings.Logs {
+					instances[i].WriteInstanceToFile(failedFile)
+				}
+
 				return
 			}
-			color.Green("[%v] Button pressed on instance %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+			utilities.LogSuccess("Button pressed on instance %v", instances[i].CensorToken())
+			if cfg.OtherSettings.Logs {
+				instances[i].WriteInstanceToFile(successFile)
+			}
 			if instances[i].Ws != nil {
 				if instances[i].Ws.Conn != nil {
 					err = instances[i].Ws.Close()
 					if err != nil {
-						color.Red("[%v] Error while closing websocket: %v", time.Now().Format("15:04:05"), err)
+						utilities.LogFailed("Error while closing websocket: %v", err)
 					} else {
-						color.Green("[%v] Websocket closed %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+						utilities.LogSuccess("Websocket closed %v", instances[i].CensorToken())
 					}
 				}
 			}
@@ -103,6 +131,4 @@ func LaunchButtonClicker() {
 	}
 	c.WaitAllDone()
 
-
-	
 }

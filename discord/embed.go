@@ -14,7 +14,6 @@ import (
 	"net/http"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 type ImageEmbed struct {
@@ -47,7 +46,7 @@ type EmbedJSONResponse struct {
 }
 
 func LanuchEmbed() {
-	color.Yellow("This feature is provided and hosted by a 3rd party Entity. Use at your own discretion. Contact https://github.com/itschasa for more information.")
+	utilities.LogWarn("This feature is provided and hosted by a 3rd party Entity. Use at your own discretion. Contact https://github.com/itschasa for more information.")
 	var embeddata []byte
 	var err string
 	embeddata, err = utilities.GetEmbed()
@@ -55,33 +54,29 @@ func LanuchEmbed() {
 		responseBody := bytes.NewBuffer(embeddata)
 		resp, err := http.Post("https://e.chasa.wtf/api/v1/embed", "application/json", responseBody)
 		if err != nil {
-			color.Red("Error making HTTP request to server")
-			color.Red(err.Error())
+			utilities.LogErr("Error while getting response from 3rd Party Embed API", err)
 		} else {
 			bodyBytes, err := io.ReadAll(resp.Body)
 			if err != nil {
-				color.Red("Error unmarhsalling HTTP request")
-				color.Red(err.Error())
+				utilities.LogErr("Error while reading response body", err)
 			} else {
 				var respdata EmbedJSONResponse
 				err := json.Unmarshal(bodyBytes, &respdata)
 				if err != nil {
-					color.Red("Error unmarhsalling HTTP request")
-					color.Red(err.Error())
+					utilities.LogErr("Error while unmarshalling response body", err)
 				} else {
 					if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated {
-						color.Green("Created Embed Link, use the link below and add it to your message in message.json.")
-						color.Green(respdata.Link)
-						color.Green("Make sure to restart DMDGO after editing message.json")
-						color.Green("Service provided with <3 by chasa (https://github.com/itschasa)")
+						utilities.LogInfo("Created Embed Link, use the link below and add it to your message in message.json.")
+						utilities.LogInfo(respdata.Link)
+						utilities.LogInfo("Make sure to restart DMDGO after editing message.json")
+						utilities.LogInfo("Service provided with <3 by chasa (https://github.com/itschasa)")
 					} else {
-						color.Red("Unexpected response from server: %v", fmt.Sprint(resp.StatusCode))
-						color.Red(string(bodyBytes))
+						utilities.LogErr("Unexpected response from server: %v [Try again or the API might be down] Response :%v", fmt.Sprint(resp.StatusCode), string(bodyBytes))
 					}
 				}
 			}
 		}
 	} else {
-		color.Red(err)
+		utilities.LogErr("Error while getting embed data from embed.json %v", err)
 	}
 }

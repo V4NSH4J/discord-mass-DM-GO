@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 // Cookies are required for legitimate looking requests, a GET request to instance.com has these required cookies in it's response along with the website HTML
@@ -34,19 +33,19 @@ func (in *Instance) GetCookieString() (string, error) {
 		req, err := http.NewRequest("GET", url, nil)
 
 		if err != nil {
-			color.Red("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
 			return "", fmt.Errorf("error while making request to get cookie %v", err)
 		}
 		req = in.cookieHeaders(req)
 		resp, err := in.Client.Do(req)
 		if err != nil {
-			color.Red("[%v] Error while getting response from cookies request %v", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("[%v] Error while getting response from cookies request %v", time.Now().Format("15:04:05"), err)
 			return "", fmt.Errorf("error while getting response from cookie request %v", err)
 		}
 		defer resp.Body.Close()
 
 		if resp.Cookies() == nil {
-			color.Red("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
+			utilities.LogErr("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
 			return "", fmt.Errorf("there are no cookies in response")
 		}
 		cookies := ""
@@ -61,7 +60,7 @@ func (in *Instance) GetCookieString() (string, error) {
 		// if CfRay != "" {
 		// 	body, err := ioutil.ReadAll(resp.Body)
 		// 	if err != nil {
-		// 		color.Red("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
+		// 		utilities.LogErr("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
 		// 		return cookies + "locale:en-US", nil
 		// 	}
 		// 	m := regexp.MustCompile(`m:'(.+)'`)
@@ -149,7 +148,7 @@ func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 	}
 	defer resp.Body.Close()
 	if resp.Cookies() == nil {
-		color.Red("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
+		utilities.LogErr("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
 		return "", fmt.Errorf("there are no cookies in response")
 	}
 	if len(resp.Cookies()) == 0 {
@@ -194,7 +193,7 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 		return "", fmt.Errorf("error while reading body from open channel request %v", err)
 	}
 	if resp.StatusCode == 401 || resp.StatusCode == 403 {
-		color.Red("[%v] Token %v has been locked or disabled", time.Now().Format("15:04:05"), in.CensorToken())
+		utilities.LogErr("[%v] Token %v has been locked or disabled", time.Now().Format("15:04:05"), in.CensorToken())
 		return "", fmt.Errorf("token has been locked or disabled")
 	}
 	if resp.StatusCode != 200 {
@@ -215,9 +214,16 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 }
 
 // Inputs the Channel snowflake and sends them the message; outputs the response code for error handling.
-func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.Response, error) {
+func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, []byte, error) {
 	// Sending a random message incase there are multiple.
 	index := rand.Intn(len(in.Messages))
+	if in.Config.DirectMessage.MultipleMessages {
+		if in.MessageNumber < len(in.Messages) {
+			index = in.MessageNumber
+		} else {
+			return 0, nil, fmt.Errorf("sent all messages")
+		}
+	}
 	message := in.Messages[index]
 	x := message.Content
 	if strings.Contains(message.Content, "<user>") {
@@ -225,26 +231,26 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 		x = strings.ReplaceAll(message.Content, "<user>", ping)
 	}
 
-	body, err := json.Marshal(&map[string]interface{}{
+	payload, err := json.Marshal(&map[string]interface{}{
 		"content": x,
 		"tts":     false,
 		"nonce":   utilities.Snowflake(),
 	})
 	if err != nil {
-		return http.Response{}, fmt.Errorf("error while marshalling message %v %v ", index, err)
+		return -1, nil, fmt.Errorf("error while marshalling message %v %v ", index, err)
 	}
 
 	url := "https://discord.com/api/v9/channels/" + channelSnowflake + "/messages"
-	req, err := http.NewRequest("POST", url, strings.NewReader(string(body)))
+	req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
 
 	if err != nil {
-		return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
+		return -1, nil, fmt.Errorf("error while making request to send message %v", err)
 	}
 	var cookie string
 	if in.Cookie == "" {
 		cookie, err = in.GetCookieString()
 		if err != nil {
-			return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
+			return -1, nil, fmt.Errorf("error while getting cookie %v", err)
 		}
 	} else {
 		cookie = in.Cookie
@@ -270,30 +276,49 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)
-		return http.Response{}, fmt.Errorf("error while getting send message response %v", err)
+		return -1, nil, fmt.Errorf("error while getting send message response %v", err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return res.StatusCode, nil, fmt.Errorf("error while reading body %v", err)
+	}
+	if res.StatusCode == 200 || res.StatusCode == 204 {
+		if in.Config.DirectMessage.MultipleMessages {
+			go func() {
+				for {
+					in.MessageNumber++
+					if in.MessageNumber < len(in.Messages) {
+						time.Sleep(time.Second * time.Duration(in.Config.DirectMessage.DelayBetweenMultipleMessages))
+						status, body, err := in.SendMessage(channelSnowflake, memberid)
+						if err != nil {
+							utilities.LogFailed("%v Error while sending message %v \n", in.CensorToken(), err)
+							continue
+						} else {
+							utilities.LogSuccess("%v Message #%v sent successfully %v %v\n", in.CensorToken(), in.MessageNumber+1, status, body)
+						}
+					}
+				}
+			}()
+		}
 	}
 	if res.StatusCode == 400 {
-		body, err := ioutil.ReadAll(res.Body)
-		if err != nil {
-			return http.Response{}, fmt.Errorf("error while reading body %v", err)
-		}
 		if !strings.Contains(string(body), "captcha") {
-			return http.Response{}, nil
+			return res.StatusCode, body, nil
 		}
 		if in.Config.CaptchaSettings.ClientKey == "" {
-			return http.Response{}, fmt.Errorf("captcha detected but no client key set")
+			return res.StatusCode, body, fmt.Errorf("captcha detected but no client key set")
 		}
 		var captchaDetect captchaDetected
 		err = json.Unmarshal(body, &captchaDetect)
 		if err != nil {
-			return http.Response{}, fmt.Errorf("error while unmarshalling captcha %v", err)
+			return res.StatusCode, body, fmt.Errorf("error while unmarshalling captcha %v", err)
 		}
-		color.Yellow("[%v] Captcha detected %v [%v]", time.Now().Format("15:04:05"), in.CensorToken(), captchaDetect.Sitekey)
+		utilities.LogWarn("[%v] Captcha detected %v [%v]", time.Now().Format("15:04:05"), in.CensorToken(), captchaDetect.Sitekey)
 		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie, captchaDetect.RqData, captchaDetect.RqToken, fmt.Sprintf("https://discord.com/channels/@me/%s", channelSnowflake))
 		if err != nil {
-			return http.Response{}, fmt.Errorf("error while solving captcha %v", err)
+			return res.StatusCode, body, fmt.Errorf("error while solving captcha %v", err)
 		}
-		body, err = json.Marshal(&map[string]interface{}{
+		payload, err = json.Marshal(&map[string]interface{}{
 			"content":         x,
 			"tts":             false,
 			"nonce":           utilities.Snowflake(),
@@ -301,19 +326,19 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (http.
 			"captcha_rqtoken": captchaDetect.RqToken,
 		})
 		if err != nil {
-			return http.Response{}, fmt.Errorf("error while marshalling message %v %v ", index, err)
+			return res.StatusCode, body, fmt.Errorf("error while marshalling message %v %v ", index, err)
 		}
-		req, err = http.NewRequest("POST", url, strings.NewReader(string(body)))
+		req, err = http.NewRequest("POST", url, strings.NewReader(string(payload)))
 		if err != nil {
-			return http.Response{}, fmt.Errorf("error while making request to send message %v", err)
+			return res.StatusCode, body, fmt.Errorf("error while making request to send message %v", err)
 		}
 		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 		if err != nil {
-			return http.Response{}, fmt.Errorf("error while getting send message response %v", err)
+			return res.StatusCode, body, fmt.Errorf("error while getting send message response %v", err)
 		}
 	}
 	in.Count++
-	return *res, nil
+	return res.StatusCode, body, nil
 }
 
 func (in *Instance) UserInfo(userid string) (UserInf, error) {
@@ -352,7 +377,7 @@ func (in *Instance) UserInfo(userid string) (UserInf, error) {
 	return info, nil
 }
 
-func Ring(httpClient *http.Client, auth string, snowflake string) (int, error) {
+func (in *Instance) Ring(snowflake string) (int, error) {
 
 	url := "https://discord.com/api/v9/channels/" + snowflake + "/call"
 
@@ -369,10 +394,10 @@ func Ring(httpClient *http.Client, auth string, snowflake string) (int, error) {
 		return 0, err
 	}
 
-	req.Header.Set("Authorization", auth)
+	req.Header.Set("Authorization", in.Token)
 	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := httpClient.Do(req)
+	resp, err := in.Client.Do(req)
 	if err != nil {
 		return 0, err
 	}

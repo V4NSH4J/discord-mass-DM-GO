@@ -10,17 +10,15 @@ import (
 	"bufio"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 )
 
 func LaunchTokenOnliner() {
 	_, instances, err := instance.GetEverything()
 	if err != nil {
-		color.Red("Error while getting necessary data %v", err)
+		utilities.LogErr("Error while getting neccessary information %v", err)
 		utilities.ExitSafely()
 	}
 	var wg sync.WaitGroup
@@ -29,15 +27,15 @@ func LaunchTokenOnliner() {
 		go func(i int) {
 			err := instances[i].StartWS()
 			if err != nil {
-				color.Red("[%v] Error while opening websocket: %v", time.Now().Format("15:04:05"), err)
+				utilities.LogErr("Token %v Error while starting websocket %v", instances[i].CensorToken(), err)
 			} else {
-				color.Green("[%v] Websocket opened %v", time.Now().Format("15:04:05"), instances[i].CensorToken())
+				utilities.LogSuccess("Websocket opened %v", instances[i].CensorToken())
 			}
 			wg.Done()
 		}(i)
 	}
 	wg.Wait()
-	color.Green("[%v] All Token online. Press ENTER to disconnect and continue the program", time.Now().Format("15:04:05"))
+	utilities.LogInfo("All Token online. Press ENTER to disconnect and continue the program")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 	wg.Add(len(instances))
 	for i := 0; i < len(instances); i++ {
@@ -47,5 +45,5 @@ func LaunchTokenOnliner() {
 		}(i)
 	}
 	wg.Wait()
-	color.Green("[%v] All Token offline", time.Now().Format("15:04:05"))
+	utilities.LogInfo("All Token offline")
 }

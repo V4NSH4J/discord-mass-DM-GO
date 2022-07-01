@@ -7,25 +7,41 @@
 package utilities
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/fatih/color"
 )
 
 func Snowflake() int64 {
 	snowflake := strconv.FormatInt((time.Now().UTC().UnixNano()/1000000)-1420070400000, 2) + "0000000000000000000000"
 	nonce, _ := strconv.ParseInt(snowflake, 2, 64)
 	return nonce
+}
+
+func ReverseSnowflake(snowflake string) time.Time {
+	snowflakei, err := strconv.Atoi(snowflake)
+	if err != nil {
+		return time.Time{}
+	}
+	base2 := strconv.FormatInt(int64(snowflakei), 2)
+	if len(base2) < 23 {
+		return time.Time{}
+	}
+	ageBase2 := base2[:len(base2)-22]
+	t, err := strconv.ParseInt(ageBase2, 2, 64)
+	if err != nil {
+		return time.Time{}
+	}
+	t = t + 1420070400000
+	tm := time.UnixMilli(t)
+	return tm
+
 }
 
 func Contains(s []string, e string) bool {
@@ -70,12 +86,6 @@ func HandleOutOfBounds() {
 	}
 }
 
-func ExitSafely() {
-	color.Red("Press ENTER to EXIT")
-	bufio.NewReader(os.Stdin).ReadBytes('\n')
-	os.Exit(0)
-}
-
 func VersionCheck(version string) {
 	link := "https://pastebin.com/raw/CCaVBSPv"
 	client := &http.Client{Timeout: time.Second * 15}
@@ -103,12 +113,12 @@ func VersionCheck(version string) {
 	v := response["version"].(string)
 	message := response["message"].(string)
 	if v != version {
-		color.Red("[!] You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
+		LogErr(" You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
 	} else {
-		color.Green("[O] You're Up-to-Date! You're using DMDGO V%v", version)
+		LogSuccess(" You're Up-to-Date! You're using DMDGO V%v", version)
 	}
 	if message != "" {
-		color.Yellow("[!] %v", message)
+		LogInfo(" %v", message)
 	}
 
 	link = "https://pastebin.com/CCaVBSPv"
@@ -134,7 +144,7 @@ func VersionCheck(version string) {
 		return
 	}
 	views := strings.ReplaceAll(matches[1], " ", "")
-	color.Green("[O] DMDGO Users: %v [21-February-2022 - %v]", views, time.Now().Format("02-January-2006"))
+	LogSuccess(" DMDGO Users: %v [21-February-2022 - %v]", views, time.Now().Format("02-January-2006"))
 }
 
 const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()"
@@ -145,4 +155,21 @@ func RandStringBytes(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func TimeDifference(t1, t2 time.Time) string {
+	d := t2.Sub(t1)
+	hoursSince := d.Hours()
+	years := hoursSince / (24 * 365)
+	intYears := int(years)
+	remainderYears := years - float64(intYears)
+	months := remainderYears * 12
+	intMonths := int(months)
+	remainderMonths := months - float64(intMonths)
+	days := remainderMonths * 30
+	intDays := int(days)
+	remainderDays := days - float64(intDays)
+	hours := remainderDays * 24
+	intHours := int(hours)
+	return fmt.Sprintf("%v years, %v months, %v days, %v hours", intYears, intMonths, intDays, intHours)
 }

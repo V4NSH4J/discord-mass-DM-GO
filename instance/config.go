@@ -14,8 +14,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/fatih/color"
-
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"gopkg.in/yaml.v3"
 )
 
@@ -27,25 +26,27 @@ type Config struct {
 	OtherSettings      OtherSettings      `yaml:"other_settings"`
 	SuspicionAvoidance SuspicionAvoidance `yaml:"suspicion_avoidance"`
 	DMonReact          DMonReact          `yaml:"dm_on_react"`
-	AutoReact          AutoReact          `yaml:"auto_react"`
 }
+
 type DirectMessage struct {
-	Delay      int  `yaml:"individual_delay"`
-	LongDelay  int  `yaml:"rate_limit_delay"`
-	Offset     int  `yaml:"offset"`
-	Skip       bool `yaml:"skip_completed"`
-	Call       bool `yaml:"call"`
-	Remove     bool `yaml:"remove_dead_tokens"`
-	RemoveM    bool `yaml:"remove_completed_members"`
-	Stop       bool `yaml:"stop_dead_tokens"`
-	Mutual     bool `yaml:"check_mutual"`
-	Friend     bool `yaml:"friend_before_DM"`
-	Websocket  bool `yaml:"online_tokens"`
-	MaxDMS     int  `yaml:"max_dms_per_token"`
-	Receive    bool `yaml:"receive_messages"`
-	SkipFailed bool `yaml:"skip_failed"`
-	Block      bool `yaml:"block_after_dm"`
-	Close      bool `yaml:"close_dm_after_message"`
+	Delay                        int  `yaml:"individual_delay"`
+	LongDelay                    int  `yaml:"rate_limit_delay"`
+	Offset                       int  `yaml:"offset"`
+	Skip                         bool `yaml:"skip_completed"`
+	Call                         bool `yaml:"call"`
+	Remove                       bool `yaml:"remove_dead_tokens"`
+	RemoveM                      bool `yaml:"remove_completed_members"`
+	Stop                         bool `yaml:"stop_dead_tokens"`
+	Mutual                       bool `yaml:"check_mutual"`
+	Friend                       bool `yaml:"friend_before_DM"`
+	Websocket                    bool `yaml:"online_tokens"`
+	MaxDMS                       int  `yaml:"max_dms_per_token"`
+	Receive                      bool `yaml:"receive_messages"`
+	SkipFailed                   bool `yaml:"skip_failed"`
+	Block                        bool `yaml:"block_after_dm"`
+	Close                        bool `yaml:"close_dm_after_message"`
+	MultipleMessages             bool `yaml:"multiple_messages"`
+	DelayBetweenMultipleMessages int  `yaml:"delay_between_multiple_messages"`
 }
 type ProxySettings struct {
 	Proxy           string `yaml:"proxy"`
@@ -69,6 +70,7 @@ type CaptchaSettings struct {
 	Timeout       int    `yaml:"max_captcha_wait"`
 	MaxCaptchaDM  int    `yaml:"max_captcha_retry_dm"`
 	MaxCaptchaInv int    `yaml:"max_captcha_retry_invite"`
+	Self          string `yaml:"self"`
 }
 
 type OtherSettings struct {
@@ -76,6 +78,8 @@ type OtherSettings struct {
 	Mode            int  `yaml:"mode"`
 	ConstantCookies bool `yaml:"constant_cookies"`
 	CensorToken     bool `yaml:"censor_token"`
+	Logs            bool `yaml:"logs"`
+	GatewayStatus   int  `yaml:"gateway_status"`
 }
 
 type SuspicionAvoidance struct {
@@ -106,31 +110,31 @@ type DMonReact struct {
 }
 
 type AutoReact struct {
-	Observer  string   `yaml:"observer_token"`
-	Servers   []string `yaml:"servers"`
-	Channels  []string `yaml:"channels"`
-	Messages  []string `yaml:"messages"`
-	Users     []string `yaml:"users"`
-	Emojis    []string `yaml:"emojis"`
-	ReactWith []string `yaml:"react_with"`
-	ReactAll  bool     `yaml:"react_all"`
-	Delay     int      `yaml:"delay_between_reacts"`
-	Subscribe []string `yaml:"subscribe_to_servers"`
-	Randomness int     `yaml:"minimum_percent_react"`
-	IndividualDelay int `yaml:"individual_delay"`
+	Observer        string   `yaml:"observer_token"`
+	Servers         []string `yaml:"servers"`
+	Channels        []string `yaml:"channels"`
+	Messages        []string `yaml:"messages"`
+	Users           []string `yaml:"users"`
+	Emojis          []string `yaml:"emojis"`
+	ReactWith       []string `yaml:"react_with"`
+	ReactAll        bool     `yaml:"react_all"`
+	Delay           int      `yaml:"delay_between_reacts"`
+	Subscribe       []string `yaml:"subscribe_to_servers"`
+	Randomness      int      `yaml:"minimum_percent_react"`
+	IndividualDelay int      `yaml:"individual_delay"`
 }
 
 func GetConfig() (Config, error) {
 	ex, err := os.Executable()
 	if err != nil {
-		color.Red("Error while finding executable")
+		utilities.LogErr("Error getting executable path %v", err)
 		return Config{}, err
 	}
 	ex = filepath.ToSlash(ex)
 	var file *os.File
 	file, err = os.Open(path.Join(path.Dir(ex) + "/" + "config.yml"))
 	if err != nil {
-		color.Red("Error while Opening Config")
+		utilities.LogErr("Error while opening config file %v", err)
 		return Config{}, err
 	} else {
 		defer file.Close()
@@ -149,13 +153,13 @@ func GetMessage() ([]Message, error) {
 	var messages []Message
 	ex, err := os.Executable()
 	if err != nil {
-		color.Red("Error while finding executable")
+		utilities.LogErr("Error while finding executable %v", err)
 		return []Message{}, err
 	}
 	ex = filepath.ToSlash(ex)
 	file, err := os.Open(path.Join(path.Dir(ex) + "/" + "message.json"))
 	if err != nil {
-		color.Red("Error while Opening message.json")
+		utilities.LogErr("Error while Opening Message %v", err)
 		fmt.Println(err)
 		return []Message{}, err
 	}

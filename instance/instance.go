@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 	"github.com/gorilla/websocket"
 )
 
@@ -54,7 +53,8 @@ type Instance struct {
 	UserAgent       string
 	XSuper          string
 	Reacted         []ReactInfo
-	ReactChannel    chan(ReactInfo)
+	ReactChannel    chan (ReactInfo)
+	MessageNumber   int
 }
 
 func (in *Instance) StartWS() error {
@@ -71,14 +71,18 @@ func (in *Instance) wsFatalHandler(err error) {
 		in.fatal <- fmt.Errorf("websocket closed: authentication failed, try using a new token")
 		return
 	}
-	color.Red("Websocket closed %v %v", err, in.Token)
+	if strings.Contains(err.Error(), "4004") {
+		utilities.LogLocked("Error while opening websocket, Authentication failed %v", in.Token)
+		return
+	}
+	utilities.LogSuccess("Websocket closed %v %v", err, in.Token)
 	in.Receiver = false
 	in.Ws, err = in.NewConnection(in.wsFatalHandler)
 	if err != nil {
 		in.fatal <- fmt.Errorf("failed to create websocket connection: %s", err)
 		return
 	}
-	color.Green("Reconnected To Websocket")
+	utilities.LogSuccess("Reconnected To Websocket %v", in.Token)
 }
 
 func GetEverything() (Config, []Instance, error) {
@@ -98,24 +102,24 @@ func GetEverything() (Config, []Instance, error) {
 	}
 	supportedProtocols := []string{"http", "https", "socks4", "socks5"}
 	if cfg.ProxySettings.ProxyProtocol != "" && !utilities.Contains(supportedProtocols, cfg.ProxySettings.ProxyProtocol) {
-		color.Red("[!] You're using an unsupported proxy protocol. Assuming http by default")
+		utilities.LogErr(" You're using an unsupported proxy protocol. Assuming http by default")
 		cfg.ProxySettings.ProxyProtocol = "http"
 	}
 	if cfg.ProxySettings.ProxyProtocol == "https" {
 		cfg.ProxySettings.ProxyProtocol = "http"
 	}
 	if cfg.CaptchaSettings.CaptchaAPI == "" {
-		color.Red("[!] You're not using a Captcha API, some functionality like invite joining might be unavailable")
+		utilities.LogErr(" You're not using a Captcha API, some functionality like invite joining might be unavailable")
 	}
 	if cfg.ProxySettings.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
 		os.Setenv("HTTPS_PROXY", cfg.ProxySettings.ProxyProtocol+"://"+cfg.ProxySettings.Proxy)
 	}
 	if !cfg.ProxySettings.ProxyFromFile && cfg.ProxySettings.ProxyForCaptcha {
-		color.Red("[!] You must enabe proxy_from_file to use proxy_for_captcha")
+		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
 	if cfg.CaptchaSettings.CaptchaAPI == "capcat.xyz" {
-		color.Red("[!] You're using a third party Captcha solution, proceed with caution.")
+		utilities.LogWarn("You're using a third party Captcha solution, proceed with caution.")
 	}
 	if cfg.OtherSettings.Mode == 1 {
 		// Discord App
@@ -152,6 +156,9 @@ func GetEverything() (Config, []Instance, error) {
 	var password string
 	reg := regexp.MustCompile(`(.+):(.+):(.+)`)
 	for i := 0; i < len(tokens); i++ {
+		if tokens[i] == "" {
+			continue
+		}
 		if reg.MatchString(tokens[i]) {
 			parts := strings.Split(tokens[i], ":")
 			instanceToken = parts[2]
@@ -177,7 +184,7 @@ func GetEverything() (Config, []Instance, error) {
 		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper})
 	}
 	if len(instances) == 0 {
-		color.Red("[!] You may be using 0 tokens")
+		utilities.LogErr(" You may be using 0 tokens")
 	}
 
 	return cfg, instances, nil
@@ -226,4 +233,14 @@ func (in *Instance) CensorToken() string {
 		return in.Token
 	}
 
+}
+
+func (in *Instance) WriteInstanceToFile(path string) {
+	var line string
+	if in.Email != "" && in.Password != "" {
+		line = fmt.Sprintf("%s:%s:%s", in.Email, in.Password, in.Token)
+	} else {
+		line = in.Token
+	}
+	_ = utilities.WriteLinesPath(path, line)
 }

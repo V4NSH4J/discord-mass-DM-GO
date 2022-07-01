@@ -8,21 +8,20 @@ package discord
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
-	"github.com/fatih/color"
 	"github.com/zenthangplus/goccm"
 )
 
 func LaunchGuildLeaver() {
 	cfg, instances, err := instance.GetEverything()
 	if err != nil {
-		color.Red("Error while getting necessary data %v", err)
-		utilities.ExitSafely()
-
+		utilities.LogErr("Error while getting instances or config %s", err)
+		return
 	}
 	var LeftCount, TotalCount, FailedCount int
 	title := make(chan bool)
@@ -39,21 +38,46 @@ func LaunchGuildLeaver() {
 
 		}
 	}()
-	color.White("Enter the number of threads (0 for unlimited): ")
-	var threads int
-	fmt.Scanln(&threads)
+	var tokenFile, successFile, failedFile string
+	if cfg.OtherSettings.Logs {
+		path := fmt.Sprintf(`logs/guild_leaver/DMDGO-GL-%s-%s`, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
+		err := os.MkdirAll(path, 0755)
+		if err != nil && !os.IsExist(err) {
+			utilities.LogErr("Error creating logs directory: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX, err := os.Create(fmt.Sprintf(`%s/token.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating token file: %s", err)
+			utilities.ExitSafely()
+		}
+		tokenFileX.Close()
+		successFileX, err := os.Create(fmt.Sprintf(`%s/success.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating success file: %s", err)
+			utilities.ExitSafely()
+		}
+		successFileX.Close()
+		failedFileX, err := os.Create(fmt.Sprintf(`%s/failed.txt`, path))
+		if err != nil {
+			utilities.LogErr("Error creating failed file: %s", err)
+			utilities.ExitSafely()
+		}
+		failedFileX.Close()
+		tokenFile, successFile, failedFile = tokenFileX.Name(), successFileX.Name(), failedFileX.Name()
+		for i := 0; i < len(instances); i++ {
+			instances[i].WriteInstanceToFile(tokenFile)
+		}
+	}
+	threads := utilities.UserInputInteger("Enter number of threads (0 for unlimited):")
 	if threads > len(instances) {
 		threads = len(instances)
 	}
 	if threads == 0 {
 		threads = len(instances)
 	}
-	color.White("Enter delay between leaves: ")
-	var delay int
-	fmt.Scanln(&delay)
-	color.White("Enter serverid: ")
-	var serverid string
-	fmt.Scanln(&serverid)
+	delay := utilities.UserInputInteger("Enter delay between leaves on each thread (in seconds):")
+	serverid := utilities.UserInput("Enter server ID:")
 	c := goccm.New(threads)
 	for i := 0; i < len(instances); i++ {
 		time.Sleep(time.Duration(cfg.DirectMessage.Offset) * time.Millisecond)
@@ -62,14 +86,23 @@ func LaunchGuildLeaver() {
 		go func(i int) {
 			p := instances[i].Leave(serverid)
 			if p == 0 {
-				color.Red("[%v] Error while leaving", time.Now().Format("15:04:05"))
+				utilities.LogFailed("Error while leaving on token %v", instances[i].CensorToken())
+				if cfg.OtherSettings.Logs {
+					instances[i].WriteInstanceToFile(failedFile)
+				}
 				FailedCount++
 			}
 			if p == 200 || p == 204 {
-				color.Green("[%v] %v Left server", instances[i].CensorToken(), time.Now().Format("15:04:05"))
+				utilities.LogSuccess("Successfully left on token %v", instances[i].CensorToken())
+				if cfg.OtherSettings.Logs {
+					instances[i].WriteInstanceToFile(successFile)
+				}
 				LeftCount++
 			} else {
-				color.Red("[%v] %v Error while leaving", instances[i].CensorToken(), time.Now().Format("15:04:05"))
+				utilities.LogFailed("Invalid Status code %v while leaving on token %v", p, instances[i].CensorToken())
+				if cfg.OtherSettings.Logs {
+					instances[i].WriteInstanceToFile(failedFile)
+				}
 				FailedCount++
 			}
 			time.Sleep(time.Duration(delay) * time.Second)
@@ -78,5 +111,5 @@ func LaunchGuildLeaver() {
 	}
 	c.WaitAllDone()
 	title <- true
-	color.Green("[%v] All threads finished", time.Now().Format("15:04:05"))
+	utilities.LogSuccess("All Threads Completed!")
 }
