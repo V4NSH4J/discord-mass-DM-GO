@@ -58,6 +58,9 @@ func UserInputInteger(format string, a ...any) int {
 		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL</><fg=white>]</> » Error %s\n", err)
 		ExitSafely()
 	}
+	if out == "" || out == "\n" {
+		return 0 // Return 0 if user didn't enter anything
+	}
 	out = strings.TrimSuffix(out, "\r\n")
 	out = strings.TrimSuffix(out, "\n")
 	i, err := strconv.Atoi(out)
