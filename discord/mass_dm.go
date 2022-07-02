@@ -549,7 +549,7 @@ func LaunchMassDM() {
 					if err != nil {
 						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					utilities.LogFailed("Token %v failed to DM %v User has DMs closed or not present in server %v", instances[i].CensorToken(), failedCount, user, string(body))
+					utilities.LogFailed("Token %v failed to DM %v User has DMs closed or not present in server %v", instances[i].CensorToken(), failedCount, user)
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token failed to DM %v [DMs closed or no mutual servers]", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
 					}

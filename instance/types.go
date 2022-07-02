@@ -255,9 +255,6 @@ type TokenInfo struct {
 	PremiumUsageFlags int    `json:"premium_usage_flags"`
 	PremiumType       int    `json:"premium_type"`
 	Flags             int    `json:"flags"`
-	Banner            string `json:"banner"`
-	BannerColor       string `json:"banner_color"`
-	AccentColor       string `json:"accent_color"`
 	Bio               string `json:"bio"`
 	Pronouns          string `json:"pronouns"`
 	Locale            string `json:"locale"`

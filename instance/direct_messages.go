@@ -282,6 +282,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 	if err != nil {
 		return res.StatusCode, nil, fmt.Errorf("error while reading body %v", err)
 	}
+	t := res.StatusCode
 	if res.StatusCode == 200 || res.StatusCode == 204 {
 		if in.Config.DirectMessage.MultipleMessages {
 			go func() {
@@ -334,7 +335,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 		}
 		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
 		if err != nil {
-			return res.StatusCode, body, fmt.Errorf("error while getting send message response %v", err)
+			return t, body, fmt.Errorf("error while getting send message response %v", err)
 		}
 	}
 	in.Count++
