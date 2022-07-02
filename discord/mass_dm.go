@@ -497,20 +497,12 @@ func LaunchMassDM() {
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token quarantined", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
 					}
-					failedCount++
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(failedUsersFile, member)
-					}
-					failed = append(failed, member)
-					err = utilities.WriteLine("input/failed.txt", member)
-					if err != nil {
-						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					dead = append(dead, instances[i].Token)
 					if cfg.OtherSettings.Logs {
 						instances[i].WriteInstanceToFile(lockedFile)
-					}
-					if cfg.OtherSettings.Logs {
 					}
 					// Stop token if locked or disabled
 					if cfg.DirectMessage.Stop {
@@ -518,13 +510,11 @@ func LaunchMassDM() {
 					}
 					if cfg.OtherSettings.Logs {
 						instances[i].WriteInstanceToFile(quarantinedFile)
+						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token quarantined", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
 					}
+					mem <- member
 
 				} else if respCode == 403 && response.Code == 40003 {
-					err = utilities.WriteLine("input/failed.txt", member)
-					if err != nil {
-						utilities.LogErr("Error while writing to failed.txt %s", err)
-					}
 					mem <- member
 					utilities.LogInfo("Token %v sleeping for %v minutes!", instances[i].CensorToken(), int(cfg.DirectMessage.LongDelay/60))
 					if cfg.OtherSettings.Logs {
@@ -555,14 +545,8 @@ func LaunchMassDM() {
 					}
 					// Forbidden - Locked or Disabled
 				} else if (respCode == 403 && response.Code == 40002) || respCode == 401 || respCode == 405 {
-					failedCount++
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(failedUsersFile, member)
-					}
-					failed = append(failed, member)
-					err = utilities.WriteLine("input/failed.txt", member)
-					if err != nil {
-						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					utilities.LogFailed("Token %v is locked or disabled. Stopping instance. %v %v", failedCount, instances[i].CensorToken(), respCode, string(body))
 					if cfg.OtherSettings.Logs {
@@ -576,6 +560,7 @@ func LaunchMassDM() {
 					if cfg.DirectMessage.Stop {
 						break
 					}
+					mem <- member
 					// Forbidden - Invalid token
 				} else if respCode == 403 && response.Code == 50009 {
 					failedCount++
@@ -593,11 +578,11 @@ func LaunchMassDM() {
 					}
 					// General case - Continue loop. If problem with instance, it will be stopped at start of loop.
 				} else if respCode == 429 {
-					failed = append(failed, member)
 					utilities.LogFailed("Token %v is being rate limited. Sleeping for 10 seconds", instances[i].CensorToken())
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token rate limited", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
 					}
+					mem <- member
 					time.Sleep(10 * time.Second)
 				} else if respCode == 400 && strings.Contains(string(body), "captcha") {
 					mem <- member
