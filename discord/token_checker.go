@@ -99,6 +99,7 @@ func LaunchTokenChecker() {
 		threads = len(instances)
 	}
 	title := make(chan bool)
+	var validTokens []instance.Instance
 	var valid, invalid, errors int
 	go func() {
 	Out:
@@ -133,6 +134,7 @@ func LaunchTokenChecker() {
 					if cfg.OtherSettings.Logs {
 						instances[i].WriteInstanceToFile(workingFile)
 					}
+					validTokens = append(validTokens, instances[i])
 					printStrings = append(printStrings, MakeColoredString("green", "WORKING", " Token %v: %v", i, instances[i].CensorToken()))
 					if info.ID != "" {
 						printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " ID: %v", info.ID))
@@ -266,6 +268,15 @@ func LaunchTokenChecker() {
 	c.WaitAllDone()
 
 	title <- true
+	var validTokenStrings []string 
+	for i := 0; i < len(validTokens); i++ {
+		if validTokens[i].Password != "" && validTokens[i].Email != "" {
+			validTokenStrings = append(validTokenStrings, fmt.Sprintf("%v:%v:%v", validTokens[i].Email, validTokens[i].Password, validTokens[i].Token))
+		} else {
+			validTokenStrings = append(validTokenStrings, validTokens[i].Token)
+		}
+	}
+	utilities.TruncateLines("tokens.txt", validTokenStrings)
 	utilities.LogSuccess("All Done!")
 }
 
