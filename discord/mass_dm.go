@@ -442,7 +442,7 @@ func LaunchMassDM() {
 					}
 					completed = append(completed, member)
 					session = append(session, member)
-					utilities.LogSuccess("Token %v sent DM to %v", len(session), instances[i].CensorToken(), user)
+					utilities.LogSuccess("[DM-%v] Token %v sent DM to %v", len(session), instances[i].CensorToken(), user)
 					if cfg.DirectMessage.Websocket && cfg.DirectMessage.Call && instances[i].Ws != nil {
 						err := instances[i].Call(snowflake)
 						if err != nil {

@@ -123,7 +123,7 @@ func LaunchScraperMenu() {
 		}
 		utilities.LogSuccess("Scraping finished. Scraped %v members", len(Is.Ws.Members))
 		if cfg.OtherSettings.Logs {
-			for i := 0; t < len(Is.Ws.Members); i++ {
+			for i := 0; i < len(Is.Ws.Members); i++ {
 				if Is.Ws.Members[i].User.Bot {
 					utilities.WriteLinesPath(botsFile, fmt.Sprintf("%v %v %v", Is.Ws.Members[i].User.ID, Is.Ws.Members[i].User.Username, Is.Ws.Members[i].User.Discriminator))
 				}
