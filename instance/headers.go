@@ -82,22 +82,23 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie, xcontext string) *h
 		}
 	} else {
 		for k, v := range map[string]string{
-			"Host":                 "discord.com",
-			"User-Agent":           in.UserAgent,
-			"Accept":               "*/*",
-			"Accept-Language":      "en-US,en;q=0.5",
-			"Content-Type":         "application/json",
+			"Accept": "*/*",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Alt-Used": "discord.com",
+			"Authorization": in.Token,
+			"Cookie": cookie,
+			"Content-Type": "application/json",
+			"Origin": "https://discord.com",
+			"Referer": "https://discord.com/channels/@me",
+			"Host": "discord.com",
+			"User-Agent": in.UserAgent,
+			"X-Debug-Options": "bugReporterEnabled",
+			"X-Discord-Locale": "en-US",
 			"X-Context-Properties": xcontext,
-			"Authorization":        in.Token,
-			"X-Super-Properties":   in.XSuper,
-			"X-Discord-Locale":     "en-US",
-			"X-Debug-Options":      "bugReporterEnabled",
-			"Origin":               "https://discord.com",
-			"Referer":              "https://discord.com/channels/@me",
-			"Cookie":               cookie,
-			"Sec-Fetch-Dest":       "empty",
-			"Sec-Fetch-Mode":       "cors",
-			"Sec-Fetch-Site":       "same-origin",
+			"X-Super-Properties": in.XSuper,
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
 		} {
 			req.Header.Set(k, v)
 		}

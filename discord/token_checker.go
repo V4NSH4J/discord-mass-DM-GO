@@ -268,7 +268,7 @@ func LaunchTokenChecker() {
 	c.WaitAllDone()
 
 	title <- true
-	var validTokenStrings []string 
+	var validTokenStrings []string
 	for i := 0; i < len(validTokens); i++ {
 		if validTokens[i].Password != "" && validTokens[i].Email != "" {
 			validTokenStrings = append(validTokenStrings, fmt.Sprintf("%v:%v:%v", validTokens[i].Email, validTokens[i].Password, validTokens[i].Token))

@@ -1,5 +1,8 @@
-// Remove all friends and blocks
-// Cancel all incoming friend requests
+// Copyright (C) 2021 github.com/V4NSH4J
+//
+// This source code has been released under the GNU Affero General Public
+// License v3.0. A copy of this license is available at
+// https://www.gnu.org/licenses/agpl-3.0.en.html
 
 package discord
 

@@ -165,7 +165,7 @@ func LaunchinviteJoiner() {
 		}
 		var inviteFiles []string
 		for i := 0; i < len(invites); i++ {
-			f, err := os.Create(fmt.Sprintf(`%s/%s.txt`, path,invites[i]))
+			f, err := os.Create(fmt.Sprintf(`%s/%s.txt`, path, invites[i]))
 			if err != nil {
 				utilities.LogErr("Error creating invite file %v: %s", invites[i], err)
 			}

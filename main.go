@@ -20,7 +20,7 @@ import (
 var CaptchaServices []string
 
 func main() {
-	version := "1.10.1"
+	version := "1.10.2"
 	cfg, err := instance.GetConfig()
 	if err == nil {
 		CaptchaServices = []string{"capmonster.cloud", "2captcha.com", "rucaptcha.com", "anti-captcha.com", cfg.CaptchaSettings.Self}

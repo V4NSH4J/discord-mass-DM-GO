@@ -24,6 +24,8 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 	switch true {
 	case in.Config.CaptchaSettings.Self != "":
 		return in.self(sitekey, rqData)
+	case in.Config.CaptchaSettings.CaptchaAPI == "xyz.com":
+		return in.xyz(sitekey, cookie, rqData)
 	case utilities.Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.Capmonster(sitekey, url, rqData, cookie)
 	case utilities.Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
@@ -491,4 +493,118 @@ type SelfRequest struct {
 
 type SelfResponse struct {
 	Answer string `json:"generated_pass_UUID"`
+}
+
+/*
+	xyz
+*/
+
+func (in *Instance) xyz(sitekey, cookie, rqdata string) (string, error) {
+	var solvedKey string 
+	inEndpoint := fmt.Sprintf(`https://api.%s/hcaptcha`, in.Config.CaptchaSettings.CaptchaAPI)
+	inURL, err := url.Parse(inEndpoint)
+	if err != nil {
+		return solvedKey, fmt.Errorf("error while parsing url %v", err)
+	}
+	q := inURL.Query()
+	if in.Config.CaptchaSettings.ClientKey == "" {
+		return solvedKey, fmt.Errorf("client key is empty")
+	}
+	if in.Proxy == "" {
+		return solvedKey, fmt.Errorf("proxies are mandatory with this API. turn on proxy_for_captcha in config")
+	}
+	q.Set("token", in.Config.CaptchaSettings.ClientKey)
+	q.Set("siteKey", sitekey)
+	q.Set("pageurl", "discord.com")
+	q.Set("proxy", in.Proxy)
+	q.Set("useragent", in.UserAgent)
+	//q.Set("cookies", cookie)
+	q.Set("invisible", "false")
+	if rqdata != "" {
+		q.Set("rqdata", rqdata)
+	}
+	inURL.RawQuery = q.Encode()
+	inEndpoint = inURL.String()
+	fmt.Println(inEndpoint)
+	req, err := http.NewRequest(http.MethodGet, inEndpoint, nil)
+	if err != nil {
+		return solvedKey, fmt.Errorf("error creating request [%v]", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return solvedKey, fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return solvedKey, fmt.Errorf("error reading response [%v]", err)
+	}
+	fmt.Println(string(body))
+	var outResponse xyzSubmitResponse
+	err = json.Unmarshal(body, &outResponse)
+	if err != nil {
+		return solvedKey, fmt.Errorf("error unmarshalling response [%v]", err)
+	}
+	if outResponse.Status != "OK" {
+		return solvedKey, fmt.Errorf("error %v", string(body))
+	}
+	taskID := outResponse.TaskID
+	time.Sleep(25 * time.Second)
+	t := time.Now()
+	for {
+		if int(time.Since(t).Seconds()) >  in.Config.CaptchaSettings.Timeout {
+			return solvedKey, fmt.Errorf("Timedout while waiting for captcha to be solved, increase timeout in config to wait longer.")
+		} 
+		outEndpoint := fmt.Sprintf(`https://api.%s/solution`, in.Config.CaptchaSettings.CaptchaAPI)
+		outURL, err := url.Parse(outEndpoint)
+		if err != nil {
+			return solvedKey, fmt.Errorf("error while parsing url %v", err)
+		}
+		q := outURL.Query()
+		q.Set("token", in.Config.CaptchaSettings.ClientKey)
+		q.Set("taskId", taskID)
+		outURL.RawQuery = q.Encode()
+		outEndpoint = outURL.String()
+		fmt.Println(outEndpoint)
+		req, err := http.NewRequest(http.MethodGet, outEndpoint, nil)
+		if err != nil {
+			return solvedKey, fmt.Errorf("error creating request [%v]", err)
+		}
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return solvedKey, fmt.Errorf("error sending request [%v]", err)
+		}
+		defer resp.Body.Close()
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return solvedKey, fmt.Errorf("error reading response [%v]", err)
+		}
+		fmt.Println(string(body))
+		var outResponse xyzSolutionResponse
+		err = json.Unmarshal(body, &outResponse)
+		if err != nil {
+			return solvedKey, fmt.Errorf("error unmarshalling response [%v]", err)
+		}
+		if outResponse.Status == "OK" {
+			solvedKey = outResponse.Solution
+			break
+		} else if outResponse.Status == "WAITING" {
+			time.Sleep(5 * time.Second)
+			continue 
+		} else {
+			return solvedKey, fmt.Errorf("error %v", string(body))
+		}
+	}
+	return solvedKey, err
+}
+
+
+
+type xyzSubmitResponse struct {
+	Status string `json:"status"`
+	TaskID string `json:"taskId"`
+}
+type xyzSolutionResponse struct {
+	Status   string `json:"status"`
+	Solution string `json:"solution"`
 }

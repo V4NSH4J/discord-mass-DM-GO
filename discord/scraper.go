@@ -112,7 +112,6 @@ func LaunchScraperMenu() {
 			}
 			utilities.LogSuccess("Token %v Scrape Count: %v", Is.Token, len(Is.Ws.Members))
 			if Is.Ws.Complete {
-				fmt.Scanln()
 				break
 			}
 			i++
