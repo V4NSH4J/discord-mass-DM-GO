@@ -104,12 +104,10 @@ func LaunchinviteJoiner() {
 			go func(i int) {
 				err := instances[i].Invite(invite)
 				if err != nil {
-					utilities.LogFailed("%s failed to join server %v error %v", instances[i].CensorToken(), invite, err)
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(failedFile, instances[i].Token)
 					}
 				} else {
-					utilities.LogSuccess("%s joint server %v", instances[i].CensorToken(), invite)
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(jointFile, instances[i].Token)
 					}
@@ -165,7 +163,7 @@ func LaunchinviteJoiner() {
 		}
 		var inviteFiles []string
 		for i := 0; i < len(invites); i++ {
-			f, err := os.Create(fmt.Sprintf(`%s/%s.txt`, path, invites[i]))
+			f, err := os.Create(fmt.Sprintf(`%s/%s.txt`, path, processInvite(invites[i])))
 			if err != nil {
 				utilities.LogErr("Error creating invite file %v: %s", invites[i], err)
 			}
@@ -190,10 +188,7 @@ func LaunchinviteJoiner() {
 			go func(i int) {
 				for j := 0; j < len(invites); j++ {
 					err := instances[i].Invite(processInvite(invites[j]))
-					if err != nil {
-						utilities.LogFailed("Token %v failed to join %v Error: %v", instances[i].CensorToken(), invites[j], err)
-					} else {
-						utilities.LogSuccess("Token %v joined %v", instances[i].CensorToken(), invites[j])
+					if err == nil {
 						if cfg.OtherSettings.Logs {
 							utilities.WriteLinesPath(inviteFiles[j], instances[i].Token)
 						}

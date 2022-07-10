@@ -111,11 +111,19 @@ func VersionCheck(version string) {
 		return
 	}
 	v := response["version"].(string)
+	if !strings.Contains(v, ".") {
+		return
+	}
+	vParts := strings.Split(v, ".")
+	versionParts := strings.Split(version, ".")
 	message := response["message"].(string)
-	if v != version {
-		LogErr(" You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
-	} else {
+	if vParts[0] == versionParts[0] && vParts[1] == versionParts[1] && vParts[2] == versionParts[2] {
 		LogSuccess(" You're Up-to-Date! You're using DMDGO V%v", version)
+		
+	} else if (vParts[0] == versionParts[0] && vParts[1] == versionParts[1] && vParts[2] < versionParts[2] ) || (vParts[0] == versionParts[0] && vParts[1] < versionParts[1] ) || (vParts[0] < versionParts[0]) {
+		LogSuccess(" You're Up-to-Date! You're using DMDGO BETA V%v", version)
+	} else {
+		LogErr(" You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
 	}
 	if message != "" {
 		LogInfo(" %v", message)

@@ -539,7 +539,7 @@ func LaunchMassDM() {
 					if err != nil {
 						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					utilities.LogFailed("Token %v failed to DM %v User has DMs closed or not present in server %v", instances[i].CensorToken(), failedCount, user)
+					utilities.LogFailed("Token %v failed to DM %v User has DMs closed or not present in server ", instances[i].CensorToken(), user)
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token failed to DM %v [DMs closed or no mutual servers]", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), member))
 					}
@@ -548,7 +548,7 @@ func LaunchMassDM() {
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(failedUsersFile, member)
 					}
-					utilities.LogFailed("Token %v is locked or disabled. Stopping instance. %v %v", failedCount, instances[i].CensorToken(), respCode, string(body))
+					utilities.LogFailed("Token %v is locked or disabled. Stopping instance. %v %v", instances[i].CensorToken(), respCode, string(body))
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token locked or disabled", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
 					}
@@ -572,7 +572,7 @@ func LaunchMassDM() {
 					if err != nil {
 						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					utilities.LogFailed("Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", failedCount, instances[i].CensorToken(), user, string(body))
+					utilities.LogFailed("Token %v can't DM %v. It may not have bypassed membership screening or it's verification level is too low or the server requires new members to wait 10 minutes before they can interact in the server. %v", instances[i].CensorToken(), user, string(body))
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token channel verification level too high", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken()))
 					}
@@ -610,7 +610,7 @@ func LaunchMassDM() {
 					if err != nil {
 						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
-					utilities.LogFailed("Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", failedCount, instances[i].CensorToken(), user, response.Code, respCode, response.Message)
+					utilities.LogFailed("Token %v couldn't DM %v Error Code: %v; Status: %v; Message: %v", instances[i].CensorToken(), user, response.Code, respCode, response.Message)
 					if cfg.OtherSettings.Logs {
 						utilities.WriteLinesPath(logsFile, fmt.Sprintf("[%v][Success:%v][Failed:%v] %v token failed to DM %v error %v", time.Now().Format("15:04:05"), len(session), len(failed), instances[i].CensorToken(), user, response.Message))
 					}

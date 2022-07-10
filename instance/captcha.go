@@ -518,7 +518,7 @@ func (in *Instance) xyz(sitekey, cookie, rqdata string) (string, error) {
 	q.Set("pageurl", "discord.com")
 	q.Set("proxy", in.Proxy)
 	q.Set("useragent", in.UserAgent)
-	//q.Set("cookies", cookie)
+	q.Set("cookies", cookie)
 	q.Set("invisible", "false")
 	if rqdata != "" {
 		q.Set("rqdata", rqdata)

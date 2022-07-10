@@ -1,7 +1,7 @@
 
 direct_message_settings:
-  individual_delay: 10
-  rate_limit_delay: 650
+  individual_delay: 60
+  rate_limit_delay: 60
   offset: 100
   max_dms_per_token: 0
   skip_completed: true
@@ -20,7 +20,7 @@ direct_message_settings:
   delay_between_multiple_messages: 10
 
 proxy_settings:
-  proxy_from_file: true
+  proxy_from_file: false
   proxy_for_captcha: false
   use_proxy_for_gateway: false
   proxy_protocol: "http"
@@ -34,17 +34,17 @@ scraper_settings:
 
 captcha_settings:
   captcha_api_key: ""
-  captcha_api: "anti-captcha.com"
+  captcha_api: ""
   max_captcha_wait: 600
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
 
 other_settings: 
   disable_keep_alives: false
-  mode: 1
+  mode: 0
   constant_cookies: true 
   censor_token: false
-  logs: true 
+  logs: false
   gateway_status: 4
 
 suspicion_avoidance:

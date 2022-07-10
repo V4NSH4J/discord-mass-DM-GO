@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/discord"
-	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/gookit/color"
 )
@@ -20,14 +19,7 @@ import (
 var CaptchaServices []string
 
 func main() {
-	version := "1.10.2"
-	cfg, err := instance.GetConfig()
-	if err == nil {
-		CaptchaServices = []string{"capmonster.cloud", "2captcha.com", "rucaptcha.com", "anti-captcha.com", cfg.CaptchaSettings.Self}
-	} else {
-		CaptchaServices = []string{"capmonster.cloud", "2captcha.com", "rucaptcha.com", "anti-captcha.com"}
-	}
-
+	version := "1.10.3"
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue.Printf(logo + " v" + version + "\n")
 	color.Green.Printf("Made by https://github.com/V4NSH4J\nStar repository on github for updates!\n")

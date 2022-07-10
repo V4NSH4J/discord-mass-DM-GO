@@ -23,18 +23,18 @@ func (in *Instance) cookieHeaders(req *http.Request) *http.Request {
 		}
 	} else {
 		for k, v := range map[string]string{
-			"Host":                      "discord.com",
-			"User-Agent":                in.UserAgent,
-			"Accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-			"Accept-Language":           "en-US,en;q=0.5",
-			"Accept-Encoding":           "gzip, deflate",
-			"Dnt":                       "1",
+			"Host": "discord.com",
+			"User-Agent": in.UserAgent,
+			"Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Accept-Encoding": "gzip, deflate",
+			"sec-gpc": "1",
 			"Upgrade-Insecure-Requests": "1",
-			"Sec-Fetch-Dest":            "document",
-			"Sec-Fetch-Mode":            "navigate",
-			"Sec-Fetch-Site":            "none",
-			"Sec-Fetch-User":            "?1",
-			"Te":                        "trailers",
+			"Sec-Fetch-Dest": "document",
+			"Sec-Fetch-Mode": "navigate",
+			"Sec-Fetch-Site": "none",
+			"Sec-Fetch-User": "?1",
+			
 		} {
 			req.Header.Set(k, v)
 		}
@@ -45,18 +45,20 @@ func (in *Instance) cookieHeaders(req *http.Request) *http.Request {
 
 func (in *Instance) cfBmHeaders(req *http.Request, cookie string) *http.Request {
 	for k, v := range map[string]string{
-		"Host":            "discord.com",
-		"User-Agent":      in.UserAgent,
-		"Accept":          "*/*",
+		"Host": "discord.com",
+		"Cookie": cookie,
+		"User-Agent": in.UserAgent,
+		"Accept": "*/*",
 		"Accept-Language": "en-US,en;q=0.5",
-		"Content-Type":    "application/json",
-		"Origin":          "https://discord.com",
-		"DNT":             "1",
-		"Referer":         "https://discord.com/",
-		"Cookie":          cookie,
-		"Sec-Fetch-Dest":  "empty",
-		"Sec-Fetch-Mode":  "cors",
-		"Sec-Fetch-Site":  "same-origin",
+		"Accept-Encoding": "gzip, deflate",
+		"Content-Type": "application/json",
+		"Origin": "https://discord.com",
+		"sec-gpc": "1",
+		"Referer": "https://discord.com/",
+		"Sec-Fetch-Dest": "empty",
+		"Sec-Fetch-Mode": "cors",
+		"Sec-Fetch-Site": "same-origin",
+		
 	} {
 		req.Header.Set(k, v)
 	}
@@ -82,23 +84,24 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie, xcontext string) *h
 		}
 	} else {
 		for k, v := range map[string]string{
+			"Host": "discord.com",
+			"Cookie": in.Cookie,
+			"User-Agent": in.UserAgent,
 			"Accept": "*/*",
 			"Accept-Language": "en-US,en;q=0.5",
-			"Alt-Used": "discord.com",
-			"Authorization": in.Token,
-			"Cookie": cookie,
 			"Content-Type": "application/json",
-			"Origin": "https://discord.com",
-			"Referer": "https://discord.com/channels/@me",
-			"Host": "discord.com",
-			"User-Agent": in.UserAgent,
-			"X-Debug-Options": "bugReporterEnabled",
-			"X-Discord-Locale": "en-US",
 			"X-Context-Properties": xcontext,
+			"Authorization": in.Token,
 			"X-Super-Properties": in.XSuper,
+			"X-Discord-Locale": "en-US",
+			"X-Debug-Options": "bugReporterEnabled",
+			"Origin": "https://discord.com",
+			"sec-gpc": "1",
+			"Referer": "https://discord.com/channels/@me",
 			"Sec-Fetch-Dest": "empty",
 			"Sec-Fetch-Mode": "cors",
 			"Sec-Fetch-Site": "same-origin",
+			
 		} {
 			req.Header.Set(k, v)
 		}
@@ -124,19 +127,20 @@ func (in *Instance) xContextPropertiesHeaders(req *http.Request, cookie string) 
 		}
 	} else {
 		for k, v := range map[string]string{
-			"Host":               `discord.com`,
-			"User-Agent":         in.UserAgent,
-			"Accept":             `*/*`,
-			"Accept-Language":    `en-US,en;q=0.5`,
-			"Authorization":      in.Token,
+			"Cookie": cookie,
+			"User-Agent": in.UserAgent,
+			"Accept": "*/*",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Authorization": in.Token,
 			"X-Super-Properties": in.XSuper,
-			"X-Discord-Locale":   `en-US`,
-			"X-Debug-Options":    `bugReporterEnabled`,
-			"Referer":            `https://discord.com/channels/@me`,
-			"Cookie":             cookie,
-			"Sec-Fetch-Dest":     `empty`,
-			"Sec-Fetch-Mode":     `cors`,
-			"Sec-Fetch-Site":     `same-origin`,
+			"X-Discord-Locale": "en-US",
+			"X-Debug-Options": "bugReporterEnabled",
+			"sec-gpc": "1",
+			"Referer": "https://discord.com/channels/@me",
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+			
 		} {
 			req.Header.Set(k, v)
 		}
@@ -164,22 +168,24 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie string) *http.R
 		}
 	} else {
 		for k, v := range map[string]string{
-			"Host":                 "discord.com",
-			"User-Agent":           in.UserAgent,
-			"Accept":               "*/*",
-			"Accept-Language":      "en-US,en;q=0.5",
-			"Content-Type":         "application/json",
+			"Host": "discord.com",
+			"Cookie": cookie,
+			"User-Agent": in.UserAgent,
+			"Accept": "*/*",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Content-Type": "application/json",
 			"X-Context-Properties": "e30=",
-			"Authorization":        in.Token,
-			"X-Super-Properties":   in.XSuper,
-			"X-Discord-Locale":     "en-US",
-			"X-Debug-Options":      "bugReporterEnabled",
-			"Origin":               "https://discord.com",
-			"Referer":              "https://discord.com/channels/@me",
-			"Cookie":               cookie,
-			"Sec-Fetch-Dest":       "empty",
-			"Sec-Fetch-Mode":       "cors",
-			"Sec-Fetch-Site":       "same-origin",
+			"Authorization": in.Token,
+			"X-Super-Properties": in.XSuper,
+			"X-Discord-Locale": "en-US",
+			"X-Debug-Options": "bugReporterEnabled",
+			"Origin": "https://discord.com",
+			"sec-gpc": "1",
+			"Referer": "https://discord.com/channels/@me",
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+			
 		} {
 			req.Header.Set(k, v)
 		}
@@ -205,21 +211,23 @@ func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient stri
 		}
 	} else {
 		for k, v := range map[string]string{
-			"Host":               "discord.com",
-			"User-Agent":         in.UserAgent,
-			"Accept":             "*/*",
-			"Accept-Language":    "en-US,en;q=0.5",
-			"Content-Type":       "application/json",
-			"Authorization":      in.Token,
+			"Host": "discord.com",
+			"Cookie": cookie,
+			"User-Agent": in.UserAgent,
+			"Accept": "*/*",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Content-Type": "application/json",
+			"Authorization": in.Token,
 			"X-Super-Properties": in.XSuper,
-			"X-Discord-Locale":   "en-US",
-			"X-Debug-Options":    "bugReporterEnabled",
-			"Origin":             "https://discord.com",
-			"Referer":            fmt.Sprintf(`https://discord.com/channels/@me/%s`, recipient),
-			"Cookie":             cookie,
-			"Sec-Fetch-Dest":     "empty",
-			"Sec-Fetch-Mode":     "cors",
-			"Sec-Fetch-Site":     "same-origin",
+			"X-Discord-Locale": "en-US",
+			"X-Debug-Options": "bugReporterEnabled",
+			"Origin": "https://discord.com",
+			"sec-gpc": "1",
+			"Referer": fmt.Sprintf("https://discord.com/channels/@me/%s", recipient),
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+			
 		} {
 			req.Header.Set(k, v)
 		}
@@ -283,21 +291,21 @@ func (in *Instance) AtMeHeaders(req *http.Request, cookie string) *http.Request 
 		}
 	} else {
 		for k, v := range map[string]string{
-
-			"User-Agent":         in.UserAgent,
-			"Accept":             "*/*",
-			"Accept-Language":    "en-US,en;q=0.5",
-			"Authorization":      in.Token,
+			"Host": "discord.com",
+			"Cookie": cookie,
+			"User-Agent": in.UserAgent,
+			"Accept": "*/*",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Authorization": in.Token,
 			"X-Super-Properties": in.XSuper,
-			"X-Discord-Locale":   "en-US",
-			"X-Debug-Options":    "bugReporterEnabled",
-			"Origin":             "https://discord.com",
-			"Referer":            `https://discord.com/channels/@me/`,
-			"Content-Type":       "application/json",
-			"Cookie":             cookie,
-			"Sec-Fetch-Dest":     "empty",
-			"Sec-Fetch-Mode":     "cors",
-			"Sec-Fetch-Site":     "same-origin",
+			"X-Discord-Locale": "en-US",
+			"X-Debug-Options": "bugReporterEnabled",
+			"sec-gpc": "1",
+			"Referer": "https://discord.com/login",
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+			
 		} {
 			req.Header.Set(k, v)
 		}
@@ -340,22 +348,22 @@ func (in *Instance) UserInfoHeaders(req *http.Request, cookie string) *http.Requ
 		}
 	} else {
 		for k, v := range map[string]string{
-
-			"Host":               "discord.com",
-			"Cookie":             cookie,
-			"User-Agent":         in.UserAgent,
-			"Accept-Language":    "en-US,en;q=0.5",
-			"Accept-Encoding":    "gzip, deflate",
-			"Authorization":      in.Token,
+			"Host": "discord.com",
+			"Cookie": cookie,
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:102.0) Gecko/20100101 Firefox/102.0",
+			"Accept": "*/*",
+			"Accept-Language": "en-US,en;q=0.5",
+			"Accept-Encoding": "gzip, deflate",
+			"Authorization": in.Token,
 			"X-Super-Properties": in.XSuper,
-			"X-Discord-Locale":   "en-US",
-			"X-Debug-Options":    "bugReporterEnabled",
-			"Dnt":                "1",
-			"Referer":            "https://discord.com/channels/942940056157560862/942940056157560865",
-			"Sec-Fetch-Dest":     "empty",
-			"Sec-Fetch-Mode":     "cors",
-			"Sec-Fetch-Site":     "same-origin",
-			"Te":                 "trailers",
+			"X-Discord-Locale": "en-US",
+			"X-Debug-Options": "bugReporterEnabled",
+			"sec-gpc": "1",
+			"Referer": "https://discord.com/channels/@me",
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+			
 		} {
 			req.Header.Set(k, v)
 		}
