@@ -314,7 +314,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 		if err != nil {
 			return res.StatusCode, body, fmt.Errorf("error while unmarshalling captcha %v", err)
 		}
-		utilities.LogWarn("[%v] Captcha detected %v [%v]", time.Now().Format("15:04:05"), in.CensorToken(), captchaDetect.Sitekey)
+		utilities.LogWarn("Captcha detected %v [%v]", in.CensorToken(), captchaDetect.Sitekey)
 		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie, captchaDetect.RqData, captchaDetect.RqToken, fmt.Sprintf("https://discord.com/channels/@me/%s", channelSnowflake))
 		if err != nil {
 			return res.StatusCode, body, fmt.Errorf("error while solving captcha %v", err)

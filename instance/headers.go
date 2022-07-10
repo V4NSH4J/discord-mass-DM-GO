@@ -85,7 +85,7 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie, xcontext string) *h
 	} else {
 		for k, v := range map[string]string{
 			"Host": "discord.com",
-			"Cookie": in.Cookie,
+			"Cookie": cookie,
 			"User-Agent": in.UserAgent,
 			"Accept": "*/*",
 			"Accept-Language": "en-US,en;q=0.5",
@@ -294,6 +294,7 @@ func (in *Instance) AtMeHeaders(req *http.Request, cookie string) *http.Request 
 			"Host": "discord.com",
 			"Cookie": cookie,
 			"User-Agent": in.UserAgent,
+			"Content-Type": "application/json",
 			"Accept": "*/*",
 			"Accept-Language": "en-US,en;q=0.5",
 			"Authorization": in.Token,

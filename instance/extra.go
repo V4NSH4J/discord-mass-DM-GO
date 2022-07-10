@@ -249,10 +249,10 @@ func (in *Instance) Invite(Code string) error {
 				rqToken = resp["captcha_rqtoken"].(string)
 			}
 			if in.Config.CaptchaSettings.CaptchaAPI == "" {
-				utilities.LogErr("[%v] Captcha detected but no API key provided %v", time.Now().Format("15:04:05"), in.CensorToken())
+				utilities.LogErr("Captcha detected but no API key provided %v", in.CensorToken())
 				break
 			} else {
-				utilities.LogWarn("[%v] Captcha detected %v [%v] [%v]", time.Now().Format("15:04:05"), in.CensorToken(), cap, i)
+				utilities.LogWarn("Captcha detected %v [%v] [%v]", in.CensorToken(), cap, i)
 			}
 			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {
@@ -274,7 +274,7 @@ func (in *Instance) Invite(Code string) error {
 			return err
 		}
 		if resp.StatusCode == 200 {
-			utilities.LogSuccess("[%v] %v joint guild %v", time.Now().Format("15:04:05"), in.CensorToken(), Code)
+			utilities.LogSuccess("%v joint guild %v", in.CensorToken(), Code)
 			if Join.VerificationForm {
 				if len(Join.GuildObj.ID) != 0 {
 					Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)
