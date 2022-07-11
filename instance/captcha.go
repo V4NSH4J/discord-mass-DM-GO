@@ -437,6 +437,9 @@ func (in *Instance) self(sitekey, rqData string) (string, error) {
 		RqData:  rqData,
 		Host:    "discord.com",
 		Proxy:   in.Proxy,
+		Username: in.Config.CaptchaSettings.SelfUsername,
+		Password: in.Config.CaptchaSettings.SelfPassword,
+		ProxyType: in.Config.ProxySettings.ProxyProtocol,
 	}
 	payloadBytes, err := json.Marshal(selfPayload)
 	if err != nil {
@@ -489,6 +492,9 @@ type SelfRequest struct {
 	RqData  string `json:"rqdata"`
 	Proxy   string `json:"proxy"`
 	Host    string `json:"host"`
+	Username string `json:"username"`
+	Password string `json:"password"`
+	ProxyType string `json:"proxytype"`
 }
 
 type SelfResponse struct {

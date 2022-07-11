@@ -71,6 +71,8 @@ type CaptchaSettings struct {
 	MaxCaptchaDM  int    `yaml:"max_captcha_retry_dm"`
 	MaxCaptchaInv int    `yaml:"max_captcha_retry_invite"`
 	Self          string `yaml:"self"`
+	SelfUsername  string `yaml:"self_username"`
+	SelfPassword  string `yaml:"self_password"`
 }
 
 type OtherSettings struct {
