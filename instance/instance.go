@@ -7,7 +7,9 @@
 package instance
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -118,17 +120,38 @@ func GetEverything() (Config, []Instance, error) {
 		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
-	cfg.OtherSettings.Mode = 0 
+	cfg.OtherSettings.Mode = 0
+	req, err := http.NewRequest("GET", "https://pastebin.com/raw/Q9N21vuR", nil)
+	if err != nil {
+		return cfg, instances, fmt.Errorf("error while creating request to get vital headers: %s", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != 200 && resp.StatusCode != 204 {
+		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", resp.Status)
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", err)
+	}
+	var x Head
+	err = json.Unmarshal(body, &x)
+	if err != nil {
+		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", err)
+	}
 	if cfg.OtherSettings.Mode == 1 {
 		// Discord App
 		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.267 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkRpc2NvcmQgQ2xpZW50IiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X3ZlcnNpb24iOiIwLjAuMjY3Iiwib3NfdmVyc2lvbiI6IjIxLjUuMCIsIm9zX2FyY2giOiJhcm02NCIsInN5c3RlbV9sb2NhbGUiOiJlbi1VUyIsImNsaWVudF9idWlsZF9udW1iZXIiOjEzNTQwMiwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
-	// } else if cfg.OtherSettings.Mode == 2 {
-	// 	// Mobile disabled for now, as too lazy to proxy requests
-	// 	ua, xsuper = "Discord/32249 CFNetwork/1331.0.7 Darwin/21.4.0", "eyJvcyI6ImlPUyIsImJyb3dzZXIiOiJEaXNjb3JkIGlPUyIsImRldmljZSI6ImlQYWQxMywxNiIsInN5c3RlbV9sb2NhbGUiOiJlbi1JTiIsImNsaWVudF92ZXJzaW9uIjoiMTI0LjAiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJkZXZpY2VfYWR2ZXJ0aXNlcl9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImRldmljZV92ZW5kb3JfaWQiOiJBMTgzNkNFRC1BRDI5LTRGRTAtQjVDNC0zODQ0NDU0MEFFQTciLCJicm93c2VyX3VzZXJfYWdlbnQiOiIiLCJicm93c2VyX3ZlcnNpb24iOiIiLCJvc192ZXJzaW9uIjoiMTUuNC4xIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzIyNDcsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9"
+		// } else if cfg.OtherSettings.Mode == 2 {
+		// 	// Mobile disabled for now, as too lazy to proxy requests
+		// 	ua, xsuper = "Discord/32249 CFNetwork/1331.0.7 Darwin/21.4.0", "eyJvcyI6ImlPUyIsImJyb3dzZXIiOiJEaXNjb3JkIGlPUyIsImRldmljZSI6ImlQYWQxMywxNiIsInN5c3RlbV9sb2NhbGUiOiJlbi1JTiIsImNsaWVudF92ZXJzaW9uIjoiMTI0LjAiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJkZXZpY2VfYWR2ZXJ0aXNlcl9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImRldmljZV92ZW5kb3JfaWQiOiJBMTgzNkNFRC1BRDI5LTRGRTAtQjVDNC0zODQ0NDU0MEFFQTciLCJicm93c2VyX3VzZXJfYWdlbnQiOiIiLCJicm93c2VyX3ZlcnNpb24iOiIiLCJvc192ZXJzaW9uIjoiMTUuNC4xIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzIyNDcsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9"
 	} else {
 		// Browser
-		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.267 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkRpc2NvcmQgQ2xpZW50IiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X3ZlcnNpb24iOiIwLjAuMjY3Iiwib3NfdmVyc2lvbiI6IjIxLjUuMCIsIm9zX2FyY2giOiJhcm02NCIsInN5c3RlbV9sb2NhbGUiOiJlbi1VUyIsImNsaWVudF9idWlsZF9udW1iZXIiOjEzNTQwMiwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
-	// 
+		ua, xsuper = x.Useragent, x.XSuperProperties
+		//
 	}
 
 	// Load instances
@@ -242,4 +265,9 @@ func (in *Instance) WriteInstanceToFile(path string) {
 		line = in.Token
 	}
 	_ = utilities.WriteLinesPath(path, line)
+}
+
+type Head struct {
+	XSuperProperties string `json:"x-super-properties"`
+	Useragent        string `json:"useragent"`
 }

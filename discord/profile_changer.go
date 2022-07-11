@@ -156,7 +156,7 @@ func LaunchAvatarChanger() {
 	}
 	utilities.LogInfo("%v avatars loaded", len(avatars))
 	threads := utilities.UserInputInteger("Enter number of threads (0 for maximum):")
-	if threads > len(instances) {
+	if threads > len(instances) || threads == 0 {
 		threads = len(instances)
 	}
 	TotalCount = len(instances)

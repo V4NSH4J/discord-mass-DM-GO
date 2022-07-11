@@ -29,6 +29,24 @@ func (in *Instance) CheckToken() int {
 
 }
 
+func (in *Instance) CheckTokenNew() (int ,error) {
+	url := "https://discord.com/api/v9/users/@me/affinities/guilds"
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return 0, err
+	}
+	cookie, err := in.GetCookieString()
+	if err != nil {
+		return 0, err
+	}
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
+	if err != nil {
+		return 0, err
+	}
+	return resp.StatusCode, nil
+
+}
+
 func (in *Instance) AtMe() (int, TokenInfo, error) {
 	url := "https://discord.com/api/v9/users/@me"
 	req, err := http.NewRequest("GET", url, nil)

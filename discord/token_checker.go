@@ -121,7 +121,7 @@ func LaunchTokenChecker() {
 			defer c.Done()
 			var printStrings []string
 			// Checking Validity of token & Information
-			r, info, err := instances[i].AtMe()
+			r, err := instances[i].CheckTokenNew()
 			if err != nil {
 				if cfg.OtherSettings.Logs {
 					instances[i].WriteInstanceToFile(uncheckedFile)
@@ -136,107 +136,120 @@ func LaunchTokenChecker() {
 					}
 					validTokens = append(validTokens, instances[i])
 					printStrings = append(printStrings, MakeColoredString("green", "WORKING", " Token %v: %v", i, instances[i].CensorToken()))
-					if info.ID != "" {
-						printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " ID: %v", info.ID))
-						printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Age: %v", utilities.TimeDifference(utilities.ReverseSnowflake(info.ID), time.Now())))
-						if info.Avatar != "" {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Avatar: true"))
+					r, info, err := instances[i].AtMe()
+					if err != nil {
+						if cfg.OtherSettings.Logs {
+							instances[i].WriteInstanceToFile(uncheckedFile)
 						}
-						if info.Username != "" && info.Discriminator != "" {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Username: %v#%v", info.Username, info.Discriminator))
-						}
-						if info.Flags != 0 {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Flags: %v", info.Flags))
-						}
-						if info.PublicFlags != 0 {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Public Flags: %v", info.PublicFlags))
-						}
-						if info.Flags != 0 {
-							f := info.Flags - info.PublicFlags
-							if f == 17592186044416 {
-								printStrings = append(printStrings, MakeColoredString("red", "QUARANTINED", " Token is QUARANTINED"))
-								if cfg.OtherSettings.Logs {
-									instances[i].WriteInstanceToFile(quarantinedFile)
-								}
-							} else if f == 1048576 {
-								printStrings = append(printStrings, MakeColoredString("red", "SPAMMER", " Token is flagged as spammer"))
-								if cfg.OtherSettings.Logs {
-									instances[i].WriteInstanceToFile(spammerFile)
-								}
-							} else if f == 17592186044416+1048576 {
-								if cfg.OtherSettings.Logs {
-									instances[i].WriteInstanceToFile(spammerFile)
-								}
-								if cfg.OtherSettings.Logs {
-									instances[i].WriteInstanceToFile(quarantinedFile)
-								}
-								printStrings = append(printStrings, MakeColoredString("red", "SPAMMER & QUARANTINED", " Token is flagged as spammer and QUARANTINED"))
-							}
-						}
-						if info.Bio != "" {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Bio: %v", info.Bio))
-						}
-						if info.MFAEnabled {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " 2FA: true"))
-						}
-						if info.Email != "" {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Email: %v", info.Email))
-						}
-						if info.Verified {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Email Verified: true"))
-							if cfg.OtherSettings.Logs {
-								instances[i].WriteInstanceToFile(emailVerifiedFile)
-							}
-						}
-						if !info.Verified && info.Phone == "" {
-							if cfg.OtherSettings.Logs {
-								instances[i].WriteInstanceToFile(unverifiedFile)
-							}
-						}
-						if info.Phone != "" {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Phone Verified: true [%v]", info.Phone))
-							if cfg.OtherSettings.Logs {
-								instances[i].WriteInstanceToFile(phoneVerifiedFile)
-							}
-						} else {
-							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Phone Verified: false"))
-						}
-						// Check Guilds
-						r, guilds, _, err := instances[i].Guilds()
-						if err == nil {
-							if r == 200 || r == 204 {
-								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Guilds: %v", guilds))
-							} else {
-								printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Unexpected Response Status Code %v while checking guilds", r))
-							}
-						} else {
-							printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking guilds", err))
-						}
-						r, channels, _, err := instances[i].Channels()
-						if err == nil {
-							if r == 200 || r == 204 {
-								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Open DMs: %v", channels))
-							} else {
-								printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Unexpected Response Status Code %v while checking channels", r))
-							}
-						} else {
-							printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking channels", err))
-						}
-						r, friends, blocked, incoming, outgoing, _, err := instances[i].Relationships()
-						if err == nil {
-							if r == 200 || r == 204 {
-								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Friends: %v", friends))
-								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Blocked: %v", blocked))
-								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Incoming Requests: %v", incoming))
-								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Outgoing Requests: %v", outgoing))
-							} else {
-								printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Unexpected Response Status Code %v while checking relationships", r))
-							}
-						} else {
-							printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking relationships", err))
-						}
-						printStrings = append(printStrings, "===================\n\n")
+						printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking token", err))
+						errors++
 					}
+					if r != 200 && r != 204 {
+						printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Invalid status code %v while checking token", r))
+					} else {
+						if info.ID != "" {
+							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " ID: %v", info.ID))
+							printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Age: %v", utilities.TimeDifference(utilities.ReverseSnowflake(info.ID), time.Now())))
+							if info.Avatar != "" {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Avatar: true"))
+							}
+							if info.Username != "" && info.Discriminator != "" {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Username: %v#%v", info.Username, info.Discriminator))
+							}
+							if info.Flags != 0 {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Flags: %v", info.Flags))
+							}
+							if info.PublicFlags != 0 {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Public Flags: %v", info.PublicFlags))
+							}
+							if info.Flags != 0 {
+								f := info.Flags - info.PublicFlags
+								if f == 17592186044416 {
+									printStrings = append(printStrings, MakeColoredString("red", "QUARANTINED", " Token is QUARANTINED"))
+									if cfg.OtherSettings.Logs {
+										instances[i].WriteInstanceToFile(quarantinedFile)
+									}
+								} else if f == 1048576 {
+									printStrings = append(printStrings, MakeColoredString("red", "SPAMMER", " Token is flagged as spammer"))
+									if cfg.OtherSettings.Logs {
+										instances[i].WriteInstanceToFile(spammerFile)
+									}
+								} else if f == 17592186044416+1048576 {
+									if cfg.OtherSettings.Logs {
+										instances[i].WriteInstanceToFile(spammerFile)
+									}
+									if cfg.OtherSettings.Logs {
+										instances[i].WriteInstanceToFile(quarantinedFile)
+									}
+									printStrings = append(printStrings, MakeColoredString("red", "SPAMMER & QUARANTINED", " Token is flagged as spammer and QUARANTINED"))
+								}
+							}
+							if info.Bio != "" {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Bio: %v", info.Bio))
+							}
+							if info.MFAEnabled {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " 2FA: true"))
+							}
+							if info.Email != "" {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Email: %v", info.Email))
+							}
+							if info.Verified {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Email Verified: true"))
+								if cfg.OtherSettings.Logs {
+									instances[i].WriteInstanceToFile(emailVerifiedFile)
+								}
+							}
+							if !info.Verified && info.Phone == "" {
+								if cfg.OtherSettings.Logs {
+									instances[i].WriteInstanceToFile(unverifiedFile)
+								}
+							}
+							if info.Phone != "" {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Phone Verified: true [%v]", info.Phone))
+								if cfg.OtherSettings.Logs {
+									instances[i].WriteInstanceToFile(phoneVerifiedFile)
+								}
+							} else {
+								printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Phone Verified: false"))
+							}
+							// Check Guilds
+							r, guilds, _, err := instances[i].Guilds()
+							if err == nil {
+								if r == 200 || r == 204 {
+									printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Guilds: %v", guilds))
+								} else {
+									printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Unexpected Response Status Code %v while checking guilds", r))
+								}
+							} else {
+								printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking guilds", err))
+							}
+							r, channels, _, err := instances[i].Channels()
+							if err == nil {
+								if r == 200 || r == 204 {
+									printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Open DMs: %v", channels))
+								} else {
+									printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Unexpected Response Status Code %v while checking channels", r))
+								}
+							} else {
+								printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking channels", err))
+							}
+							r, friends, blocked, incoming, outgoing, _, err := instances[i].Relationships()
+							if err == nil {
+								if r == 200 || r == 204 {
+									printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Friends: %v", friends))
+									printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Blocked: %v", blocked))
+									printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Incoming Requests: %v", incoming))
+									printStrings = append(printStrings, MakeColoredString("cyan", "INFO", " Outgoing Requests: %v", outgoing))
+								} else {
+									printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Unexpected Response Status Code %v while checking relationships", r))
+								}
+							} else {
+								printStrings = append(printStrings, MakeColoredString("red", "ERROR", " Error %v while checking relationships", err))
+							}
+							printStrings = append(printStrings, "===================\n\n")
+						}
+					}
+
 					valid++
 				} else if r == 401 || r == 403 {
 					// Locked/Invalid
