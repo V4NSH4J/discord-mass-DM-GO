@@ -24,8 +24,8 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 	switch true {
 	case in.Config.CaptchaSettings.Self != "":
 		return in.self(sitekey, rqData)
-	case in.Config.CaptchaSettings.CaptchaAPI == "xyz.com":
-		return in.xyz(sitekey, cookie, rqData)
+	case in.Config.CaptchaSettings.CaptchaAPI == "abc":
+		return in.invisifox(sitekey, cookie, rqData)
 	case utilities.Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.Capmonster(sitekey, url, rqData, cookie)
 	case utilities.Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
@@ -496,10 +496,10 @@ type SelfResponse struct {
 }
 
 /*
-	xyz
+	invisifox
 */
 
-func (in *Instance) xyz(sitekey, cookie, rqdata string) (string, error) {
+func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 	var solvedKey string 
 	inEndpoint := fmt.Sprintf(`https://api.%s/hcaptcha`, in.Config.CaptchaSettings.CaptchaAPI)
 	inURL, err := url.Parse(inEndpoint)
@@ -540,7 +540,7 @@ func (in *Instance) xyz(sitekey, cookie, rqdata string) (string, error) {
 		return solvedKey, fmt.Errorf("error reading response [%v]", err)
 	}
 	fmt.Println(string(body))
-	var outResponse xyzSubmitResponse
+	var outResponse invisifoxSubmitResponse
 	err = json.Unmarshal(body, &outResponse)
 	if err != nil {
 		return solvedKey, fmt.Errorf("error unmarshalling response [%v]", err)
@@ -580,7 +580,7 @@ func (in *Instance) xyz(sitekey, cookie, rqdata string) (string, error) {
 			return solvedKey, fmt.Errorf("error reading response [%v]", err)
 		}
 		fmt.Println(string(body))
-		var outResponse xyzSolutionResponse
+		var outResponse invisifoxSolutionResponse
 		err = json.Unmarshal(body, &outResponse)
 		if err != nil {
 			return solvedKey, fmt.Errorf("error unmarshalling response [%v]", err)
@@ -600,11 +600,11 @@ func (in *Instance) xyz(sitekey, cookie, rqdata string) (string, error) {
 
 
 
-type xyzSubmitResponse struct {
+type invisifoxSubmitResponse struct {
 	Status string `json:"status"`
 	TaskID string `json:"taskId"`
 }
-type xyzSolutionResponse struct {
+type invisifoxSolutionResponse struct {
 	Status   string `json:"status"`
 	Solution string `json:"solution"`
 }
