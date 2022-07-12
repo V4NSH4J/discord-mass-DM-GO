@@ -254,9 +254,7 @@ type Head struct {
 }
 
 func XSuper(locale string) string {
-	dec := `{"os":"Mac OS X","browser":"Chrome","device":"","system_locale":"xyzabc","browser_user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36","browser_version":"103.0.5060.114","os_version":"10.15.7","referrer":"","referring_domain":"","referrer_current":"","referring_domain_current":"","release_channel":"stable","client_build_number":136100,"client_event_source":null}`
-	new := strings.Replace(dec, "xyzabc", locale, -1)
-	// encode to base64
-	return base64.StdEncoding.EncodeToString([]byte(new))
+	dec := fmt.Sprintf(`{"os":"Mac OS X","browser":"Chrome","device":"","system_locale":"%s","browser_user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36","browser_version":"103.0.5060.114","os_version":"10.15.7","referrer":"","referring_domain":"","referrer_current":"","referring_domain_current":"","release_channel":"stable","client_build_number":%d,"client_event_source":null}`, locale ,rand.Intn(100000) + rand.Intn(10000)+ rand.Intn(1000) + rand.Intn(100))
+	return base64.StdEncoding.EncodeToString([]byte(dec))
 	
 }
