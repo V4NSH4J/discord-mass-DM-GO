@@ -75,7 +75,7 @@ func (in *Instance) GetCookieString() (string, error) {
 		// 	finalCookies += "; locale:en-US"
 		// 	return finalCookies, nil
 		// }
-		cookies += "locale:en-US"
+		cookies += fmt.Sprintf("locale:%s", in.Locale)
 		if in.Config.OtherSettings.ConstantCookies {
 			in.Cookie = cookies
 		}

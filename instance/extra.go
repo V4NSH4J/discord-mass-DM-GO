@@ -274,7 +274,7 @@ func (in *Instance) Invite(Code string) error {
 			return err
 		}
 		if resp.StatusCode == 200 {
-			utilities.LogSuccess("%v joint guild %v", in.CensorToken(), Code)
+			utilities.LogSuccess("%v joined guild %v", in.CensorToken(), Code)
 			if Join.VerificationForm {
 				if len(Join.GuildObj.ID) != 0 {
 					Bypass(in.Client, Join.GuildObj.ID, in.Token, Code)

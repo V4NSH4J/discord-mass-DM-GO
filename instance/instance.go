@@ -7,9 +7,8 @@
 package instance
 
 import (
-	"encoding/json"
+	"encoding/base64"
 	"fmt"
-	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
@@ -57,6 +56,7 @@ type Instance struct {
 	Reacted         []ReactInfo
 	ReactChannel    chan (ReactInfo)
 	MessageNumber   int
+	Locale          string
 }
 
 func (in *Instance) StartWS() error {
@@ -121,27 +121,8 @@ func GetEverything() (Config, []Instance, error) {
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
 	cfg.OtherSettings.Mode = 0
-	req, err := http.NewRequest("GET", "https://pastebin.com/raw/Q9N21vuR", nil)
-	if err != nil {
-		return cfg, instances, fmt.Errorf("error while creating request to get vital headers: %s", err)
-	}
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", err)
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != 200 && resp.StatusCode != 204 {
-		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", resp.Status)
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", err)
-	}
-	var x Head
-	err = json.Unmarshal(body, &x)
-	if err != nil {
-		return cfg, instances, fmt.Errorf("error while getting vital headers: %s", err)
-	}
+	locales := []string{"de-AT", "de-DE", "de-IT", "de-LI", "de-LU", "en-AG", "en-AI", "en-AT", "en-AU", "en-BB", "en-CA", "en-BS", "en-CH", "en-DE", "en-FI", "en-GB", "en-HK", "en-IN", "en-MY", "en-SG", "en-US", "fr-CA", "fr-FR"}
+	locale := locales[rand.Intn(len(locales))]
 	if cfg.OtherSettings.Mode == 1 {
 		// Discord App
 		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.267 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkRpc2NvcmQgQ2xpZW50IiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X3ZlcnNpb24iOiIwLjAuMjY3Iiwib3NfdmVyc2lvbiI6IjIxLjUuMCIsIm9zX2FyY2giOiJhcm02NCIsInN5c3RlbV9sb2NhbGUiOiJlbi1VUyIsImNsaWVudF9idWlsZF9udW1iZXIiOjEzNTQwMiwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
@@ -150,7 +131,7 @@ func GetEverything() (Config, []Instance, error) {
 		// 	ua, xsuper = "Discord/32249 CFNetwork/1331.0.7 Darwin/21.4.0", "eyJvcyI6ImlPUyIsImJyb3dzZXIiOiJEaXNjb3JkIGlPUyIsImRldmljZSI6ImlQYWQxMywxNiIsInN5c3RlbV9sb2NhbGUiOiJlbi1JTiIsImNsaWVudF92ZXJzaW9uIjoiMTI0LjAiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJkZXZpY2VfYWR2ZXJ0aXNlcl9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImRldmljZV92ZW5kb3JfaWQiOiJBMTgzNkNFRC1BRDI5LTRGRTAtQjVDNC0zODQ0NDU0MEFFQTciLCJicm93c2VyX3VzZXJfYWdlbnQiOiIiLCJicm93c2VyX3ZlcnNpb24iOiIiLCJvc192ZXJzaW9uIjoiMTUuNC4xIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzIyNDcsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9"
 	} else {
 		// Browser
-		ua, xsuper = x.Useragent, x.XSuperProperties
+		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36", XSuper(locale)
 		//
 	}
 
@@ -203,7 +184,7 @@ func GetEverything() (Config, []Instance, error) {
 		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
-		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper})
+		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Locale: locale})
 	}
 	if len(instances) == 0 {
 		utilities.LogErr(" You may be using 0 tokens")
@@ -270,4 +251,12 @@ func (in *Instance) WriteInstanceToFile(path string) {
 type Head struct {
 	XSuperProperties string `json:"x-super-properties"`
 	Useragent        string `json:"useragent"`
+}
+
+func XSuper(locale string) string {
+	dec := `{"os":"Mac OS X","browser":"Chrome","device":"","system_locale":"xyzabc","browser_user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36","browser_version":"103.0.5060.114","os_version":"10.15.7","referrer":"","referring_domain":"","referrer_current":"","referring_domain_current":"","release_channel":"stable","client_build_number":136100,"client_event_source":null}`
+	new := strings.Replace(dec, "xyzabc", locale, -1)
+	// encode to base64
+	return base64.StdEncoding.EncodeToString([]byte(new))
+	
 }
