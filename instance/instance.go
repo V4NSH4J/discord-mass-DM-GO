@@ -8,11 +8,14 @@ package instance
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -120,21 +123,14 @@ func GetEverything() (Config, []Instance, error) {
 		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
-	cfg.OtherSettings.Mode = 0
+
 	locales := []string{"de-AT", "de-DE", "de-IT", "de-LI", "de-LU", "en-AG", "en-AI", "en-AT", "en-AU", "en-BB", "en-CA", "en-BS", "en-CH", "en-DE", "en-FI", "en-GB", "en-HK", "en-IN", "en-MY", "en-SG", "en-US", "fr-CA", "fr-FR"}
 	locale := locales[rand.Intn(len(locales))]
-	if cfg.OtherSettings.Mode == 1 {
-		// Discord App
-		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) discord/0.0.267 Chrome/91.0.4472.164 Electron/13.6.6 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkRpc2NvcmQgQ2xpZW50IiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X3ZlcnNpb24iOiIwLjAuMjY3Iiwib3NfdmVyc2lvbiI6IjIxLjUuMCIsIm9zX2FyY2giOiJhcm02NCIsInN5c3RlbV9sb2NhbGUiOiJlbi1VUyIsImNsaWVudF9idWlsZF9udW1iZXIiOjEzNTQwMiwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0="
-		// } else if cfg.OtherSettings.Mode == 2 {
-		// 	// Mobile disabled for now, as too lazy to proxy requests
-		// 	ua, xsuper = "Discord/32249 CFNetwork/1331.0.7 Darwin/21.4.0", "eyJvcyI6ImlPUyIsImJyb3dzZXIiOiJEaXNjb3JkIGlPUyIsImRldmljZSI6ImlQYWQxMywxNiIsInN5c3RlbV9sb2NhbGUiOiJlbi1JTiIsImNsaWVudF92ZXJzaW9uIjoiMTI0LjAiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJkZXZpY2VfYWR2ZXJ0aXNlcl9pZCI6IjAwMDAwMDAwLTAwMDAtMDAwMC0wMDAwLTAwMDAwMDAwMDAwMCIsImRldmljZV92ZW5kb3JfaWQiOiJBMTgzNkNFRC1BRDI5LTRGRTAtQjVDNC0zODQ0NDU0MEFFQTciLCJicm93c2VyX3VzZXJfYWdlbnQiOiIiLCJicm93c2VyX3ZlcnNpb24iOiIiLCJvc192ZXJzaW9uIjoiMTUuNC4xIiwiY2xpZW50X2J1aWxkX251bWJlciI6MzIyNDcsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9"
-	} else {
-		// Browser
-		ua, xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36", XSuper(locale)
-		//
+	ua, xsuper, err = GetUseragentXSuper(locale)
+	if err != nil {
+		fmt.Println(err)
+		ua , xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkNocm9tZSIsImRldmljZSI6IiIsInN5c3RlbV9sb2NhbGUiOiJlbi1HQiIsImJyb3dzZXJfdXNlcl9hZ2VudCI6Ik1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMDMuMC4wLjAgU2FmYXJpLzUzNy4zNiIsImJyb3dzZXJfdmVyc2lvbiI6IjEwMy4wLjAuMCIsIm9zX3ZlcnNpb24iOiIxMC4xNS43IiwicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInJlZmVycmluZ19kb21haW4iOiJ3d3cuZ29vZ2xlLmNvbSIsInNlYXJjaF9lbmdpbmUiOiJnb29nbGUiLCJyZWZlcnJlcl9jdXJyZW50IjoiIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiIiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X2J1aWxkX251bWJlciI6OTk5OSwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0=" 
 	}
-
 	// Load instances
 	tokens, err = utilities.ReadLines("tokens.txt")
 	if err != nil {
@@ -248,14 +244,76 @@ func (in *Instance) WriteInstanceToFile(path string) {
 	_ = utilities.WriteLinesPath(path, line)
 }
 
-type Head struct {
-	XSuperProperties string `json:"x-super-properties"`
-	Useragent        string `json:"useragent"`
+func GetUseragentXSuper(locale string) (string, string, error) {
+	err := UpdateDiscordBuildInfo()
+	if err != nil {
+		fmt.Println(err)
+	}
+	buildNo := GetDiscordBuildNumber("stable")
+	if buildNo == "" {
+		utilities.LogErr("Couldn't get build number")
+		buildNo = "136240"
+	}
+	req, err := http.NewRequest("GET", "https://pastebin.com/raw/pGgMQGiJ", nil)
+	if err != nil {
+		return "", "", err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", "", err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", err
+	}
+	var Info PastebinResponse
+	err = json.Unmarshal(body, &Info)
+	if err != nil {
+		return "", "", err
+	}
+	r := rand.Intn(len(Info))
+	super, err := XSuper(locale, buildNo, Info[r].Xs)
+	if err != nil {
+		return "", "", err
+	}
+	return Info[r].Ua, super, nil
+
 }
 
-func XSuper(locale string) string {
-	dec := fmt.Sprintf(`{"os":"Mac OS X","browser":"Chrome","device":"","system_locale":"%s","browser_user_agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.5060.114 Safari/537.36","browser_version":"103.0.5060.114","os_version":"10.15.7","referrer":"%s","referring_domain":"%s","referrer_current":"%s","referring_domain_current":"%s","release_channel":"stable","client_build_number":136100,"client_event_source":null}`, locale, utilities.RandStringBytes(5), utilities.RandStringBytes(5), utilities.RandStringBytes(5), utilities.RandStringBytes(5))
-
-	return base64.StdEncoding.EncodeToString([]byte(dec))
+func XSuper(locale string, buildNumber string, Xsuper string) (string, error) {
+	// Decode Xsuper from base 64
+	decoded, err := base64.StdEncoding.DecodeString(Xsuper)
+	if err != nil {
+		return "", err
+	}
+	decodedstr := string(decoded)
+	build, err := strconv.Atoi(buildNumber)
+	if err != nil {
+		return "", err
+	}
+	decodedstr = strings.Replace(decodedstr, "xyzabc", locale, -1)
+	decodedstr = strings.Replace(decodedstr, "12345", strconv.Itoa(build), -1)
+	return base64.StdEncoding.EncodeToString([]byte(decodedstr)), nil
 }
 
+type XSuperProperties struct {
+	OS                     string `json:"os,omitempty"`
+	Browser                string `json:"browser,omitempty"`
+	Device                 string `json:"device,omitempty"`
+	SystemLocale           string `json:"system_locale,omitempty"`
+	BrowserVersion         string `json:"browser_version,omitempty"`
+	BrowserUserAgent       string `json:"browser_user_agent,omitempty"`
+	OSVersion              string `json:"os_version,omitempty"`
+	Referrer               string `json:"referrer,omitempty"`
+	ReferringDomain        string `json:"referring_domain,omitempty"`
+	ReferrerCurrent        string `json:"referrer_current,omitempty"`
+	ReferringDomainCurrent string `json:"referring_domain_current,omitempty"`
+	ReleaseChannel         string `json:"release_channel,omitempty"`
+	ClientBuildNumber      int    `json:"client_build_number,omitempty"`
+}
+
+type PastebinResponse []struct {
+	Ua string `json:"ua,omitempty"`
+	Xs string `json:"xs,omitempty"`
+}
