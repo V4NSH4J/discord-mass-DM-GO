@@ -16,8 +16,6 @@ import (
 	"github.com/gookit/color"
 )
 
-var CaptchaServices []string
-
 func main() {
 	version := "1.10.12"
 	rand.Seed(time.Now().UTC().UnixNano())

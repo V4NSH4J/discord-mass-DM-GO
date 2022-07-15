@@ -124,14 +124,18 @@ func GetEverything() (Config, []Instance, error) {
 		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
-
-	xsuper, ua, v, err = DolfiesXsuper()
-	if err != nil {
-		utilities.LogErr(" Failed to get useragent and xsuper %s Turn off Dolfies mode or try again, otherwise program will be continued with hardcoded chrome emulation", err)
-		xsuper, ua = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiQ2hyb21lIiwiZGV2aWNlIjoiIiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzEwMy4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiYnJvd3Nlcl92ZXJzaW9uIjoiMTAzLjAuMC4wIiwib3NfdmVyc2lvbiI6IjEwIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfY3VycmVudCI6Imh0dHBzOi8vZGlzY29yZC5jb20vIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiZGlzY29yZC5jb20iLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoxMzY5MjEsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
-		v = "103"
+	if cfg.OtherSettings.XSuperProperties != "" && cfg.OtherSettings.Useragent != "" {
+		xsuper, ua, v, err = DolfiesXsuper()
+		if err != nil {
+			utilities.LogErr(" Failed to get useragent and xsuper %s Turn off Dolfies mode or try again, otherwise program will be continued with hardcoded chrome emulation", err)
+			xsuper, ua = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiQ2hyb21lIiwiZGV2aWNlIjoiIiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzEwMy4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiYnJvd3Nlcl92ZXJzaW9uIjoiMTAzLjAuMC4wIiwib3NfdmVyc2lvbiI6IjEwIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfY3VycmVudCI6Imh0dHBzOi8vZGlzY29yZC5jb20vIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiZGlzY29yZC5jb20iLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoxMzY5MjEsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+			v = "103"
+		} else {
+			utilities.LogSuccess("Successfully obtained build number, useragent and latest chrome version")
+		}
+		cfg.OtherSettings.ChromeHeaders = true 
 	} else {
-		utilities.LogSuccess("Successfully obtained build number, useragent and latest chrome version")
+		xsuper, ua, v = cfg.OtherSettings.XSuperProperties, cfg.OtherSettings.Useragent, cfg.OtherSettings.ChromeVersion
 	}
 
 	// Load instances
@@ -328,7 +332,7 @@ func DolfiesXsuper() (string, string, string, error) {
 	if len(chromeVersion) == 0 {
 		return "", "", "", fmt.Errorf("couldn't get xsuper from Dolfies")
 	}
-	xsuper := fmt.Sprintf(`{"os":"Windows","browser":"Chrome","device":"","system_locale":"en-US","browser_user_agent":"%s","browser_version":"%s","os_version":"10","referrer":"","referring_domain":"","referrer_current":"https://discord.com/","referring_domain_current":"discord.com","release_channel":"stable","client_build_number":%d,"client_event_source":null}`, Info.ChromeUserAgent, chromeVersion[1], Info.ClientBuildNumber)
+	xsuper := fmt.Sprintf(`{"os":"Windows","browser":"Chrome","device":"","system_locale":"en-US","browser_user_agent":"%s","browser_version":"%s","os_version":"10","referrer":"","referring_domain":"","referrer_current":"","referring_domain_current":"","release_channel":"stable","client_build_number":%d,"client_event_source":null}`, Info.ChromeUserAgent, chromeVersion[1], Info.ClientBuildNumber)
 	return base64.StdEncoding.EncodeToString([]byte(xsuper)), Info.ChromeUserAgent, strings.Split(chromeVersion[1], ".")[0], nil
 
 }

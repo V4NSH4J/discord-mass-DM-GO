@@ -76,12 +76,17 @@ type CaptchaSettings struct {
 }
 
 type OtherSettings struct {
-	DisableKL       bool `yaml:"disable_keep_alives"`
-	Mode            int  `yaml:"mode"`
-	ConstantCookies bool `yaml:"constant_cookies"`
-	CensorToken     bool `yaml:"censor_token"`
-	Logs            bool `yaml:"logs"`
-	GatewayStatus   int  `yaml:"gateway_status"`
+	DisableKL        bool   `yaml:"disable_keep_alives"`
+	Mode             int    `yaml:"mode"`
+	ConstantCookies  bool   `yaml:"constant_cookies"`
+	CensorToken      bool   `yaml:"censor_token"`
+	Logs             bool   `yaml:"logs"`
+	GatewayStatus    int    `yaml:"gateway_status"`
+	DolfiesHeaders   bool   `yaml:"dolfies_headers"`
+	XSuperProperties string `yaml:"x_super_properties"`
+	Useragent        string `yaml:"useragent"`
+	ChromeHeaders    bool   `yaml:"chrome_headers"`
+	ChromeVersion    string `yaml:"chrome_version"`
 }
 
 type SuspicionAvoidance struct {
