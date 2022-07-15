@@ -24,7 +24,7 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 	switch true {
 	case in.Config.CaptchaSettings.Self != "":
 		return in.self(sitekey, rqData)
-	case in.Config.CaptchaSettings.CaptchaAPI == "abc":
+	case in.Config.CaptchaSettings.CaptchaAPI == "invisifox.com":
 		return in.invisifox(sitekey, cookie, rqData)
 	case utilities.Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.Capmonster(sitekey, url, rqData, cookie)
@@ -531,7 +531,6 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 	}
 	inURL.RawQuery = q.Encode()
 	inEndpoint = inURL.String()
-	fmt.Println(inEndpoint)
 	req, err := http.NewRequest(http.MethodGet, inEndpoint, nil)
 	if err != nil {
 		return solvedKey, fmt.Errorf("error creating request [%v]", err)
@@ -545,7 +544,6 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 	if err != nil {
 		return solvedKey, fmt.Errorf("error reading response [%v]", err)
 	}
-	fmt.Println(string(body))
 	var outResponse invisifoxSubmitResponse
 	err = json.Unmarshal(body, &outResponse)
 	if err != nil {
@@ -571,7 +569,6 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 		q.Set("taskId", taskID)
 		outURL.RawQuery = q.Encode()
 		outEndpoint = outURL.String()
-		fmt.Println(outEndpoint)
 		req, err := http.NewRequest(http.MethodGet, outEndpoint, nil)
 		if err != nil {
 			return solvedKey, fmt.Errorf("error creating request [%v]", err)
@@ -585,7 +582,6 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 		if err != nil {
 			return solvedKey, fmt.Errorf("error reading response [%v]", err)
 		}
-		fmt.Println(string(body))
 		var outResponse invisifoxSolutionResponse
 		err = json.Unmarshal(body, &outResponse)
 		if err != nil {

@@ -31,7 +31,7 @@ func LaunchScraperMenu() {
 		token := utilities.UserInput("Enter the token: ")
 		serverid := utilities.UserInput("Enter the server ID: ")
 		channelid := utilities.UserInput("Enter the channel ID: ")
-		var botsFile, avatarFile, nameFile, path, rolePath, scrapedFile string
+		var botsFile, avatarFile, nameFile, path, rolePath, scrapedFile, userDataFile string
 		if cfg.OtherSettings.Logs {
 			path = fmt.Sprintf(`logs/online_scraper/DMDGO-OS-%s-%s-%s-%s`, serverid, channelid, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
 			rolePath = fmt.Sprintf(`%s/roles`, path)
@@ -68,7 +68,12 @@ func LaunchScraperMenu() {
 				utilities.LogErr("Error creating scraped file: %s", err)
 				utilities.ExitSafely()
 			}
-			botsFile, avatarFile, nameFile, scrapedFile = botsFileX.Name(), AvatarFileX.Name(), NameFileX.Name(), ScrapedFileX.Name()
+			UserDataFileX, err := os.Create(fmt.Sprintf(`%s/user_data.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating user data file: %s", err)
+				utilities.ExitSafely()
+			}
+			botsFile, avatarFile, nameFile, scrapedFile, userDataFile = botsFileX.Name(), AvatarFileX.Name(), NameFileX.Name(), ScrapedFileX.Name(), UserDataFileX.Name()
 		}
 		Is := instance.Instance{Token: token}
 		title := make(chan bool)
@@ -134,6 +139,9 @@ func LaunchScraperMenu() {
 				}
 				for x := 0; x < len(Is.Ws.Members[i].Roles); x++ {
 					utilities.WriteRoleFile(Is.Ws.Members[i].User.ID, rolePath, Is.Ws.Members[i].Roles[x])
+				}
+				if Is.Ws.Members[i].User.Discriminator != "" && Is.Ws.Members[i].User.Username != "" {
+					utilities.WriteLinesPath(userDataFile, fmt.Sprintf("%v#%v", Is.Ws.Members[i].User.Username, Is.Ws.Members[i].User.Discriminator))
 				}
 				utilities.WriteLinesPath(scrapedFile, Is.Ws.Members[i].User.ID)
 			}
@@ -309,7 +317,7 @@ func LaunchScraperMenu() {
 		}
 
 		serverid := utilities.UserInput("Enter the server ID: ")
-		var tokenFile, botsFile, avatarFile, nameFile, path, rolePath, scrapedFile string
+		var tokenFile, botsFile, avatarFile, nameFile, path, rolePath, scrapedFile, userDataFile string
 		if cfg.OtherSettings.Logs {
 			path = fmt.Sprintf(`logs/offline_scraper/DMDGO-OS-%s-%s-%s`, serverid, time.Now().Format(`2006-01-02 15-04-05`), utilities.RandStringBytes(5))
 			rolePath = fmt.Sprintf(`%s/roles`, path)
@@ -352,7 +360,14 @@ func LaunchScraperMenu() {
 				utilities.LogErr("Error creating scraped file: %s", err)
 				utilities.ExitSafely()
 			}
-			tokenFile, botsFile, avatarFile, nameFile, scrapedFile = tokenFileX.Name(), botsFileX.Name(), AvatarFileX.Name(), NameFileX.Name(), ScrapedFileX.Name()
+			defer ScrapedFileX.Close()
+			UserDataFileX, err := os.Create(fmt.Sprintf(`%s/userdata.txt`, path))
+			if err != nil {
+				utilities.LogErr("Error creating userdata file: %s", err)
+				utilities.ExitSafely()
+			}
+			defer UserDataFileX.Close()
+			tokenFile, botsFile, avatarFile, nameFile, scrapedFile, userDataFile = tokenFileX.Name(), botsFileX.Name(), AvatarFileX.Name(), NameFileX.Name(), ScrapedFileX.Name(), UserDataFileX.Name()
 			for i := 0; i < len(instances); i++ {
 				instances[i].WriteInstanceToFile(tokenFile)
 			}
@@ -451,6 +466,9 @@ func LaunchScraperMenu() {
 								}
 								for x := 0; x < len(MemberInfo.Data.Members[i].Roles); x++ {
 									utilities.WriteRoleFile(id, rolePath, MemberInfo.Data.Members[i].Roles[x])
+								}
+								if MemberInfo.Data.Members[i].User.Username != "" && MemberInfo.Data.Members[i].User.Discriminator != "" {
+									utilities.WriteLinesPath(userDataFile, fmt.Sprintf("%v#%v", MemberInfo.Data.Members[i].User.Username, MemberInfo.Data.Members[i].User.Discriminator))
 								}
 							}
 

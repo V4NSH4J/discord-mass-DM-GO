@@ -360,6 +360,7 @@ func LaunchMassDM() {
 							utilities.LogErr("Error while sending friend request: %v", err)
 							continue
 						}
+						defer resp.Body.Close()
 						if resp.StatusCode != 204 && err != nil {
 							if !errors.Is(err, io.ErrUnexpectedEOF) {
 								body, err := utilities.ReadBody(*resp)

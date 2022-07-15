@@ -59,7 +59,7 @@ type Instance struct {
 	Reacted         []ReactInfo
 	ReactChannel    chan (ReactInfo)
 	MessageNumber   int
-	Locale          string
+	Version         string
 }
 
 func (in *Instance) StartWS() error {
@@ -99,6 +99,7 @@ func GetEverything() (Config, []Instance, error) {
 	var proxy string
 	var xsuper string
 	var ua string
+	var v string
 
 	// Load config
 	cfg, err = GetConfig()
@@ -124,13 +125,15 @@ func GetEverything() (Config, []Instance, error) {
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
 
-	locales := []string{"de-AT", "de-DE", "de-IT", "de-LI", "de-LU", "en-AG", "en-AI", "en-AT", "en-AU", "en-BB", "en-CA", "en-BS", "en-CH", "en-DE", "en-FI", "en-GB", "en-HK", "en-IN", "en-MY", "en-SG", "en-US", "fr-CA", "fr-FR"}
-	locale := locales[rand.Intn(len(locales))]
-	ua, xsuper, err = GetUseragentXSuper(locale)
+	xsuper, ua, v, err = DolfiesXsuper()
 	if err != nil {
-		fmt.Println(err)
-		ua , xsuper = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36", "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkNocm9tZSIsImRldmljZSI6IiIsInN5c3RlbV9sb2NhbGUiOiJlbi1HQiIsImJyb3dzZXJfdXNlcl9hZ2VudCI6Ik1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMDMuMC4wLjAgU2FmYXJpLzUzNy4zNiIsImJyb3dzZXJfdmVyc2lvbiI6IjEwMy4wLjAuMCIsIm9zX3ZlcnNpb24iOiIxMC4xNS43IiwicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInJlZmVycmluZ19kb21haW4iOiJ3d3cuZ29vZ2xlLmNvbSIsInNlYXJjaF9lbmdpbmUiOiJnb29nbGUiLCJyZWZlcnJlcl9jdXJyZW50IjoiIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiIiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X2J1aWxkX251bWJlciI6OTk5OSwiY2xpZW50X2V2ZW50X3NvdXJjZSI6bnVsbH0=" 
+		utilities.LogErr(" Failed to get useragent and xsuper %s Turn off Dolfies mode or try again, otherwise program will be continued with hardcoded chrome emulation", err)
+		xsuper, ua = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiQ2hyb21lIiwiZGV2aWNlIjoiIiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzEwMy4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiYnJvd3Nlcl92ZXJzaW9uIjoiMTAzLjAuMC4wIiwib3NfdmVyc2lvbiI6IjEwIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfY3VycmVudCI6Imh0dHBzOi8vZGlzY29yZC5jb20vIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiZGlzY29yZC5jb20iLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoxMzY5MjEsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+		v =  "103"
+	} else {
+		utilities.LogSuccess("Successfully obtained build number, useragent and latest chrome version")
 	}
+
 	// Load instances
 	tokens, err = utilities.ReadLines("tokens.txt")
 	if err != nil {
@@ -180,7 +183,7 @@ func GetEverything() (Config, []Instance, error) {
 		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
-		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Locale: locale})
+		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v})
 	}
 	if len(instances) == 0 {
 		utilities.LogErr(" You may be using 0 tokens")
@@ -297,6 +300,39 @@ func XSuper(locale string, buildNumber string, Xsuper string) (string, error) {
 	return base64.StdEncoding.EncodeToString([]byte(decodedstr)), nil
 }
 
+func DolfiesXsuper() (string, string, string, error) {
+	apiLink := "https://discord-user-api.cf/api/v1/properties/web"
+	req, err := http.NewRequest("GET", apiLink, nil)
+	if err != nil {
+		return "", "","", err
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", "","", err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", "","", err
+	}
+	var Info DolfiesResponse
+	err = json.Unmarshal(body, &Info)
+	if err != nil {
+		return "", "","", err
+	}
+	if Info.ChromeUserAgent == "" || Info.ChromeVersion == "" || Info.ClientBuildNumber == 0 {
+		return "", "","", fmt.Errorf("couldn't get xsuper from Dolfies")
+	}
+	r := regexp.MustCompile(`Chrome/(.+) Safari`)
+	chromeVersion := r.FindStringSubmatch(Info.ChromeUserAgent)
+	if len(chromeVersion) == 0 {
+		return "", "","", fmt.Errorf("couldn't get xsuper from Dolfies")
+	}
+	xsuper := fmt.Sprintf(`{"os":"Windows","browser":"Chrome","device":"","system_locale":"en-US","browser_user_agent":"%s","browser_version":"%s","os_version":"10","referrer":"","referring_domain":"","referrer_current":"https://discord.com/","referring_domain_current":"discord.com","release_channel":"stable","client_build_number":%d,"client_event_source":null}`, Info.ChromeUserAgent, chromeVersion[1], Info.ClientBuildNumber)
+	return base64.StdEncoding.EncodeToString([]byte(xsuper)), Info.ChromeUserAgent,strings.Split(chromeVersion[1], ".")[0], nil
+
+}
+
 type XSuperProperties struct {
 	OS                     string `json:"os,omitempty"`
 	Browser                string `json:"browser,omitempty"`
@@ -316,4 +352,10 @@ type XSuperProperties struct {
 type PastebinResponse []struct {
 	Ua string `json:"ua,omitempty"`
 	Xs string `json:"xs,omitempty"`
+}
+
+type DolfiesResponse struct {
+	ChromeUserAgent   string `json:"chrome_user_agent,omitempty"`
+	ChromeVersion     string `json:"chrome_version,omitempty"`
+	ClientBuildNumber int    `json:"client_build_number,omitempty"`
 }

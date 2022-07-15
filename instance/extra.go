@@ -359,7 +359,6 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 	if err != nil {
 		return &http.Response{}, err
 	}
-
 	return resp, nil
 
 }
