@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Masterminds/semver"
 )
 
 func Snowflake() int64 {
@@ -114,16 +116,16 @@ func VersionCheck(version string) {
 	if !strings.Contains(v, ".") {
 		return
 	}
-	vParts := strings.Split(v, ".")
-	versionParts := strings.Split(version, ".")
 	message := response["message"].(string)
-	if vParts[0] == versionParts[0] && vParts[1] == versionParts[1] && vParts[2] == versionParts[2] {
+	if isSame(v, version) {
 		LogSuccess(" You're Up-to-Date! You're using DMDGO V%v", version)
-		
-	} else if (vParts[0] == versionParts[0] && vParts[1] == versionParts[1] && vParts[2] < versionParts[2] ) || (vParts[0] == versionParts[0] && vParts[1] < versionParts[1] ) || (vParts[0] < versionParts[0]) {
+
+	} else if isNewer(v, version) {
 		LogSuccess(" You're Up-to-Date! You're using DMDGO BETA V%v", version)
-	} else {
+	} else if isOlder(v, version) {
 		LogErr(" You're using DMDGO V%v, but the latest version is V%v. Consider updating at https://github.com/V4NSH4J/discord-mass-DM-GO/releases", version, v)
+	} else {
+		LogInfo("Unable to check versioning Information. You're on %v and the latest version is %v", version, v)
 	}
 	if message != "" {
 		LogInfo(" %v", message)
@@ -180,4 +182,43 @@ func TimeDifference(t1, t2 time.Time) string {
 	hours := remainderDays * 24
 	intHours := int(hours)
 	return fmt.Sprintf("%v years, %v months, %v days, %v hours", intYears, intMonths, intDays, intHours)
+}
+
+func isNewer(check string, current string) bool {
+	c, err := semver.NewConstraint(fmt.Sprintf(`>%v`, check))
+	if err != nil {
+		return false
+	}
+	v, err := semver.NewVersion(current)
+	if err != nil {
+		return false
+	}
+	b, _ := c.Validate(v)
+	return b
+}
+
+func isSame(check string, current string) bool {
+	c, err := semver.NewConstraint(fmt.Sprintf(`=%v`, check))
+	if err != nil {
+		return false
+	}
+	v, err := semver.NewVersion(current)
+	if err != nil {
+		return false
+	}
+	b, _ := c.Validate(v)
+	return b
+}
+
+func isOlder(check string, current string) bool {
+	c, err := semver.NewConstraint(fmt.Sprintf(`<%v`, check))
+	if err != nil {
+		return false
+	}
+	v, err := semver.NewVersion(current)
+	if err != nil {
+		return false
+	}
+	b, _ := c.Validate(v)
+	return b
 }

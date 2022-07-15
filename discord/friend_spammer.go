@@ -148,7 +148,7 @@ func LaunchFriendSpammer() {
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
-				r, friendCount, blockedCount, incomingCount, outgoingCount, _ , err := instances[i].Relationships()
+				r, friendCount, blockedCount, incomingCount, outgoingCount, _, err := instances[i].Relationships()
 				if err != nil {
 					utilities.LogErr("Token %s Error %s while getting relationships", instances[i].CensorToken(), err)
 					return

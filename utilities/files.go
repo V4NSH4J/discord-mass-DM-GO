@@ -244,7 +244,7 @@ func GetEmbed() ([]byte, string) {
 	}
 }
 
-func WriteRoleFile(memberid, path, role string) error{
+func WriteRoleFile(memberid, path, role string) error {
 	// Checking wether the role file exits
 	roleFile := fmt.Sprintf(`%v/%v.txt`, path, role)
 	_, err := os.Stat(roleFile)
@@ -267,5 +267,5 @@ func WriteRoleFile(memberid, path, role string) error{
 		// Some other error
 		return err
 	}
-	return nil 
+	return nil
 }

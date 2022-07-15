@@ -433,12 +433,12 @@ func (in *Instance) self(sitekey, rqData string) (string, error) {
 		Timeout: 30 * time.Second,
 	}
 	selfPayload := SelfRequest{
-		Sitekey: sitekey,
-		RqData:  rqData,
-		Host:    "discord.com",
-		Proxy:   in.Proxy,
-		Username: in.Config.CaptchaSettings.SelfUsername,
-		Password: in.Config.CaptchaSettings.SelfPassword,
+		Sitekey:   sitekey,
+		RqData:    rqData,
+		Host:      "discord.com",
+		Proxy:     in.Proxy,
+		Username:  in.Config.CaptchaSettings.SelfUsername,
+		Password:  in.Config.CaptchaSettings.SelfPassword,
 		ProxyType: in.Config.ProxySettings.ProxyProtocol,
 	}
 	payloadBytes, err := json.Marshal(selfPayload)
@@ -488,12 +488,12 @@ type CapCatResponse struct {
 }
 
 type SelfRequest struct {
-	Sitekey string `json:"sitekey"`
-	RqData  string `json:"rqdata"`
-	Proxy   string `json:"proxy"`
-	Host    string `json:"host"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Sitekey   string `json:"sitekey"`
+	RqData    string `json:"rqdata"`
+	Proxy     string `json:"proxy"`
+	Host      string `json:"host"`
+	Username  string `json:"username"`
+	Password  string `json:"password"`
 	ProxyType string `json:"proxytype"`
 }
 
@@ -506,7 +506,7 @@ type SelfResponse struct {
 */
 
 func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
-	var solvedKey string 
+	var solvedKey string
 	inEndpoint := fmt.Sprintf(`https://api.%s/hcaptcha`, in.Config.CaptchaSettings.CaptchaAPI)
 	inURL, err := url.Parse(inEndpoint)
 	if err != nil {
@@ -556,9 +556,9 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 	time.Sleep(25 * time.Second)
 	t := time.Now()
 	for {
-		if int(time.Since(t).Seconds()) >  in.Config.CaptchaSettings.Timeout {
+		if int(time.Since(t).Seconds()) > in.Config.CaptchaSettings.Timeout {
 			return solvedKey, fmt.Errorf("Timedout while waiting for captcha to be solved, increase timeout in config to wait longer.")
-		} 
+		}
 		outEndpoint := fmt.Sprintf(`https://api.%s/solution`, in.Config.CaptchaSettings.CaptchaAPI)
 		outURL, err := url.Parse(outEndpoint)
 		if err != nil {
@@ -592,15 +592,13 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 			break
 		} else if outResponse.Status == "WAITING" {
 			time.Sleep(5 * time.Second)
-			continue 
+			continue
 		} else {
 			return solvedKey, fmt.Errorf("error %v", string(body))
 		}
 	}
 	return solvedKey, err
 }
-
-
 
 type invisifoxSubmitResponse struct {
 	Status string `json:"status"`

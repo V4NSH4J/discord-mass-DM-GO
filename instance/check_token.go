@@ -29,7 +29,7 @@ func (in *Instance) CheckToken() int {
 
 }
 
-func (in *Instance) CheckTokenNew() (int ,error) {
+func (in *Instance) CheckTokenNew() (int, error) {
 	url := "https://discord.com/api/v9/users/@me/affinities/guilds"
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

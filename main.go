@@ -19,7 +19,7 @@ import (
 var CaptchaServices []string
 
 func main() {
-	version := "1.10.11"
+	version := "1.10.12"
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue.Printf(logo + " v" + version + "\n")
 	color.Green.Printf("Made by https://github.com/V4NSH4J\nStar repository on github for updates!\n")

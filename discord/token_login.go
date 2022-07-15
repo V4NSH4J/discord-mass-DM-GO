@@ -24,7 +24,7 @@ func LaunchTokenLogin() {
 	// Navigate to discord.com/login
 	// We have to place this token into local storage
 	// Refresh the page
-	byt, err := os.ReadFile("instance/tokenLogin.js")
+	byt, err := os.ReadFile("tokenLogin.js")
 	if err != nil {
 		utilities.LogErr("Error while opening tokenLogin.js %v", err)
 		utilities.ExitSafely()
