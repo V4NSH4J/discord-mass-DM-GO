@@ -124,7 +124,7 @@ func GetEverything() (Config, []Instance, error) {
 		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
-	if cfg.OtherSettings.XSuperProperties != "" && cfg.OtherSettings.Useragent != "" {
+	if cfg.OtherSettings.XSuperProperties == "" && cfg.OtherSettings.Useragent == "" {
 		xsuper, ua, v, err = DolfiesXsuper()
 		if err != nil {
 			utilities.LogErr(" Failed to get useragent and xsuper %s Turn off Dolfies mode or try again, otherwise program will be continued with hardcoded chrome emulation", err)
