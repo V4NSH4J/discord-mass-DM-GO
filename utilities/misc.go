@@ -59,6 +59,19 @@ func Contains(s []string, e string) bool {
 	return false
 }
 
+func ContainsInt(s []int, e int) bool {
+	defer HandleOutOfBounds()
+	if len(s) == 0 {
+		return false
+	}
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 // Inputs 2 slices of strings and returns a slice of strings which does not contain elements from the second slice
 func RemoveSubset(s []string, r []string) []string {
 	var n []string
@@ -182,6 +195,14 @@ func TimeDifference(t1, t2 time.Time) string {
 	hours := remainderDays * 24
 	intHours := int(hours)
 	return fmt.Sprintf("%v years, %v months, %v days, %v hours", intYears, intMonths, intDays, intHours)
+}
+
+func GetConfigOrInputString(config string, message string) string {
+	if len(config) > 0 {
+		return config
+	} else {
+		return UserInput(message)
+	}
 }
 
 func isNewer(check string, current string) bool {

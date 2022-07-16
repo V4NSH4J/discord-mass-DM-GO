@@ -8,6 +8,7 @@ package instance
 
 import (
 	"fmt"
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"net/http"
 )
 
@@ -202,7 +203,14 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie string) *http.R
 	return req
 }
 
-func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient string) *http.Request {
+func (in *Instance) SendMessageHeaders(req *http.Request, cookie string, params utilities.SnowflakeParams) *http.Request {
+	var referer string
+	if params.ChannelId != "" {
+		referer = fmt.Sprintf(`https://discord.com/channels/%s/%s`, params.ServerId, params.ChannelId)
+	} else {
+		referer = fmt.Sprintf(`https://discord.com/channels/@me/%s`, params.UserId)
+	}
+
 	if in.Config.OtherSettings.Mode == 2 {
 		for k, v := range map[string]string{
 			"Host":               "discord.com",
@@ -227,7 +235,7 @@ func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient stri
 			"content-type":         "application/json",
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
-			"referer":              fmt.Sprintf("https://discord.com/channels/@me/%s", recipient),
+			"referer":              referer,
 			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
 			"sec-ch-ua-mobile":     "?0",
 			"sec-ch-ua-platform":   `"Windows"`,
@@ -248,7 +256,14 @@ func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient stri
 	return req
 }
 
-func (in *Instance) TypingHeaders(req *http.Request, cookie, snowflake string) *http.Request {
+func (in *Instance) TypingHeaders(req *http.Request, cookie string, params utilities.SnowflakeParams) *http.Request {
+	var referer string
+	if params.ChannelId != "" {
+		referer = fmt.Sprintf(`https://discord.com/channels/%s/%s`, params.ServerId, params.ChannelId)
+	} else {
+		referer = fmt.Sprintf(`https://discord.com/channels/@me/%s`, params.UserId)
+	}
+
 	if in.Config.OtherSettings.Mode == 2 {
 		for k, v := range map[string]string{
 			"Host":               "discord.com",
@@ -271,7 +286,7 @@ func (in *Instance) TypingHeaders(req *http.Request, cookie, snowflake string) *
 			"content-type":         "application/json",
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
-			"referer":              fmt.Sprintf("https://discord.com/channels/@me/%s", snowflake),
+			"referer":              referer,
 			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
 			"sec-ch-ua-mobile":     "?0",
 			"sec-ch-ua-platform":   `"Windows"`,

@@ -27,7 +27,7 @@ func main() {
 
 // Options menu
 func Options() {
-	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Friends Mass DM [BETA]","Credits & Help", "Exit"})
+	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Raid Server", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Friends Mass DM [BETA]", "Credits & Help", "Exit"})
 	choice := utilities.UserInputInteger("Enter your choice!")
 	switch choice {
 	default:
@@ -40,71 +40,74 @@ func Options() {
 		color.Cyan.Printf("Mass DM advertiser\n")
 		discord.LaunchMassDM()
 	case 3:
+		color.Cyan.Printf("Raid Server\n")
+		discord.LaunchRaidServer()
+	case 4:
 		color.Cyan.Printf("Single DM spam\n")
 		discord.LaunchSingleDM()
-	case 4:
+	case 5:
 		color.Cyan.Printf("Reaction Adder\n")
 		discord.LaunchReactionAdder()
-	case 5:
+	case 6:
 		color.Cyan.Printf("Email:Pass:Token to Token\n")
 		discord.LaunchTokenFormatter()
-	case 6:
+	case 7:
 		color.Cyan.Printf("Token Checker\n")
 		discord.LaunchTokenChecker()
-	case 7:
+	case 8:
 		color.Cyan.Printf("Guild Leaver\n")
 		discord.LaunchGuildLeaver()
-	case 8:
+	case 9:
 		color.Cyan.Printf("Token Onliner\n")
 		discord.LaunchTokenOnliner()
-	case 9:
+	case 10:
 		color.Cyan.Printf("Scraping Menu\n")
 		discord.LaunchScraperMenu()
-	case 10:
+	case 11:
 		color.Cyan.Printf("Name Changer\n")
 		discord.LaunchNameChanger()
-	case 11:
+	case 12:
 		color.Cyan.Printf("Profile Picture Changer\n")
 		discord.LaunchAvatarChanger()
-	case 12:
+	case 13:
 		color.Cyan.Printf("Token Servers Check\n")
 		discord.LaunchServerChecker()
-	case 13:
+	case 14:
 		color.Cyan.Printf("Bio Changer\n")
 		discord.LaunchBioChanger()
-	case 14:
+	case 15:
 		color.Cyan.Printf("DM on React\n")
 		discord.LaunchDMReact()
-	case 15:
+	case 16:
 		color.Cyan.Printf("Hypesquad Changer\n")
 		discord.LaunchHypeSquadChanger()
-	case 16:
+	case 17:
 		color.Cyan.Printf("Mass token changer\n")
 		discord.LaunchTokenChanger()
-	case 17:
+	case 18:
 		color.Cyan.Printf("Create Embed\n")
 		discord.LanuchEmbed()
-	case 18:
+	case 19:
 		color.Cyan.Printf("Login into Token\n")
 		discord.LaunchTokenLogin()
-	case 19:
+	case 20:
 		color.Cyan.Printf("Token Nuker\n")
 		discord.LaunchTokenNuker()
-	case 20:
+	case 21:
 		color.Cyan.Printf("Button Press\n")
 		discord.LaunchButtonClicker()
-	case 21:
+	case 22:
 		color.Cyan.Printf("Server Nickname Changer\n")
 		discord.LaunchServerNicknameChanger()
-	case 22:
+	case 23:
 		color.Cyan.Printf("Friend Request Spammer\n")
 		discord.LaunchFriendRequestSpammer()
-	case 23:
+	case 24:
 		color.Cyan.Printf("Friends Mass DM\n")
 		discord.LaunchFriendSpammer()
-	case 24:
-		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
 	case 25:
+		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
+	case 26:
 		os.Exit(0)
 	}
 	time.Sleep(1 * time.Second)

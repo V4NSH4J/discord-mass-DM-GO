@@ -19,6 +19,14 @@ import (
 )
 
 func LaunchinviteJoiner() {
+	utilities.PrintMenu([]string{"Raid Mode", "Normal Mode"})
+	invitemode := utilities.UserInputInteger("Enter your choice:")
+
+	if invitemode != 1 && invitemode != 2 {
+		utilities.LogErr("Invalid choice")
+		return
+	}
+
 	utilities.PrintMenu([]string{"Single Invite", "Multiple Invites from File"})
 	invitechoice := utilities.UserInputInteger("Enter your choice:")
 	if invitechoice != 1 && invitechoice != 2 {
@@ -68,7 +76,13 @@ func LaunchinviteJoiner() {
 			}
 		}
 
-		invite := utilities.UserInput("Enter your Invite Code or Link:")
+		var invite string
+		promptmsg := "Enter your Invite Code or Link:"
+		if invitemode == 2 {
+			invite = utilities.UserInput(promptmsg)
+		} else {
+			invite = utilities.GetConfigOrInputString(cfg.RaidSettings.InviteLink, promptmsg)
+		}
 		invite = processInvite(invite)
 		threads := utilities.UserInputInteger("Enter number of threads (0 for maximum):")
 
@@ -84,11 +98,20 @@ func LaunchinviteJoiner() {
 		var emoji string
 
 		if verif == 1 {
-			channelid = utilities.UserInput("ID of the channel with verification message")
-
-			msgid = utilities.UserInput("ID of the message with verification reaction")
-			emoji = utilities.UserInput("Enter emoji")
-
+			if invitemode == 1 {
+				channelid = utilities.GetConfigOrInputString(
+					cfg.RaidSettings.VerifyChannelId,
+					"ID of the channel with verification message",
+				)
+				msgid = utilities.GetConfigOrInputString(
+					cfg.RaidSettings.VerifyChannelId,
+					"ID of the message with verification reaction",
+				)
+			} else {
+				channelid = utilities.UserInput("ID of the channel with verification message")
+				msgid = utilities.UserInput("ID of the message with verification reaction")
+			}
+			emoji = utilities.UserInput("Enter verification Emoji")
 		}
 		base := utilities.UserInputInteger("Enter base delay per thread for joining in seconds: ")
 		random := utilities.UserInputInteger("Enter random delay per thread for joining in seconds: ")

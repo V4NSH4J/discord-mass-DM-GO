@@ -19,6 +19,7 @@ import (
 )
 
 type Config struct {
+	RaidSettings       RaidSettings       `yaml:"raid_settings"`
 	DirectMessage      DirectMessage      `yaml:"direct_message_settings"`
 	ProxySettings      ProxySettings      `yaml:"proxy_settings"`
 	ScraperSettings    ScraperSettings    `yaml:"scraper_settings"`
@@ -26,6 +27,22 @@ type Config struct {
 	OtherSettings      OtherSettings      `yaml:"other_settings"`
 	SuspicionAvoidance SuspicionAvoidance `yaml:"suspicion_avoidance"`
 	DMonReact          DMonReact          `yaml:"dm_on_react"`
+}
+
+type RaidSettings struct {
+	Delay                 int    `yaml:"individual_delay"`
+	LongDelay             int    `yaml:"rate_limit_delay"`
+	Offset                int    `yaml:"offset"`
+	RandomIndividualDelay int    `yaml:"random_individual_delay"`
+	Skip                  bool   `yaml:"skip_completed"`
+	OnlineTokens          bool   `yaml:"online_tokens"`
+	DuplicateMessage      bool   `yaml:"duplicate_message"`
+	WatcherToken          string `yaml:"watcher_token"`
+	InviteLink            string `yaml:"invite_link"`
+	VerifyChannelId       string `yaml:"verify_channel_id"`
+	VerifyMessageId       string `yaml:"verify_message_id"`
+	AttackedChannel       string `yaml:"attacked_channel"`
+	AttackedServer        string `yaml:"attacked_server"`
 }
 
 type DirectMessage struct {

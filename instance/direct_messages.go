@@ -261,7 +261,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 		if dur != 0 {
 			iterations := int((int64(dur) / int64(time.Second*10))) + 1
 			for i := 0; i < iterations; i++ {
-				if err := in.typing(channelSnowflake, cookie); err != nil {
+				if err := in.typing(utilities.SnowflakeParams{UserId: channelSnowflake}, cookie); err != nil {
 					continue
 				}
 				s := time.Second * 10
@@ -273,7 +273,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 		}
 	}
 
-	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
+	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, utilities.SnowflakeParams{UserId: channelSnowflake}))
 	if err != nil {
 		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)
 		return -1, nil, fmt.Errorf("error while getting send message response %v", err)
@@ -333,7 +333,103 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 		if err != nil {
 			return res.StatusCode, body, fmt.Errorf("error while making request to send message %v", err)
 		}
-		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, channelSnowflake))
+		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, utilities.SnowflakeParams{UserId: channelSnowflake}))
+		if err != nil {
+			return t, body, fmt.Errorf("error while getting send message response %v", err)
+		}
+	}
+	in.Count++
+	return res.StatusCode, body, nil
+}
+
+// SendMessageToChannel Use by the Raiding Party to send a message to a specific channel
+func (in *Instance) SendMessageToChannel(messageIndex int, params utilities.SnowflakeParams) (int, []byte, error) {
+	message := in.Messages[messageIndex]
+	x := message.Content
+
+	payload, err := json.Marshal(&map[string]interface{}{
+		"content": x,
+		"tts":     false,
+		"nonce":   utilities.Snowflake(),
+	})
+	if err != nil {
+		return -1, nil, fmt.Errorf("error while marshalling message %v %v ", messageIndex, err)
+	}
+	url := "https://discord.com/api/v9/channels/" + params.ChannelId + "/messages"
+	req, err := http.NewRequest("POST", url, strings.NewReader(string(payload)))
+
+	var cookie string
+	if in.Cookie == "" {
+		cookie, err = in.GetCookieString()
+		if err != nil {
+			return -1, nil, fmt.Errorf("error while getting cookie %v", err)
+		}
+	} else {
+		cookie = in.Cookie
+	}
+
+	if in.Config.SuspicionAvoidance.Typing {
+		dur := typingSpeed(x, in.Config.SuspicionAvoidance.TypingVariation, in.Config.SuspicionAvoidance.TypingSpeed, in.Config.SuspicionAvoidance.TypingBase)
+		if dur != 0 {
+			//utilities.LogInfo("Token %v will type for %v", in.Token, dur)
+			iterations := int(int64(dur)/int64(time.Second*10)) + 1
+			for i := 0; i < iterations; i++ {
+				if err := in.typing(params, cookie); err != nil {
+					continue
+				}
+				s := time.Second * 10
+				if i == iterations-1 {
+					s = dur % time.Second * 10
+				}
+				time.Sleep(s)
+			}
+		}
+	}
+
+	res, err := in.Client.Do(in.SendMessageHeaders(req, cookie, params))
+	if err != nil {
+		fmt.Printf("[%v]Error while sending http request %v \n", time.Now().Format("15:04:05"), err)
+		return -1, nil, fmt.Errorf("error while getting send message response %v", err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return res.StatusCode, nil, fmt.Errorf("error while reading body %v", err)
+	}
+	t := res.StatusCode
+
+	if res.StatusCode == 400 {
+		if !strings.Contains(string(body), "captcha") {
+			return res.StatusCode, body, nil
+		}
+		if in.Config.CaptchaSettings.ClientKey == "" {
+			return res.StatusCode, body, fmt.Errorf("captcha detected but no client key set")
+		}
+		var captchaDetect captchaDetected
+		err = json.Unmarshal(body, &captchaDetect)
+		if err != nil {
+			return res.StatusCode, body, fmt.Errorf("error while unmarshalling captcha %v", err)
+		}
+		utilities.LogWarn("[%v] Captcha detected %v [%v]", time.Now().Format("15:04:05"), in.CensorToken(), captchaDetect.Sitekey)
+		// TODO: WHERE TO SOLVE CAPTCHA ?? Not sure if this below is right
+		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie, captchaDetect.RqData, captchaDetect.RqToken, fmt.Sprintf("https://discord.com/channels/%s/%s", params.ServerId, params.ChannelId))
+		if err != nil {
+			return res.StatusCode, body, fmt.Errorf("error while solving captcha %v", err)
+		}
+		payload, err = json.Marshal(&map[string]interface{}{
+			"content":         x,
+			"tts":             false,
+			"nonce":           utilities.Snowflake(),
+			"captcha_key":     solved,
+			"captcha_rqtoken": captchaDetect.RqToken,
+		})
+		if err != nil {
+			return res.StatusCode, body, fmt.Errorf("error while marshalling message %v %v ", messageIndex, err)
+		}
+		req, err = http.NewRequest("POST", url, strings.NewReader(string(payload)))
+		if err != nil {
+			return res.StatusCode, body, fmt.Errorf("error while making request to send message %v", err)
+		}
+		res, err = in.Client.Do(in.SendMessageHeaders(req, cookie, params))
 		if err != nil {
 			return t, body, fmt.Errorf("error while getting send message response %v", err)
 		}
@@ -455,7 +551,7 @@ func (in *Instance) greet(channelid, cookie, fingerprint string) (string, error)
 	if err != nil {
 		return "", err
 	}
-	req = in.SendMessageHeaders(req, cookie, channelid)
+	req = in.SendMessageHeaders(req, cookie, utilities.SnowflakeParams{UserId: channelid})
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", err
@@ -487,7 +583,7 @@ func (in *Instance) ungreet(channelid, cookie, fingerprint, msgid string) error 
 	if err != nil {
 		return err
 	}
-	req = in.SendMessageHeaders(req, cookie, channelid)
+	req = in.SendMessageHeaders(req, cookie, utilities.SnowflakeParams{UserId: channelid})
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return err
@@ -498,13 +594,19 @@ func (in *Instance) ungreet(channelid, cookie, fingerprint, msgid string) error 
 	return nil
 }
 
-func (in *Instance) typing(channelID, cookie string) error {
-	reqURL := fmt.Sprintf(`https://discord.com/api/v9/channels/%s/typing`, channelID)
+func (in *Instance) typing(params utilities.SnowflakeParams, cookie string) error {
+	var snowflake string
+	if params.ChannelId != "" {
+		snowflake = params.ChannelId
+	} else {
+		snowflake = params.UserId
+	}
+	reqURL := fmt.Sprintf(`https://discord.com/api/v9/channels/%s/typing`, snowflake)
 	req, err := http.NewRequest("POST", reqURL, nil)
 	if err != nil {
 		return err
 	}
-	req = in.TypingHeaders(req, cookie, channelID)
+	req = in.TypingHeaders(req, cookie, params)
 	resp, err := in.Client.Do(req)
 	if err != nil {
 		return err

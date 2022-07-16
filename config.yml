@@ -1,3 +1,18 @@
+raid_settings:
+  individual_delay: 2 # SECONDS
+  rate_limit_delay: 650 #MILISECONDS
+  offset: 650 #MILLISECONDS
+  random_individual_delay: 50 #MILLISECONDS
+  remove_dead_tokens: true
+  stop_dead_tokens: true
+  online_tokens: false
+  duplicate_message: false # ALLOW DUPLICATE MESSAGE WHILE RAIDING
+  watcher_token: "" # TOKEN THAT CAN SEE THE MESSAGE - USED FOR REACTION ADDING
+  invite_link: "" # INVITE LINK FOR ATTACKED SERVER
+  verify_channel_id: "" # COPY THE CHANNEL ID WHERE THE VERIFICATION MESSAGE IS
+  verify_message_id: "" # COPY THE VERIFICATION MESSAGE ID
+  attacked_channel: "" # WHAT CHANNEL SHOULD THE ARMY RAID
+  attacked_server: "" # WHAT SERVER ARE WE RAIDING
 
 direct_message_settings:
   individual_delay: 110
@@ -6,9 +21,9 @@ direct_message_settings:
   max_dms_per_token: 0
   skip_completed: true
   call: false
-  remove_dead_tokens: true 
-  remove_completed_members: true 
-  stop_dead_tokens: true 
+  remove_dead_tokens: true
+  remove_completed_members: true
+  stop_dead_tokens: true
   check_mutual: false
   friend_before_DM: false
   online_tokens: false
@@ -39,7 +54,7 @@ captcha_settings:
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
 
-other_settings: 
+other_settings:
   disable_keep_alives: false
   mode: 0
   constant_cookies: false
@@ -59,15 +74,15 @@ suspicion_avoidance:
 dm_on_react:
   observer_token: ""
   change_name: true
-  change_avatar: true 
+  change_avatar: true
   invite: ""
   server_id: ""
   channel_id: ""
   message_id: ""
   emoji: ""
-  skip_completed: true 
-  skip_failed: true 
-  leave_token_on_ratelimit: true 
+  skip_completed: true
+  skip_failed: true
+  leave_token_on_ratelimit: true
   rotate_tokens: true
   max_anti_raid_queue: 20
   max_dms_per_token: 10

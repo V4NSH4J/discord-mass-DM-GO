@@ -21,8 +21,24 @@ import (
 )
 
 func LaunchReactionAdder() {
-	utilities.PrintMenu([]string{"From Message", "Manually"})
-	choice := utilities.UserInputInteger("Select an option: ")
+	utilities.PrintMenu([]string{"Verify mode", "Raid mode", "Normal mode"})
+	rxnmode := utilities.UserInputInteger("Select an option:")
+	if rxnmode != 1 && rxnmode != 2 && rxnmode != 3 {
+		utilities.LogErr("Invalid option")
+		return
+	}
+	var choice int
+
+	switch rxnmode {
+	case 1:
+		choice = 1
+	case 2:
+		choice = 1
+	default:
+		utilities.PrintMenu([]string{"From Message", "Manually"})
+		choice = utilities.UserInputInteger("Select an option: ")
+	}
+
 	if choice != 1 && choice != 2 {
 		utilities.LogErr("Invalid option")
 		return
@@ -81,9 +97,40 @@ func LaunchReactionAdder() {
 	var wg sync.WaitGroup
 	wg.Add(len(instances))
 	if choice == 1 {
-		token := utilities.UserInput("Enter a token which can see the message: ")
-		id := utilities.UserInput("Enter the message ID: ")
-		channel := utilities.UserInput("Enter the channel ID: ")
+		var token string
+		var channel string
+		var id string
+
+		switch rxnmode {
+		case 1:
+			token = utilities.GetConfigOrInputString(
+				cfg.RaidSettings.WatcherToken,
+				"Enter a token which can see the message: ",
+			)
+			channel = utilities.GetConfigOrInputString(
+				cfg.RaidSettings.VerifyChannelId,
+				"Enter verification channel ID:",
+			)
+			id = utilities.GetConfigOrInputString(
+				cfg.RaidSettings.VerifyMessageId,
+				"Enter verification message ID: ",
+			)
+		case 2:
+			token = utilities.GetConfigOrInputString(
+				cfg.RaidSettings.WatcherToken,
+				"Enter a token which can see the message: ",
+			)
+			channel = utilities.GetConfigOrInputString(
+				cfg.RaidSettings.AttackedChannel,
+				"Enter raid channel ID:",
+			)
+			id = utilities.UserInput("Enter the final message ID: ")
+		default:
+			token = utilities.UserInput("Enter a token which can see the message: ")
+			channel = utilities.UserInput("Enter channel ID:")
+			id = utilities.UserInput("Enter the message ID: ")
+		}
+
 		msg, err := instance.GetRxn(channel, id, token)
 		if err != nil {
 			utilities.LogErr("Error while getting message %s", err)
@@ -106,7 +153,7 @@ func LaunchReactionAdder() {
 		utilities.PrintMenu2(selection)
 
 		var emojis []int
-		x := utilities.UserInput("Select Emoji, seperate them by commas to select multiple:")
+		x := utilities.UserInput("Select Emoji, separate them by commas to select multiple (ex: 0,1,2):")
 		if !strings.Contains(x, ",") {
 			index, err := strconv.Atoi(x)
 			if err != nil {
