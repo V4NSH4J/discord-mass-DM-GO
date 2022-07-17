@@ -19,7 +19,7 @@ import (
 
 func LaunchTokenLogin() {
 	var token string
-	utilities.LogWarn("You NEED Google Chrome installed to use this functionalit")
+	utilities.LogWarn("You NEED Google Chrome installed to use this functionality")
 	token = utilities.UserInput("Enter a token which you want to login into: ")
 	// Navigate to discord.com/login
 	// We have to place this token into local storage
