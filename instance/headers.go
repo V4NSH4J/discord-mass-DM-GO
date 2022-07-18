@@ -26,15 +26,11 @@ func (in *Instance) cookieHeaders(req *http.Request) *http.Request {
 			"accept":                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
 			"accept-encoding":           "gzip, deflate, br",
 			"accept-language":           "en-US,en;q=0.9",
-			"sec-ch-ua":                 `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
 			"sec-ch-ua-mobile":          "?0",
-			"sec-ch-ua-platform":        `"Windows"`,
 			"sec-fetch-dest":            "document",
 			"sec-fetch-mode":            "navigate",
 			"sec-fetch-site":            "none",
 			"sec-fetch-user":            "?1",
-			"Pragma":                    "no-cache",
-			"Cache-Control":             "no-cache",
 			"upgrade-insecure-requests": "1",
 			"user-agent":                in.UserAgent,
 		} {
@@ -47,19 +43,15 @@ func (in *Instance) cookieHeaders(req *http.Request) *http.Request {
 
 func (in *Instance) cfBmHeaders(req *http.Request, cookie string) *http.Request {
 	for k, v := range map[string]string{
-		"accept":             "*/*",
-		"accept-language":    "en-US,en;q=0.9",
-		"content-type":       "application/json",
-		"cookie":             cookie,
-		"origin":             "https://discord.com",
-		"referer":            "https://discord.com/",
-		"sec-ch-ua":          `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-		"sec-ch-ua-mobile":   "?0",
-		"sec-ch-ua-platform": `"Windows"`,
-		"sec-fetch-dest":     "empty",
-		"sec-fetch-mode":     "cors",
-		"sec-fetch-site":     "same-origin",
-		"user-agent":         in.UserAgent,
+		"accept":          "*/*",
+		"accept-language": "en-US,en;q=0.9",
+		"content-type":    "application/json",
+		"cookie":          cookie,
+		"origin":          "https://discord.com",
+		"referer":         "https://discord.com/",
+		"sec-fetch-mode":  "cors",
+		"sec-fetch-site":  "same-origin",
+		"user-agent":      in.UserAgent,
 	} {
 		req.Header.Set(k, v)
 	}
@@ -92,9 +84,6 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie, xcontext string) *h
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
 			"referer":              "https://discord.com/channels/@me",
-			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":     "?0",
-			"sec-ch-ua-platform":   `"Windows"`,
 			"sec-fetch-dest":       "empty",
 			"sec-fetch-mode":       "cors",
 			"sec-fetch-site":       "same-origin",
@@ -103,8 +92,6 @@ func (in *Instance) inviteHeaders(req *http.Request, cookie, xcontext string) *h
 			"x-debug-options":      "bugReporterEnabled",
 			"x-discord-locale":     "en-US",
 			"x-super-properties":   in.XSuper,
-			"Pragma":               "no-cache",
-			"Cache-Control":        "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}
@@ -135,9 +122,6 @@ func (in *Instance) xContextPropertiesHeaders(req *http.Request, cookie string) 
 			"authorization":      in.Token,
 			"cookie":             cookie,
 			"referer":            "https://discord.com/channels/@me",
-			"sec-ch-ua":          `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":   "?0",
-			"sec-ch-ua-platform": `"Windows"`,
 			"sec-fetch-dest":     "empty",
 			"sec-fetch-mode":     "cors",
 			"sec-fetch-site":     "same-origin",
@@ -145,8 +129,6 @@ func (in *Instance) xContextPropertiesHeaders(req *http.Request, cookie string) 
 			"x-debug-options":    "bugReporterEnabled",
 			"x-discord-locale":   "en-US",
 			"x-super-properties": in.XSuper,
-			"Pragma":             "no-cache",
-			"Cache-Control":      "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}
@@ -182,9 +164,6 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie string) *http.R
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
 			"referer":              "https://discord.com/channels/@me",
-			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":     "?0",
-			"sec-ch-ua-platform":   `"Windows"`,
 			"sec-fetch-dest":       "empty",
 			"sec-fetch-mode":       "cors",
 			"sec-fetch-site":       "same-origin",
@@ -193,8 +172,6 @@ func (in *Instance) OpenChannelHeaders(req *http.Request, cookie string) *http.R
 			"x-debug-options":      "bugReporterEnabled",
 			"x-discord-locale":     "en-US",
 			"x-super-properties":   in.XSuper,
-			"Pragma":               "no-cache",
-			"Cache-Control":        "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}
@@ -228,9 +205,6 @@ func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient stri
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
 			"referer":              fmt.Sprintf("https://discord.com/channels/@me/%s", recipient),
-			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":     "?0",
-			"sec-ch-ua-platform":   `"Windows"`,
 			"sec-fetch-dest":       "empty",
 			"sec-fetch-mode":       "cors",
 			"sec-fetch-site":       "same-origin",
@@ -239,8 +213,6 @@ func (in *Instance) SendMessageHeaders(req *http.Request, cookie, recipient stri
 			"x-debug-options":      "bugReporterEnabled",
 			"x-discord-locale":     "en-US",
 			"x-super-properties":   in.XSuper,
-			"Pragma":               "no-cache",
-			"Cache-Control":        "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}
@@ -264,17 +236,13 @@ func (in *Instance) TypingHeaders(req *http.Request, cookie, snowflake string) *
 		}
 	} else {
 		for k, v := range map[string]string{
-			"accept": "*/*",
-
+			"accept":               "*/*",
 			"accept-language":      "en-US,en;q=0.9",
 			"authorization":        in.Token,
 			"content-type":         "application/json",
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
 			"referer":              fmt.Sprintf("https://discord.com/channels/@me/%s", snowflake),
-			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":     "?0",
-			"sec-ch-ua-platform":   `"Windows"`,
 			"sec-fetch-dest":       "empty",
 			"sec-fetch-mode":       "cors",
 			"sec-fetch-site":       "same-origin",
@@ -283,8 +251,6 @@ func (in *Instance) TypingHeaders(req *http.Request, cookie, snowflake string) *
 			"x-debug-options":      "bugReporterEnabled",
 			"x-discord-locale":     "en-US",
 			"x-super-properties":   in.XSuper,
-			"Pragma":               "no-cache",
-			"Cache-Control":        "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}
@@ -317,9 +283,6 @@ func (in *Instance) AtMeHeaders(req *http.Request, cookie string) *http.Request 
 			"content-type":         "application/json",
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
-			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":     "?0",
-			"sec-ch-ua-platform":   `"Windows"`,
 			"sec-fetch-dest":       "empty",
 			"sec-fetch-mode":       "cors",
 			"sec-fetch-site":       "same-origin",
@@ -328,8 +291,6 @@ func (in *Instance) AtMeHeaders(req *http.Request, cookie string) *http.Request 
 			"x-debug-options":      "bugReporterEnabled",
 			"x-discord-locale":     "en-US",
 			"x-super-properties":   in.XSuper,
-			"Pragma":               "no-cache",
-			"Cache-Control":        "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}
@@ -378,9 +339,6 @@ func (in *Instance) UserInfoHeaders(req *http.Request, cookie string) *http.Requ
 			"content-type":         "application/json",
 			"cookie":               cookie,
 			"origin":               "https://discord.com",
-			"sec-ch-ua":            `".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"`,
-			"sec-ch-ua-mobile":     "?0",
-			"sec-ch-ua-platform":   `"Windows"`,
 			"sec-fetch-dest":       "empty",
 			"sec-fetch-mode":       "cors",
 			"sec-fetch-site":       "same-origin",
@@ -389,8 +347,6 @@ func (in *Instance) UserInfoHeaders(req *http.Request, cookie string) *http.Requ
 			"x-debug-options":      "bugReporterEnabled",
 			"x-discord-locale":     "en-US",
 			"x-super-properties":   in.XSuper,
-			"Pragma":               "no-cache",
-			"Cache-Control":        "no-cache",
 		} {
 			req.Header.Set(k, v)
 		}

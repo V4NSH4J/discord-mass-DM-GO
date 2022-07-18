@@ -14,102 +14,192 @@ import (
 	"math"
 	"math/rand"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 )
 
-// Cookies are required for legitimate looking requests, a GET request to instance.com has these required cookies in it's response along with the website HTML
-// We can use this to get the cookies & arrange them in a string
+func cookieToString(cookies []*http.Cookie, cookieString string) string {
+	for i := 0; i < len(cookies); i++ {
+		if i == len(cookies)-1 {
+			cookieString += fmt.Sprintf(`%s=%s`, cookies[i].Name, cookies[i].Value)
+		} else {
+			cookieString += fmt.Sprintf(`%s=%s; `, cookies[i].Name, cookies[i].Value)
+		}
+	}
+	if !strings.Contains(cookieString, "locale=en-US; ") {
+		cookieString += "; locale=en-US "
+	}
+	return cookieString
+}
 
 func (in *Instance) GetCookieString() (string, error) {
 	if in.Config.OtherSettings.ConstantCookies && in.Cookie != "" {
 		return in.Cookie, nil
 	}
-	if in.Config.OtherSettings.Mode != 2 {
-		url := "https://discord.com"
-
-		req, err := http.NewRequest("GET", url, nil)
-
-		if err != nil {
-			utilities.LogErr("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
-			return "", fmt.Errorf("error while making request to get cookie %v", err)
-		}
-		req = in.cookieHeaders(req)
-		resp, err := in.Client.Do(req)
-		if err != nil {
-			utilities.LogErr("[%v] Error while getting response from cookies request %v", time.Now().Format("15:04:05"), err)
-			return "", fmt.Errorf("error while getting response from cookie request %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.Cookies() == nil {
-			utilities.LogErr("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
-			return "", fmt.Errorf("there are no cookies in response")
-		}
-		cookies := ""
-		for _, cookie := range resp.Cookies() {
-			cookies += fmt.Sprintf(`%s=%s; `, cookie.Name, cookie.Value)
-		}
-		// CfRay := resp.Header.Get("cf-ray")
-		// if strings.Contains(CfRay, "-BOM") {
-		// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
-		// }
-
-		// if CfRay != "" {
-		// 	body, err := ioutil.ReadAll(resp.Body)
-		// 	if err != nil {
-		// 		utilities.LogErr("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
-		// 		return cookies + "locale:en-US", nil
-		// 	}
-		// 	m := regexp.MustCompile(`m:'(.+)'`)
-		// 	match := m.FindStringSubmatch(string(body))
-		// 	if match == nil {
-		// 		return cookies + "locale:en-US", nil
-		// 	}
-		// 	finalCookies, err := in.GetCfBm(match[1], CfRay, cookies)
-		// 	if err != nil {
-		// 		return cookies + "locale:en-US", nil
-		// 	}
-		// 	finalCookies += "; locale:en-US"
-		// 	return finalCookies, nil
-		// }
-		cookies += fmt.Sprintf("locale:%s", "en-US")
-		if in.Config.OtherSettings.ConstantCookies {
-			in.Cookie = cookies
-		}
-		return cookies, nil
-	} else {
-		site := "https://discord.com/ios/125.0/manifest.json"
-		req, err := http.NewRequest("GET", site, nil)
-		if err != nil {
-			return "", fmt.Errorf("error while making request to get cookie %v", err)
-		}
-		req = in.cookieHeaders(req)
-		resp, err := in.Client.Do(req)
-		if err != nil {
-			return "", fmt.Errorf("error while getting response from cookie request %v", err)
-		}
-		defer resp.Body.Close()
-		if resp.Cookies() == nil {
-			return "", fmt.Errorf("there are no cookies in response")
-		}
-		cookies := ""
-		for i, cookie := range resp.Cookies() {
-			if i != len(resp.Cookies())-1 {
-				cookies += fmt.Sprintf(`%s=%s; `, cookie.Name, cookie.Value)
-			} else {
-				cookies += fmt.Sprintf(`%s=%s`, cookie.Name, cookie.Value)
-			}
-		}
-		if in.Config.OtherSettings.ConstantCookies {
-			in.Cookie = cookies
-		}
-		return cookies, nil
+	cookies := []*http.Cookie{}
+	link := "https://discord.com"
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return "", fmt.Errorf("error while making request to get cookies %v", err)
 	}
+	req = in.cookieHeaders(req)
+	resp, err := in.Client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error while getting response from cookies request %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.Cookies() == nil {
+		utilities.LogErr("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
+		return "", fmt.Errorf("there are no cookies in response")
+	}
+	if len(resp.Cookies()) == 0 {
+		return "", fmt.Errorf("there are no cookies in response")
+	}
+	cookies = append(cookies, resp.Cookies()...)
+	if !in.Config.OtherSettings.Cfbm {
+		return cookieToString(cookies, ""), nil
+	}
+	CfRay := strings.ReplaceAll(resp.Header.Get("cf-ray"), "-BOM", "")
+	if CfRay == "" {
+		return cookieToString(cookies, ""), fmt.Errorf("cf-ray is empty")
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error while reading response body %v", err)
+	}
+	reg := regexp.MustCompile(`m:'(.+)'`)
+	match := reg.FindStringSubmatch(string(body))
+	if match == nil {
+		return cookieToString(cookies, ""), fmt.Errorf("m is empty")
+	}
+	if len(match) < 2 {
+		return cookieToString(cookies, ""), fmt.Errorf("no match found for m value")
+	}
+	m := match[1]
+	link = fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, CfRay)
+	var cfBmPayload CfBm
+	cfBmPayload.M = m
+	cfBmPayload.Results = []string{"0e2f525de9f4846b6502d7590065c5ce", "26bc87cb622bfa30b61add57c4874bd8"}
+	cfBmPayload.Timing = rand.Intn(100) + 50
+	cfBmPayload.Fp.ID = 3
+	cfBmPayload.Fp.E.Ch = false
+	cfBmPayload.Fp.E.R = []int{1920, 1080}
+	cfBmPayload.Fp.E.Ar = []int{rand.Intn(810) + 810, rand.Intn(540) + 540}
+	cfBmPayload.Fp.E.Cd = []int{16, 32, 64, 128, 256}[rand.Intn(5)]
+	cfBmPayload.Fp.E.Pr = 1920 / 1080
+	bytes, err := json.Marshal(cfBmPayload)
+	if err != nil {
+		return "", fmt.Errorf("error while marshalling cf-bm payload %v", err)
+	}
+	req, err = http.NewRequest("POST", link, strings.NewReader(string(bytes)))
+	if err != nil {
+		return cookieToString(cookies, ""), fmt.Errorf("error while making request to get cookies %v", err)
+	}
+	req = in.cfBmHeaders(req, cookieToString(cookies, ""))
+	resp, err = in.Client.Do(req)
+	if err != nil {
+		return cookieToString(cookies, ""), fmt.Errorf("error while getting response from cookies request %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.Cookies() == nil {
+		return cookieToString(cookies, ""), fmt.Errorf("there are no cookies in response")
+	}
+	cookies = append(cookies, resp.Cookies()...)
+	return cookieToString(cookies, "locale=en-US; "), nil
 
 }
+
+// func (in *Instance) GetCookieString() (string, error) {
+// 	if in.Config.OtherSettings.ConstantCookies && in.Cookie != "" {
+// 		return in.Cookie, nil
+// 	}
+// 	if in.Config.OtherSettings.Mode != 2 {
+// 		url := "https://discord.com"
+
+// 		req, err := http.NewRequest("GET", url, nil)
+
+// 		if err != nil {
+// 			utilities.LogErr("[%v] Error while making request to get cookies %v", time.Now().Format("15:04:05"), err)
+// 			return "", fmt.Errorf("error while making request to get cookie %v", err)
+// 		}
+// 		req = in.cookieHeaders(req)
+// 		resp, err := in.Client.Do(req)
+// 		if err != nil {
+// 			utilities.LogErr("[%v] Error while getting response from cookies request %v", time.Now().Format("15:04:05"), err)
+// 			return "", fmt.Errorf("error while getting response from cookie request %v", err)
+// 		}
+// 		defer resp.Body.Close()
+
+// 		if resp.Cookies() == nil {
+// 			utilities.LogErr("[%v] Error while getting cookies from response %v", time.Now().Format("15:04:05"), err)
+// 			return "", fmt.Errorf("there are no cookies in response")
+// 		}
+// 		cookies := ""
+// 		for _, cookie := range resp.Cookies() {
+// 			cookies += fmt.Sprintf(`%s=%s; `, cookie.Name, cookie.Value)
+// 		}
+// 		// CfRay := resp.Header.Get("cf-ray")
+// 		// if strings.Contains(CfRay, "-BOM") {
+// 		// 	CfRay = strings.ReplaceAll(CfRay, "-BOM", "")
+// 		// }
+
+// 		// if CfRay != "" {
+// 		// 	body, err := ioutil.ReadAll(resp.Body)
+// 		// 	if err != nil {
+// 		// 		utilities.LogErr("[%v] Error while reading response body %v", time.Now().Format("15:04:05"), err)
+// 		// 		return cookies + "locale:en-US", nil
+// 		// 	}
+// 		// 	m := regexp.MustCompile(`m:'(.+)'`)
+// 		// 	match := m.FindStringSubmatch(string(body))
+// 		// 	if match == nil {
+// 		// 		return cookies + "locale:en-US", nil
+// 		// 	}
+// 		// 	finalCookies, err := in.GetCfBm(match[1], CfRay, cookies)
+// 		// 	if err != nil {
+// 		// 		return cookies + "locale:en-US", nil
+// 		// 	}
+// 		// 	finalCookies += "; locale:en-US"
+// 		// 	return finalCookies, nil
+// 		// }
+// 		cookies += fmt.Sprintf("locale:%s", "en-US")
+// 		if in.Config.OtherSettings.ConstantCookies {
+// 			in.Cookie = cookies
+// 		}
+// 		return cookies, nil
+// 	} else {
+// 		site := "https://discord.com/ios/125.0/manifest.json"
+// 		req, err := http.NewRequest("GET", site, nil)
+// 		if err != nil {
+// 			return "", fmt.Errorf("error while making request to get cookie %v", err)
+// 		}
+// 		req = in.cookieHeaders(req)
+// 		resp, err := in.Client.Do(req)
+// 		if err != nil {
+// 			return "", fmt.Errorf("error while getting response from cookie request %v", err)
+// 		}
+// 		defer resp.Body.Close()
+// 		if resp.Cookies() == nil {
+// 			return "", fmt.Errorf("there are no cookies in response")
+// 		}
+// 		cookies := ""
+// 		for i, cookie := range resp.Cookies() {
+// 			if i != len(resp.Cookies())-1 {
+// 				cookies += fmt.Sprintf(`%s=%s; `, cookie.Name, cookie.Value)
+// 			} else {
+// 				cookies += fmt.Sprintf(`%s=%s`, cookie.Name, cookie.Value)
+// 			}
+// 		}
+// 		if in.Config.OtherSettings.ConstantCookies {
+// 			in.Cookie = cookies
+// 		}
+// 		return cookies, nil
+// 	}
+
+// }
+
 func (in *Instance) GetCfBm(m, r, cookies string) (string, error) {
 	site := fmt.Sprintf(`https://discord.com/cdn-cgi/bm/cv/result?req_id=%s`, r)
 	payload := fmt.Sprintf(

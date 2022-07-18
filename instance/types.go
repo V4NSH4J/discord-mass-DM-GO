@@ -285,3 +285,24 @@ type PresenceChange struct {
 	Status     string     `json:"status"`
 	Afk        bool       `json:"afk"`
 }
+
+type CfBm struct {
+	M       string   `json:"m"`
+	Results []string `json:"results"`
+	Timing  int      `json:"timing"` // Time taken
+	Fp      struct { // Fingerprint
+		ID int      `json:"id"` // ID
+		E  struct { // Engine
+			R  []int   `json:"r"`  // Screen Width, Screen Height (Total)
+			Ar []int   `json:"ar"` // Available screen Width, Available screen Height
+			Pr float64 `json:"pr"` // Pixel ratio
+			Cd int     `json:"cd"` // Color depth
+			Wb bool    `json:"wb"` 
+			Wp bool    `json:"wp"`
+			Wn bool    `json:"wn"`
+			Ch bool    `json:"ch"` // Chrome browser
+			Ws bool    `json:"ws"`
+			Wd bool    `json:"wd"`
+		} `json:"e"`
+	} `json:"fp"`
+}

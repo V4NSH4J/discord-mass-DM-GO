@@ -87,6 +87,7 @@ type OtherSettings struct {
 	Useragent        string `yaml:"useragent"`
 	ChromeHeaders    bool   `yaml:"chrome_headers"`
 	ChromeVersion    string `yaml:"chrome_version"`
+	Cfbm             bool   `yaml:"cfbm"`
 }
 
 type SuspicionAvoidance struct {

@@ -1,6 +1,6 @@
 
 direct_message_settings:
-  individual_delay: 110
+  individual_delay: 120
   rate_limit_delay: 300
   offset: 100
   max_dms_per_token: 0
@@ -20,8 +20,8 @@ direct_message_settings:
   delay_between_multiple_messages: 10
 
 proxy_settings:
-  proxy_from_file: false
-  proxy_for_captcha: false
+  proxy_from_file: true
+  proxy_for_captcha: true
   use_proxy_for_gateway: false
   proxy_protocol: "http"
   timeout: 60
@@ -34,23 +34,25 @@ scraper_settings:
 
 captcha_settings:
   captcha_api_key: ""
-  captcha_api: "capmonster.cloud"
+  captcha_api: "invisifox.com"
   max_captcha_wait: 120
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
 
 other_settings: 
   disable_keep_alives: false
-  mode: 0
   constant_cookies: false
-  censor_token: false
+  censor_token: true
   logs: false
   gateway_status: 4
+  cfbm: false
+  x_super_properties: ""
+  useragent: ""
 
 suspicion_avoidance:
-  random_individual_delay: 0
+  random_individual_delay: 60
   random_rate_limit_delay: 0
-  random_delay_before_dm: 0
+  random_delay_before_dm: 10
   typing: false
   typing_variation: 250
   typing_speed: 450
