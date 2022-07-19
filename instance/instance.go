@@ -120,7 +120,7 @@ func GetEverything() (Config, []Instance, error) {
 		os.Setenv("HTTPS_PROXY", cfg.ProxySettings.ProxyProtocol+"://"+cfg.ProxySettings.Proxy)
 	}
 	if !cfg.ProxySettings.ProxyFromFile && cfg.ProxySettings.ProxyForCaptcha {
-		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
+		utilities.LogErr(" You must enable proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
 	if cfg.OtherSettings.XSuperProperties == "" && cfg.OtherSettings.Useragent == "" {
