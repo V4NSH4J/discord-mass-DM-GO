@@ -1,21 +1,25 @@
 <p align="center">
   <img src="https://i.imgur.com/z8ig6eN.png">
+  <br><br>
   <img src="https://img.shields.io/github/license/V4NSH4J/discord-mass-DM-GO?style=for-the-badge&logo=appveyor">
   <img src="https://img.shields.io/github/downloads/V4NSH4J/discord-mass-DM-GO/total?style=for-the-badge&logo=appveyor">
   <img src="https://goreportcard.com/badge/github.com/V4NSH4J/discord-mass-dm-GO?style=for-the-badge&logo=appveyor">
   <img src="https://img.shields.io/github/stars/V4NSH4J/discord-mass-DM-GO?style=for-the-badge&logo=appveyor">
   <img src="https://img.shields.io/github/forks/V4NSH4J/discord-mass-DM-GO?style=for-the-badge&logo=appveyor">
+  <br><br>
   </p>
 
-# Discord Mass DM GO
-**DMDGO** is a Multi-threaded Discord Self-Bot primarily used for mass messaging users on Discord. It has numerous other quality features to enhance the user experience and allowing the user to target the most users. 
+<div align="center">
+<h1>Discord Mass DM GO</h1>
+<b>DMDGO</b> is a Multi-threaded Discord Self-Bot primarily used for mass messaging users on Discord. It has numerous other quality features to enhance the user experience and allowing the user to target the most users.   
+  
+<h1>Community</h1>
 
-## Community 
+[Telegram Server for Support](https://t.me/tosviolators)   |   [Discord Community Server](https://discord.gg/T9FBNBQb4d)
+  
+</div>
 
-[Telegram Server for Support](https://t.me/tosviolators)
-
-[Discord Community Server](https://discord.gg/T9FBNBQb4d)
-
+<br>
 
 ## **Features** :
 ### Token Utilities
@@ -53,43 +57,58 @@
 - Can ping user
 - Can send embeds using 3rd Party APIs
 - Supports multiple messages
-### Preview
-<p align="center">
-  <img src="https://i.imgur.com/rpa7CnG.png">
-</p>
 
+<div align="center">
+
+<br>
+  
+## Preview
+<img src="https://i.imgur.com/rpa7CnG.png">
+<br><br>
+  
 ## Disclaimer 
- The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Read about Discord [Terms Of service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines)
+ The automation of User Discord accounts also known as self-bots is a violation of Discord Terms of Service & Community guidelines and will result in your account(s) being terminated. Discretion is adviced. I will not be responsible for your actions. Read about Discord [Terms Of service](https://discord.com/terms) and [Community Guidelines](https://discord.com/guidelines)<br>
  
 Discord Mass DM GO (DMDGO) was written as a proof of concept that Discord accounts can be automated and can perform actions beyond the scope of regular Discord Users like sending Embeds so that Discord can make changes. The DMDGO authors are released of any liabilities which your usage may entail. 
-
+  
+<br><br>
+  
 ## Tutorial / Showcase Video
 ### DMDGO v1.7.0
 [![Youtube - Click to play](https://i.imgur.com/Jx4gk54.png)](https://youtu.be/9HX64DHJYWI)
 Click to play
-
+  
+  <br>
+  
 ### DMDGO v1.5.0
 [![Youtube - Click to play](https://img.youtube.com/vi/3m56RTbThbg/maxresdefault.jpg)](https://www.youtube.com/watch?v=3m56RTbThbg&t=174s)
 Click to play
+  
+</div>  
 
- 
 ## Basic Usage
-1) [Build from source](https://github.com/V4NSH4J/discord-mass-DM-GO#building-from-source-) or download a pre-built version for your OS & Arch from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
-2) Run the program via the binary. 
-3) Set your [Config](https://github.com/V4NSH4J/discord-mass-DM-GO#configuration) by modifying the `config.yml` file. 
-4) If you already have memberids to DM, put them in `\input\memberids.txt` or obtain them from [Scraping]()
-5) Put HTTP(s) Proxies in `\input\proxies.txt` if you enabled proxies in config. The format is IP:Port or User:pass@IP:Port if your proxies have a user-pass authentication. 
-6) Enter your message(s) in `message.json` file. You can use [this](https://glitchii.github.io/embedbuilder/?editor=json) website to easily make JSON objects. However, if you do not want to/ are unable to format the file properly, you will have an option to input a simple message before mass DM-ing. Writing "\<user\>" without quotes anywhere in message content will ping the user to whom you're sending a message. Please make sure to use \n to change lines. You may pick an [example]() message.json and build from it.
+1. [Build from source](https://github.com/V4NSH4J/discord-mass-DM-GO#building-from-source-) or download a pre-built version for your OS & Arch from [releases](https://github.com/V4NSH4J/discord-mass-DM-GO/releases)
+2. Run the program via the binary. 
+3. Set your [Config](https://github.com/V4NSH4J/discord-mass-DM-GO#configuration) by modifying the `config.yml` file. 
+4. If you already have memberids to DM, put them in `\input\memberids.txt` or obtain them from [Scraping]()
+5. Put HTTP(s) Proxies in `\input\proxies.txt` if you enabled proxies in config. The format is IP:Port or User:pass@IP:Port if your proxies have a user-pass authentication. 
+6. Enter your message(s) in `message.json` file. You can use [this](https://glitchii.github.io/embedbuilder/?editor=json) website to easily make JSON objects. However, if you do not want to/ are unable to format the file properly, you will have an option to input a simple message before mass DM-ing. Writing "\<user\>" without quotes anywhere in message content will ping the user to whom you're sending a message. Please make sure to use \n to change lines. You may pick an [example]() message.json and build from it.
+
+<br>
 
 ## Building from source
-1) Download and install [Golang](https://go.dev/) and verify your installation
-2) Open a terminal window/ command prompt in the directory of the source code and type `go build`
-3) A binary compatible with your OS/Arch should be made. If there are some problems on MacOS/Linux with executing the binary as a program. You can run this command `chmod +x ./discord-mass-dm-GO` or go to properties -> permissions -> Allow executing file as program. 
+1. Download and install [Golang](https://go.dev/) and verify your installation
+2. Open a terminal window/ command prompt in the directory of the source code and type `go build`
+3. A binary compatible with your OS/Arch should be made. If there are some problems on MacOS/Linux with executing the binary as a program. You can run this command `chmod +x ./discord-mass-dm-GO` or go to properties -> permissions -> Allow executing file as program. 
 
+
+<div align="center"><br>
 
 ## How to get help? 
 Read this documentation, try using `Ctrl + F` to find what you're looking for. Watch the tutorial video on YouTube. Other than that, feel free to make an [issue](https://github.com/V4NSH4J/discord-mass-DM-GO/issues) or try asking on our [Telegram Server](https://t.me/tosviolators)
 
+  <br>
+  
 ## Configuration
 
 | Name | Type | Description | 
@@ -183,7 +202,7 @@ Name | Type | Recommended Value | Description |
 
 
 
-
+<br><br>
 
 
 
@@ -191,10 +210,14 @@ Name | Type | Recommended Value | Description |
 Offset is a duration in milliseconds. As the name suggests this offsets or displaces the goroutines (threads) by a short period of time to ensure that all accounts don't start at the exact same second. What is the recommended offset? If you have less than 100 tokens or are using short individual delays, it does not matter. You can put any offset like 50-300. But if you are running a large number of tokens, you should set your individual and rate limit delays to 60 each or higher. Your offset will come with this formula - (individual delay/number of tokens) * 1000 This ensures your tokens start evenly spread out throughout the individual delay period. 
 You can do more interesting things with offset. Normally to bypass Anti-Raid bots like Beemo or Wick, you'd have to join your tokens with high delays then wait for all of them to join to start DMing. Now with Offset you can make it so that one account joins and starts DMing, 30 seconds or any duration of your choice later the second account joins and start DMing so you save A LOT of time. How to do this? Set your offset to the duration you want your accounts to join in, like 30,000 - 60,000 (Remember offset is in milliseconds) and don't join your accounts to the server. Before Mass DMing, you'd get an option for advanced settings. Enter the server invite and serverid there. Use multiple proxies/ rotating proxies to prevent Discord server IP bans by the Anti-Raid bots. This won't work while Proxyless. 
 
+  <br>
+  
 ## Using Captcha APIs
 Captcha Solving APIs were introduced to DMDGO on 8th February 2022 when Discord mandated Captchas for joining servers on some tokens they deemed untrustworthy. The supported Captcha APIs right now are capmonster.cloud and anti-captcha.com 
 You can register an account there, load some balance and copy your Captcha API Key to config. Make sure to specify the service you're using as well. It is extremely inexpensive and can join thousands of accounts in a couple USD. If there is an error with the captcha APIs, You will get an error code. You can look it up on their documentation [here](https://anti-captcha.com/apidoc/errors)
 
+</div>  
+  
 ### Example configuration
 ```json
 {
@@ -222,12 +245,20 @@ You can register an account there, load some balance and copy your Captcha API K
     "disable_keep_alives": false
 }
 ```
+
+<div align="center">
 This is the config I'd use, with ofcourse the offset calculated accordingly. 
 
+  <br>
+  
 ## Message in file
 The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. Message.json is an array of messages. Find the examples below to add multiple messages. You can use the "get message" option to get messages from discord as well. Be sure to have the [] around the whole message. The only way to change lines is adding `\n`. After discord update on 22nd January 2022; Embed support was removed from DMDGO V1.7.5 and higher as discord removed the capibility to send embeds completely from userbots
 
+  <br>
+  
 ### Example message 1 : Single Message, No Embed
+  </div>
+    
 ```json
 [
   {
@@ -236,7 +267,12 @@ The `input/message.json` is an array of messages from which one is chosen at ran
 ]
 ```
 
+<div align="center">
+  
 ### Example message 2: Multiple messages, No Embeds. 
+  
+</div>
+        
 ```json
 [
   {
@@ -251,12 +287,16 @@ The `input/message.json` is an array of messages from which one is chosen at ran
 ]
 ```
 
+<br>
+<div align="center">
+  
 ## How to Debug problems with Mass DMing / Message 
 For problems with setting the JSON files. Read this document very carefully and try understanding a bit of JSON. You can use [JSON Lint](https://jsonlint.com/) or similar to validate your JSON files and fix errors. The structure for all files is clearly defined here. 
 For problems with sending DMs/ Any other function, the best way to diagnose is logging into the token and see what's going on. I highly recommend not to use email:password to login as it might trigger the New Login Location prompt. It's better to login via tokens. [Click here](https://gist.github.com/m-Phoenix852/d63d869f16e40dac623c9aa347e8641a) for a simple and fast token login script by @m-Pheonix852
-Once logged into the token, you can see if it's still in the server / diagnose other problems with channel veriifcation levels, etc. You may also read the FAQs. Always keep in mind, when using self-bots you can only do actions that normal users can do. If you try DMing someone with no mutuals or friends, you can't DM them. Similarly, this self-bot can't either. 
-
+Once logged into the token, you can see if it's still in the server / diagnose other problems with channel veriifcation levels, etc. You may also read the FAQs. Always keep in mind, when using self-bots you can only do actions that normal users can do. If you try DMing someone with no mutuals or friends, you can't DM them. Similarly, this self-bot can't either. <br><br>
+          
 ## Scraping [Experimental Menu as of DMDGO v1.7.0]
+  
 The Scraping menu is a new functionality introduced in DMDGO V1.7.0 Before that, DMDGO recommended the use of [Discum's Scraper](https://gist.github.com/V4NSH4J/06c452f32ceb5f6387b66abd8ccedd74) 
 This menu is still unstable and needs a lot of improvement. For stability, you can use the Discum Scraper. But if you do decide to use the scraper from DMDGO, It's explained here. 
 - *Online Scraper (Opcode 14)* : Scrapes members from the member list visible on the right hand side of a discord server. This is usually only online members in case of larger servers as the offline member list usually gets hidden when servers are larger than 1000 members. 
@@ -264,9 +304,8 @@ This menu is still unstable and needs a lot of improvement. For stability, you c
 - *Scrape from Reactions*: Does not use websocket, incase you see a reaction with a large number of reacts from which you'd like to get users, you can use this option. The one downside to this is that it would also scrape reacts from users who may have already left the server. 
 
 - *Offline Scraper* (Opcode 8) : Scrapes members using OP8 websocket requests. This is what goes on behind the screens when you search for members in the search bar or by using @ in chat. This is usually slow with 1 account as it's bruteforcing which is why this mode supports multiple tokens for faster scrapes. It can't get all the users because of limitations described in [Discum's Docs](https://github.com/Merubokkusu/Discord-S.C.U.M/blob/master/docs/using/fetchingGuildMembers.md) but it gets a substantial number more users than the Opcode 14 scraper. You'll have to press ENTER to start and stop this scraper as it has the potential to go on for a very long time. Recommended to use multiple tokens and they need to be in the server before you start scraping. This function was slowed down on purpose to avoid any sort of rate limits. It will save IDs automatically to memberids.txt and you'll have to stop it manually when it's no longer getting IDs.
-<p align="center">
-  <img src="https://i.imgur.com/cMscRo5.png">
-</p>
+  
+ <img src="https://i.imgur.com/cMscRo5.png"><br>
 
 
 ## Token Functionality [Updated: 14th January 2022]
@@ -275,6 +314,8 @@ These are ofcourse the *maximum/ideal* number of DMs as they were tested on bott
 Whenever you buy tokens from a new seller, buy less tokens first to test out their quality. You can do this by manually sending DMs. Discord often flags the domains on which tokens are made, when this happens your tokens will struggle to even get 1 DM. Sometimes the phone number on the accounts is flagged as well. So always check before buying. 
 Aged tokens have the potential to do thousands of DMs without ever getting disabled. But the type of tokens you want to use would depend on the servers you want to target and the cost efficiency. The mean DM price from DM-services is $0.01. The cost of an email verified token is $0.03 on average right now. Which would make the cost of DMs if you use email verifieds around $0.0006 - $ 0.001 which is more than 10 times cheaper. 
 If you're new to this and want to try out your hand, I recommend going for cheap email verifieds to test. Other than that, it is upto you to narrow your targets and find your cost efficiency. 
+          
+<br>
 
 ## Mass DMing
 Before you start Mass DMing, You will have an option for Advanced Settings. You may set a Serverid and invite code there. If the token is not in the server, the token will stop sending messages or try to rejoin the server. 
@@ -283,23 +324,32 @@ If you get spammed with errors "Cannot send messages to this user", make sure yo
 If you get the error "Channel verification too high", this could be because you're trying to use email verified tokens on a server which requires phone verification or because the server has a 10 minute timer which you'd need to wait out before sending messages (Can be confirmed by loggin in with a token)
 Sometimes, servers have anti-raid bots which detect suspicious patterns in joining like a lot of accounts with similar recent dates of registeration, no profile picture and random names joining within a certain time period. They may kick/ban the accounts, in such an event, you will not be able to send messages. Check out the method described [here]() or use high delays while joining such servers
 
+<br>
+          
 ## Proxies, Tokens and the Discord Self-Bot market in general
 DMDGO was tested using Proxiware's Static Proxies and Iproyal's Rotating proxies. It may or may not work properly with free proxies from proxiscrape. Those are the worst proxies you can find on the internet. Using a proxies with gateway functions is not recommended.
 Tokens are Discord accounts, they will be sending DMs for you. There are few ways to get them, the simplest being to buy them. Whenever you buy tokens, please check the quality and only buy more if they're good. Or you can buy/make/find a token generator. 
 The Discord-Self bot market is very risky. A word of advice, don't purchase from unreputed people and use middlemen on reputed forums for large transactions. You will get scammed most of the times otherwise. The market is full of highly elaborate scammers like [Exordium](https://www.youtube.com/watch?v=uw7wjBxNK-4&ab_channel=Exordium) targetting people with his purchased channel and botted impressions. He will take your money and block you. And the owners of Anonix who will hapilly sell you open source code. 
 Exit scams happen here all the time. Take recent incident of one of the MassDN partners Certex who exit scammed $60,000+ by ratting their customers. This is not to scare you to make purchases, this is just to warn you that you are likely to get scammed especially as a newcomer so stay vigilant. I decided to include this in the readme because everyday I see several people getting scammed.
 
+<br>
+          
 ## Support my Journey!
-Leave a star on the repository, helps out intensively! You can also buy me a cookie on these addresses if I helped you out in any way. DMDGO was made with <3 over a period of 3 months and 184 cans of Redbull which doesn't come cheap :)
+  
+Leave a star on the repository, helps out intensively! You can also buy me a cookie on these addresses if I helped you out in any way. DMDGO was made with <3 over a period of 3 months and 184 cans of Redbull which doesn't come cheap :) 
+  
+<br>
 
-- *ETH*: 0xE01118C55963fA92174802Dae87E1C6DE1dADC07
+*ETH*: 0xE01118C55963fA92174802Dae87E1C6DE1dADC07
 
-- *BTC*: bc1qs9069mdegedmv7w0wtwap0qfa2h9j8d403jfej
+*BTC*: bc1qs9069mdegedmv7w0wtwap0qfa2h9j8d403jfej
 
-- *SOL*: 8QyA9dCetgVMxU2AjzfM3DrY1i3mXuE8nsgLkvAX1hTe
+*SOL*: 8QyA9dCetgVMxU2AjzfM3DrY1i3mXuE8nsgLkvAX1hTe
 
-- *LTC*: LN5UPbL31TcPzpBKFbsNKZ5BxwUzKcyi1F
+*LTC*: LN5UPbL31TcPzpBKFbsNKZ5BxwUzKcyi1F
 
+<br>
+  
 ## Contact
 There are a lot of impersonators, please make sure you're dealing with the correct username. 
 
@@ -307,8 +357,11 @@ Telegram: https://t.me/campingarunner (This is my only Telegram)
 
 Mail: v4nsh4j@protonmail.com (For Business Enquiries)
 
+<br><br>
 
 ## Credits
+</div>
+
 DMDGO has not been a One man show! I would like to thank everyone for their contributions and my patreons. Special thanks to my lads -> 
 - [The author of Dankgrinder](https://github.com/dankgrinder) and [OsOmE1](https://github.com/OsOmE1) for helping out numerous times since the time I started writing code! Also for the websocket code taken from [dankgrinder](https://github.com/dankgrinder/dankgrinder)
 - [Sympthey](https://github.com/Zenoryne) for allowing use of his Websocket code from [DiscSpam](https://github.com/Zenoryne/DiscSpam) helping me to understand the protocol!
@@ -317,6 +370,7 @@ DMDGO has not been a One man show! I would like to thank everyone for their cont
 - [Bytixo](https://github.com/bytixo) for providing the code used for obtaining the current stable build number
 - My friend [Siegfried](https://github.com/dasbard) for helping out with the community servers and many functions of DMDGO since even before it existed.
 
+<br>
 
 ## FAQs
 
@@ -398,5 +452,3 @@ A: This happens in a few scenerios. You're trying to use unverified tokens to DM
 
 #### Q: Invalid character `e` looking for beginning of value error code: 1015 
 A: Cloudflare Error 1015 is an IP Based Rate limit. You have to use proxies/ VPN to get around it
-
-
