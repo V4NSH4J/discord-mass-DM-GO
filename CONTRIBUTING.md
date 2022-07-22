@@ -2,7 +2,7 @@
 > This is to keep contributors seen as a respected role, which you get from helping DMDGO, not correcting the spelling.
 
 2. Additions must not interrupt the flow of the average user.
-> Don't add things which would interrupt the average mass dmer.
+> Don't add things which would interrupt the average Mass DMer.
 
 3. Additions must be relevent to mass dming.
 > Features like raiding aren't relevent to DMDGO's core purpose, so they shouldn't be added.
