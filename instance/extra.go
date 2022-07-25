@@ -262,7 +262,7 @@ func (in *Instance) Invite(Code string) error {
 			j++
 			continue
 		}
-		if strings.Contains(string(body), "1015") {
+		if resp.StatusCode == 429 && strings.Contains(string(body), "1015") {
 			utilities.LogErr("Cloudflare Error 1015 - Your IP is being Rate Limited. Use proxies. If you already are, make sure proxy_from_file is enabled in your config")
 			break
 		}
