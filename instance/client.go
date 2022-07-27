@@ -16,8 +16,21 @@ import (
 
 func InitClient(proxy string, cfg Config) (*http.Client, error) {
 	// If proxy is empty, return a default client (if proxy from file is false)
+	unproxiedClient := &http.Client{
+		Timeout: time.Second * time.Duration(cfg.ProxySettings.Timeout),
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				MinVersion:         tls.VersionTLS13,
+				CipherSuites:       []uint16{0x1301, 0x1302, 0x1303, 0xc02b, 0xc02f, 0xc02c, 0xc030, 0xcca9, 0xcca8, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
+				InsecureSkipVerify: true,
+				CurvePreferences:   []tls.CurveID{0x001d, 0x0017, 0x0018},
+			},
+			DisableKeepAlives: cfg.OtherSettings.DisableKL,
+			ForceAttemptHTTP2: true,
+		},
+	}
 	if proxy == "" {
-		return http.DefaultClient, nil
+		return unproxiedClient, nil
 	}
 	switch cfg.ProxySettings.ProxyProtocol {
 	case "http":
@@ -36,7 +49,7 @@ func InitClient(proxy string, cfg Config) (*http.Client, error) {
 	// Error while converting proxy string to url.url would result in default client being returned
 	proxyURL, err := url.Parse(proxy)
 	if err != nil {
-		return http.DefaultClient, err
+		return unproxiedClient, err
 	}
 	// Creating a client and modifying the transport.
 
@@ -44,10 +57,10 @@ func InitClient(proxy string, cfg Config) (*http.Client, error) {
 		Timeout: time.Second * time.Duration(cfg.ProxySettings.Timeout),
 		Transport: &http.Transport{
 			TLSClientConfig: &tls.Config{
-				MinVersion:         tls.VersionTLS12,
-				CipherSuites:       []uint16{0x1301, 0x1303, 0x1302, 0xc02b, 0xc02f, 0xcca9, 0xcca8, 0xc02c, 0xc030, 0xc00a, 0xc009, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
+				MinVersion:         tls.VersionTLS13,
+				CipherSuites:       []uint16{0x1301, 0x1302, 0x1303, 0xc02b, 0xc02f, 0xc02c, 0xc030, 0xcca9, 0xcca8, 0xc013, 0xc014, 0x009c, 0x009d, 0x002f, 0x0035},
 				InsecureSkipVerify: true,
-				CurvePreferences:   []tls.CurveID{tls.CurveID(0x001d), tls.CurveID(0x0017), tls.CurveID(0x0018), tls.CurveID(0x0019), tls.CurveID(0x0100), tls.CurveID(0x0101)},
+				CurvePreferences:   []tls.CurveID{0x001d, 0x0017, 0x0018},
 			},
 			DisableKeepAlives: cfg.OtherSettings.DisableKL,
 			ForceAttemptHTTP2: true,
