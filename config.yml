@@ -23,7 +23,6 @@ proxy_settings:
   proxy_from_file: true
   proxy_for_captcha: true
   use_proxy_for_gateway: false
-  proxy_protocol: "http"
   timeout: 60
 
 scraper_settings:
@@ -34,7 +33,7 @@ scraper_settings:
 
 captcha_settings:
   captcha_api_key: ""
-  captcha_api: "invisifox.com"
+  captcha_api: ""
   max_captcha_wait: 120
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
@@ -42,10 +41,9 @@ captcha_settings:
 other_settings: 
   disable_keep_alives: false
   constant_cookies: false
-  censor_token: true
+  censor_token: false
   logs: false
   gateway_status: 4
-  cfbm: false
   x_super_properties: ""
   useragent: ""
 

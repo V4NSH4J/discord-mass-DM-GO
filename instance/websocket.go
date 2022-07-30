@@ -43,18 +43,9 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	if in.GatewayProxy == "" {
 		dialer = *websocket.DefaultDialer
 	} else {
-		if in.Config.ProxySettings.ProxyProtocol == "http" {
-			if !strings.Contains(in.GatewayProxy, "http://") {
-				in.GatewayProxy = "http://" + in.GatewayProxy
-			}
-		} else if in.Config.ProxySettings.ProxyProtocol == "socks5" {
-			if !strings.Contains(in.GatewayProxy, "socks5://") {
-				in.GatewayProxy = "socks5://" + in.GatewayProxy
-			}
-		} else if in.Config.ProxySettings.ProxyProtocol == "socks4" {
-			if !strings.Contains(in.GatewayProxy, "socks4://") {
-				in.GatewayProxy = "socks4://" + in.GatewayProxy
-			}
+
+		if !strings.Contains(in.GatewayProxy, "http://") {
+			in.GatewayProxy = "http://" + in.GatewayProxy
 		}
 		proxyURL, err := url.Parse(in.GatewayProxy)
 		if err != nil {
@@ -152,14 +143,14 @@ func (c *Connection) ReadHello() (int, error) {
 	}
 	var body Event
 	if err := json.Unmarshal(message, &body); err != nil {
-		return 0, fmt.Errorf("Error while Unmarshalling incoming hello websocket message: %v", err)
+		return 0, fmt.Errorf("error while Unmarshalling incoming hello websocket message: %v", err)
 	}
 	if body.Op != OpcodeHello {
-		return 0, fmt.Errorf("Expected OpcodeHello but got %v", body.Op)
+		return 0, fmt.Errorf("expected OpcodeHello but got %v", body.Op)
 	}
 
 	if body.Data.HeartbeatInterval <= 0 {
-		return 0, fmt.Errorf("Heartbeat interval is not valid")
+		return 0, fmt.Errorf("heartbeat interval is not valid")
 	}
 
 	return body.Data.HeartbeatInterval, nil

@@ -10,7 +10,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -18,6 +17,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Danny-Dasilva/CycleTLS/cycletls"
 	"github.com/V4NSH4J/discord-mass-dm-GO/instance"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 )
@@ -242,17 +242,13 @@ func LaunchDMReact() {
 	if cfg.ProxySettings.ProxyFromFile {
 		proxy = proxies[rand.Intn(len(proxies))]
 		observerInstance.Proxy = proxy
+		observerInstance.ProxyProt = "http://" + proxy
 		if !cfg.ProxySettings.GatewayProxy {
 			proxy = ""
 		}
 		observerInstance.GatewayProxy = proxy
 	}
-	client, err := instance.InitClient(proxy, cfg)
-	if err != nil {
-		utilities.LogWarn("Error while initializing client: %s using default client for observer", err)
-		client = http.DefaultClient
-	}
-	observerInstance.Client = client
+	observerInstance.Client = cycletls.Init()
 	observerInstance.Config = cfg
 	if cfg.DMonReact.ServerID != "" {
 		r, err := observerInstance.ServerCheck(cfg.DMonReact.ServerID)
@@ -490,21 +486,21 @@ Token:
 						}
 						continue Token
 					} else {
-						if r.StatusCode == 204 || r.StatusCode == 200 {
+						if r.Status == 204 || r.Status == 200 {
 							utilities.LogSuccess("%v Avatar changed successfully", instance.CensorToken())
 							if cfg.OtherSettings.Logs {
 								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v changed Avatar to %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), p))
 							}
 							instance.ChangedAvatar = true
 						} else {
-							utilities.LogErr("%v Error while changing avatar: %v", instance.CensorToken(), r.StatusCode)
+							utilities.LogErr("%v Error while changing avatar: %v", instance.CensorToken(), r.Status)
 							if cfg.DMonReact.RotateTokens {
 								go func() {
 									tokenPool <- instance
 								}()
 							}
 							if cfg.OtherSettings.Logs {
-								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change avatar. %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), r.StatusCode))
+								utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change avatar. %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), r.Status))
 							}
 							continue Token
 						}
@@ -526,34 +522,22 @@ Token:
 						}
 						continue Token
 					}
-					body, err := utilities.ReadBody(r)
-					if err != nil {
-						utilities.LogErr("%v Error while reading body: %v", instance.CensorToken(), err)
-						if cfg.DMonReact.RotateTokens {
-							go func() {
-								tokenPool <- instance
-							}()
-						}
-						if cfg.OtherSettings.Logs {
-							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change name. Error %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), err))
-						}
-						continue Token
-					}
-					if r.StatusCode == 200 || r.StatusCode == 204 {
+					body := r.Body
+					if r.Status == 200 || r.Status == 204 {
 						utilities.LogSuccess("%v Changed name successfully", instance.CensorToken())
 						if cfg.OtherSettings.Logs {
 							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v name changed to %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), p))
 						}
 						instance.ChangedName = true
 					} else {
-						utilities.LogErr("%v Error while changing name: %v %v", instance.CensorToken(), r.StatusCode, string(body))
+						utilities.LogErr("%v Error while changing name: %v %v", instance.CensorToken(), r.Status, string(body))
 						if cfg.DMonReact.RotateTokens {
 							go func() {
 								tokenPool <- instance
 							}()
 						}
 						if cfg.OtherSettings.Logs {
-							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change name. %v %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), r.StatusCode, string(body)))
+							utilities.WriteLinesPath(logsFile, fmt.Sprintf(`[%v] Token %v failed to change name. %v %v`, time.Now().Format("2006-01-02 15:04:05"), instance.CensorToken(), r.Status, string(body)))
 						}
 						continue Token
 					}

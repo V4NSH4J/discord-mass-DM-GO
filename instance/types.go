@@ -297,7 +297,7 @@ type CfBm struct {
 			Ar []int   `json:"ar"` // Available screen Width, Available screen Height
 			Pr float64 `json:"pr"` // Pixel ratio
 			Cd int     `json:"cd"` // Color depth
-			Wb bool    `json:"wb"` 
+			Wb bool    `json:"wb"`
 			Wp bool    `json:"wp"`
 			Wn bool    `json:"wn"`
 			Ch bool    `json:"ch"` // Chrome browser

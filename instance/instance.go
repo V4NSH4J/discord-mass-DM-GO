@@ -13,22 +13,27 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/Danny-Dasilva/CycleTLS/cycletls"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/gorilla/websocket"
 )
 
 type Instance struct {
 	Token           string
-	Email           string
-	Password        string
 	Proxy           string
 	Cookie          string
+	Client          cycletls.CycleTLS
+	UserAgent       string
+	XSuper          string
+	JA3             string
+	ProxyProt       string
+	Email           string
+	Password        string
 	Fingerprint     string
 	Messages        []Message
 	Count           int
@@ -42,7 +47,6 @@ type Instance struct {
 	Receiver        bool
 	Config          Config
 	GatewayProxy    string
-	Client          *http.Client
 	WG              *sync.WaitGroup
 	Ws              *Connection
 	fatal           chan error
@@ -53,8 +57,6 @@ type Instance struct {
 	LastID          int
 	LastIDstr       string
 	Mode            int
-	UserAgent       string
-	XSuper          string
 	Reacted         []ReactInfo
 	ReactChannel    chan (ReactInfo)
 	MessageNumber   int
@@ -99,25 +101,13 @@ func GetEverything() (Config, []Instance, error) {
 	var xsuper string
 	var ua string
 	var v string
+	var ja3 string
+	var proxyProt string
 
 	// Load config
 	cfg, err = GetConfig()
 	if err != nil {
 		return cfg, instances, err
-	}
-	supportedProtocols := []string{"http", "https", "socks4", "socks5"}
-	if cfg.ProxySettings.ProxyProtocol != "" && !utilities.Contains(supportedProtocols, cfg.ProxySettings.ProxyProtocol) {
-		utilities.LogErr(" You're using an unsupported proxy protocol. Assuming http by default")
-		cfg.ProxySettings.ProxyProtocol = "http"
-	}
-	if cfg.ProxySettings.ProxyProtocol == "https" {
-		cfg.ProxySettings.ProxyProtocol = "http"
-	}
-	if cfg.CaptchaSettings.CaptchaAPI == "" {
-		utilities.LogErr(" You're not using a Captcha API, some functionality like invite joining might be unavailable")
-	}
-	if cfg.ProxySettings.Proxy != "" && os.Getenv("HTTPS_PROXY") == "" {
-		os.Setenv("HTTPS_PROXY", cfg.ProxySettings.ProxyProtocol+"://"+cfg.ProxySettings.Proxy)
 	}
 	if !cfg.ProxySettings.ProxyFromFile && cfg.ProxySettings.ProxyForCaptcha {
 		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
@@ -132,9 +122,13 @@ func GetEverything() (Config, []Instance, error) {
 		} else {
 			utilities.LogSuccess("Successfully obtained build number, useragent and latest chrome version")
 		}
-		cfg.OtherSettings.ChromeHeaders = true
 	} else {
-		xsuper, ua, v = cfg.OtherSettings.XSuperProperties, cfg.OtherSettings.Useragent, cfg.OtherSettings.ChromeVersion
+		xsuper, ua = cfg.OtherSettings.XSuperProperties, cfg.OtherSettings.Useragent
+	}
+	if cfg.OtherSettings.JA3 == "" {
+		ja3 = "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-21,29-23-24,0"
+	} else {
+		ja3 = cfg.OtherSettings.JA3
 	}
 
 	// Load instances
@@ -175,18 +169,17 @@ func GetEverything() (Config, []Instance, error) {
 		if cfg.ProxySettings.ProxyFromFile {
 			proxy = proxies[rand.Intn(len(proxies))]
 			Gproxy = proxy
+			proxyProt = "http://" + proxy
 		} else {
 			proxy = ""
+			proxyProt = ""
 		}
-		client, err := InitClient(proxy, cfg)
-		if err != nil {
-			return cfg, instances, fmt.Errorf("couldn't initialize client: %v", err)
-		}
+		client := cycletls.Init()
 		// proxy is put in struct only to be used by gateway. If proxy for gateway is disabled, it will be empty
 		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
-		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v})
+		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v, JA3: ja3, ProxyProt: proxyProt})
 	}
 	if len(instances) == 0 {
 		utilities.LogErr(" You may be using 0 tokens")

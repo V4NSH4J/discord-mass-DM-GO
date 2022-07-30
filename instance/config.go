@@ -52,7 +52,6 @@ type ProxySettings struct {
 	Proxy           string `yaml:"proxy"`
 	ProxyFromFile   bool   `yaml:"proxy_from_file"`
 	ProxyForCaptcha bool   `yaml:"proxy_for_captcha"`
-	ProxyProtocol   string `yaml:"proxy_protocol"`
 	GatewayProxy    bool   `yaml:"use_proxy_for_gateway"`
 	Timeout         int    `yaml:"timeout"`
 }
@@ -85,9 +84,7 @@ type OtherSettings struct {
 	DolfiesHeaders   bool   `yaml:"dolfies_headers"`
 	XSuperProperties string `yaml:"x_super_properties"`
 	Useragent        string `yaml:"useragent"`
-	ChromeHeaders    bool   `yaml:"chrome_headers"`
-	ChromeVersion    string `yaml:"chrome_version"`
-	Cfbm             bool   `yaml:"cfbm"`
+	JA3              string `yaml:"ja3"`
 }
 
 type SuspicionAvoidance struct {

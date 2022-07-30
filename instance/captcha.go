@@ -26,6 +26,8 @@ func (in *Instance) SolveCaptcha(sitekey string, cookie string, rqData string, r
 		return in.self(sitekey, rqData)
 	case in.Config.CaptchaSettings.CaptchaAPI == "invisifox.com":
 		return in.invisifox(sitekey, cookie, rqData)
+	case in.Config.CaptchaSettings.CaptchaAPI == "captchaai.io":
+		return in.captchaAI(sitekey, rqData)
 	case utilities.Contains([]string{"capmonster.cloud", "anti-captcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
 		return in.Capmonster(sitekey, url, rqData, cookie)
 	case utilities.Contains([]string{"2captcha.com", "rucaptcha.com"}, in.Config.CaptchaSettings.CaptchaAPI):
@@ -66,7 +68,7 @@ func (in *Instance) twoCaptcha(sitekey, rqdata, site string) (string, error) {
 	}
 	if in.Config.ProxySettings.ProxyForCaptcha {
 		q.Set("proxy", in.Proxy)
-		q.Set("proxytype", in.Config.ProxySettings.ProxyProtocol)
+		q.Set("proxytype", "http")
 	}
 	inURL.RawQuery = q.Encode()
 	if in.Config.CaptchaSettings.CaptchaAPI == "2captcha.com" {
@@ -177,7 +179,7 @@ func (in *Instance) Capmonster(sitekey, website, rqdata, cookies string) (string
 			if !strings.Contains(ipPort, ":") || !strings.Contains(userPass, ":") {
 				return solvedKey, fmt.Errorf("invalid proxy format")
 			}
-			submitCaptcha.Task.ProxyType = in.Config.ProxySettings.ProxyProtocol
+			submitCaptcha.Task.ProxyType = "http"
 			submitCaptcha.Task.ProxyLogin, submitCaptcha.Task.ProxyPassword = strings.Split(userPass, ":")[0], strings.Split(userPass, ":")[1]
 			port := strings.Split(ipPort, ":")[1]
 			var err error
@@ -334,7 +336,7 @@ func (in *Instance) CapCat(sitekey, rqdata string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error creating request [%v]", err)
 	}
-	resp, err := in.Client.Do(req)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("error sending request [%v]", err)
 	}
@@ -439,7 +441,7 @@ func (in *Instance) self(sitekey, rqData string) (string, error) {
 		Proxy:     in.Proxy,
 		Username:  in.Config.CaptchaSettings.SelfUsername,
 		Password:  in.Config.CaptchaSettings.SelfPassword,
-		ProxyType: in.Config.ProxySettings.ProxyProtocol,
+		ProxyType: "http",
 	}
 	payloadBytes, err := json.Marshal(selfPayload)
 	if err != nil {
@@ -557,7 +559,7 @@ func (in *Instance) invisifox(sitekey, cookie, rqdata string) (string, error) {
 	t := time.Now()
 	for {
 		if int(time.Since(t).Seconds()) > in.Config.CaptchaSettings.Timeout {
-			return solvedKey, fmt.Errorf("Timedout while waiting for captcha to be solved, increase timeout in config to wait longer.")
+			return solvedKey, fmt.Errorf("timedout while waiting for captcha to be solved, increase timeout in config to wait longer")
 		}
 		outEndpoint := fmt.Sprintf(`https://api.%s/solution`, in.Config.CaptchaSettings.CaptchaAPI)
 		outURL, err := url.Parse(outEndpoint)
@@ -607,4 +609,113 @@ type invisifoxSubmitResponse struct {
 type invisifoxSolutionResponse struct {
 	Status   string `json:"status"`
 	Solution string `json:"solution"`
+}
+
+/*
+	invisifox
+*/
+
+func (in *Instance) captchaAI(sitekey, rqdata string) (string, error) {
+	postEndpoint := fmt.Sprintf(`https://api.superai.pro/api/v1/task?apiKey=%s`, in.Config.CaptchaSettings.ClientKey)
+	hCaptchaType := "HCaptchaV1"
+	if rqdata != "" {
+		hCaptchaType += "Enterprise"
+	}
+	if !in.Config.ProxySettings.ProxyForCaptcha {
+		hCaptchaType += "Proxyless"
+	}
+	p := captchaAISubmit{
+		Type:      hCaptchaType,
+		SiteKey:   sitekey,
+		PageURL:   "https://discord.com",
+		Proxy:     in.ProxyProt,
+		UserAgent: in.UserAgent,
+		Timeout:   120,
+		RqData:    rqdata,
+	}
+	pBytes, err := json.Marshal(p)
+	if err != nil {
+		return "", fmt.Errorf("error marshalling captchaAI request [%v]", err)
+	}
+	fmt.Println(string(pBytes))
+	req, err := http.NewRequest(http.MethodPost, postEndpoint, bytes.NewReader(pBytes))
+	if err != nil {
+		return "", fmt.Errorf("error creating request [%v]", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("error sending request [%v]", err)
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response [%v]", err)
+	}
+	fmt.Println(string(body))
+	var submitResponse captchaAISubmitResponse
+	err = json.Unmarshal(body, &submitResponse)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshalling response [%v]", err)
+	}
+	if submitResponse.ID == "" {
+		return "", fmt.Errorf("error %v", string(body))
+	}
+	t := submitResponse.ID
+	now := time.Now()
+	for {
+		if time.Since(now).Seconds() > 120 {
+			break
+		}
+		time.Sleep(15 * time.Second)
+		resultEndpoint := fmt.Sprintf(`https://api.superai.pro/api/v1/task?apiKey=%s&id=%s`, in.Config.CaptchaSettings.ClientKey, t)
+		req, err = http.NewRequest(http.MethodGet, resultEndpoint, nil)
+		if err != nil {
+			return "", fmt.Errorf("error creating request [%v]", err)
+		}
+		resp, err = http.DefaultClient.Do(req)
+		if err != nil {
+			return "", fmt.Errorf("error sending request [%v]", err)
+		}
+		defer resp.Body.Close()
+		body, err = ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return "", fmt.Errorf("error reading response [%v]", err)
+		}
+		fmt.Println(string(body))
+		var solution captchaAISolution
+		err = json.Unmarshal(body, &solution)
+		if err != nil {
+			return "", fmt.Errorf("error unmarshalling response [%v]", err)
+		}
+		if solution.Status == "success" {
+			return solution.Token, nil
+		}
+	}
+	return "", fmt.Errorf("captcha timedout 120 seconds")
+}
+
+type captchaAISubmit struct {
+	Type      string `json:"type"`
+	SiteKey   string `json:"siteKey"`
+	PageURL   string `json:"pageURL"`
+	Proxy     string `json:"proxy,omitempty"`
+	UserAgent string `json:"userAgent"`
+	Timeout   int    `json:"timeout"`
+	RqData    string `json:"rqdata,omitempty"`
+}
+
+type captchaAISubmitResponse struct {
+	ID         string `json:"id"`
+	Success    bool   `json:"success"`
+	Status     string `json:"status"`
+	Message    string `json:"message"`
+	ExpireTime int    `json:"expireTime"`
+}
+
+type captchaAISolution struct {
+	ID      string `json:"id"`
+	Token   string `json:"token"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
 }

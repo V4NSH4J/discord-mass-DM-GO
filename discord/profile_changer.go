@@ -76,13 +76,8 @@ func LaunchNameChanger() {
 				FailedCount++
 				return
 			}
-			body, err := utilities.ReadBody(r)
-			if err != nil {
-				utilities.LogErr("Token %v Error while reading body: %v", instances[i].CensorToken(), err)
-				FailedCount++
-				return
-			}
-			if r.StatusCode == 200 || r.StatusCode == 204 {
+			body := r.Body
+			if r.Status == 200 || r.Status == 204 {
 				utilities.LogSuccess("Token %v Name changed successfully", instances[i].CensorToken())
 				SuccessCount++
 			} else {
@@ -175,11 +170,11 @@ func LaunchAvatarChanger() {
 				utilities.LogFailed("Token %v Error while changing avatar: %v", instances[i].CensorToken(), err)
 				FailedCount++
 			} else {
-				if r.StatusCode == 204 || r.StatusCode == 200 {
+				if r.Status == 204 || r.Status == 200 {
 					utilities.LogSuccess("Token %v Avatar changed successfully", instances[i].CensorToken())
 					SuccessCount++
 				} else {
-					utilities.LogFailed("Token %v Error while changing avatar: %v", instances[i].CensorToken(), r.StatusCode)
+					utilities.LogFailed("Token %v Error while changing avatar: %v", instances[i].CensorToken(), r.Status)
 					FailedCount++
 				}
 			}
@@ -370,7 +365,7 @@ func LaunchTokenChanger() {
 			if err != nil {
 				utilities.LogFailed("Token %v Error while changing token: %v", instances[i].CensorToken(), err)
 				FailedCount++
-				err := utilities.WriteLine("input/changed_tokens.txt", fmt.Sprintf(`%s:%s:%s`, instances[i].Email, instances[i].Password, instances[i].CensorToken()))
+				err := utilities.WriteLine("input/changed_tokens.txt", fmt.Sprintf(`%s:%s:%s`, instances[i].Email, instances[i].Password, instances[i].Token))
 				if err != nil {
 					utilities.LogErr("Error while writing to file: %v", err)
 				}
@@ -435,11 +430,8 @@ func LaunchServerNicknameChanger() {
 				FailedCount++
 				return
 			}
-			body, err := utilities.ReadBody(r)
-			if err != nil {
-				fmt.Println(err)
-			}
-			if r.StatusCode == 200 || r.StatusCode == 204 {
+			body := r.Body
+			if r.Status == 200 || r.Status == 204 {
 				utilities.LogSuccess("Token %v Changed nickname successfully", instances[i].CensorToken())
 				SuccessCount++
 			} else {
@@ -494,13 +486,8 @@ func LaunchFriendRequestSpammer() {
 				FailedCount++
 				return
 			}
-			body, err := utilities.ReadBody(*r)
-			if err != nil {
-				utilities.LogErr("Error while reading body: %v", err)
-				FailedCount++
-				return
-			}
-			if r.StatusCode == 200 || r.StatusCode == 204 {
+			body := r.Body
+			if r.Status == 200 || r.Status == 204 {
 				utilities.LogSuccess("Token %v Sent friend request successfully", instances[i].CensorToken())
 				SuccessCount++
 			} else {
