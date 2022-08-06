@@ -16,79 +16,111 @@ import (
 	"image/png"
 	"io/ioutil"
 	"math/rand"
-	"net/http"
 	"os"
 	"strings"
 
-	"github.com/Danny-Dasilva/CycleTLS/cycletls"
+	http "github.com/Danny-Dasilva/fhttp"
+
+	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 )
 
 // @me Discord Patch request to change Username
-func (in *Instance) NameChanger(name string) (cycletls.Response, error) {
+func (in *Instance) NameChanger(name string) (http.Response, error) {
+
 	url := "https://discord.com/api/v9/users/@me"
+
 	data := NameChange{
 		Username: name,
 		Password: in.Password,
 	}
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		return cycletls.Response{}, err
+		return http.Response{}, err
+	}
+
+	req, err := http.NewRequest("PATCH", url, strings.NewReader(string(bytes)))
+
+	if err != nil {
+		return http.Response{}, err
 	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
-		return cycletls.Response{}, fmt.Errorf("error while getting cookie %v", err)
-	}
-	resp, err := in.Client.Do(url, in.CycleOptions(string(bytes), in.AtMeHeaders(cookie)), "PATCH")
-	if err != nil {
-		return cycletls.Response{}, err
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
 
-	return resp, nil
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
+	if err != nil {
+		return http.Response{}, err
+	}
+
+	return *resp, nil
 
 }
 
 // @me Discord Patch request to change Nickname
-func (in *Instance) NickNameChanger(name string, guildid string) (cycletls.Response, error) {
+func (in *Instance) NickNameChanger(name string, guildid string) (http.Response, error) {
+
 	url := fmt.Sprintf("https://discord.com/api/v9/guilds/%s/members/@me", guildid)
+
 	data := NickNameChange{
 		Nickname: name,
 	}
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		return cycletls.Response{}, err
+		return http.Response{}, err
+	}
+
+	req, err := http.NewRequest("PATCH", url, strings.NewReader(string(bytes)))
+
+	if err != nil {
+		return http.Response{}, err
 	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
-		return cycletls.Response{}, fmt.Errorf("error while getting cookie %v", err)
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
-	resp, err := in.Client.Do(url, in.CycleOptions(string(bytes), in.AtMeHeaders(cookie)), "PATCH")
+
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
-		return cycletls.Response{}, err
+		return http.Response{}, err
 	}
-	return resp, nil
+
+	return *resp, nil
+
 }
 
 // @me Discord Patch request to change Avatar
-func (in *Instance) AvatarChanger(avatar string) (cycletls.Response, error) {
+func (in *Instance) AvatarChanger(avatar string) (http.Response, error) {
+
 	url := "https://discord.com/api/v9/users/@me"
+
 	avatar = "data:image/png;base64," + avatar
+
 	data := AvatarChange{
 		Avatar: avatar,
 	}
+
 	bytes, err := json.Marshal(data)
 	if err != nil {
-		return cycletls.Response{}, err
+		return http.Response{}, err
+	}
+	req, err := http.NewRequest("PATCH", url, strings.NewReader(string(bytes)))
+
+	if err != nil {
+		return http.Response{}, err
 	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
-		return cycletls.Response{}, fmt.Errorf("error while getting cookie %v", err)
+		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
 
-	resp, err := in.Client.Do(url, in.CycleOptions(string(bytes), in.AtMeHeaders(cookie)), "PATCH")
+	resp, err := http.DefaultClient.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
-		return cycletls.Response{}, err
+		return http.Response{}, err
 	}
-	return resp, nil
+
+	return *resp, nil
+
 }
 
 // Encoding images to b64
@@ -146,17 +178,29 @@ func GetFiles(dir string) ([]string, error) {
 func (in *Instance) BioChanger(bios []string) error {
 	chosenOne := bios[rand.Intn(len(bios))]
 	site := "https://discord.com/api/v9/users/@me"
+	req, err := http.NewRequest(http.MethodPatch, site, strings.NewReader(`{"bio": "`+chosenOne+`"}`))
+	if err != nil {
+		return fmt.Errorf("error while making request: %v", err)
+	}
+	req.Header.Set("Authorization", in.Token)
 	cookie, err := in.GetCookieString()
 	if err != nil {
 		return fmt.Errorf("error while getting cookie: %v", err)
 	}
-	resp, err := in.Client.Do(site, in.CycleOptions(`{"bio": "`+chosenOne+`"}`, in.AtMeHeaders(cookie)), "PATCH")
+
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return fmt.Errorf("error while sending request: %v", err)
 	}
-	if resp.Status != 200 {
-		return fmt.Errorf("error while changing bio %v %v", resp.Status, resp.Body)
+	body, err := utilities.ReadBody(*resp)
+	if err != nil {
+		return fmt.Errorf("error while reading body: %v", err)
 	}
+
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("error while changing bio %v %v", resp.StatusCode, string(body))
+	}
+
 	return nil
 }
 
@@ -173,16 +217,26 @@ func ValidateBios(bios []string) []string {
 
 func (in *Instance) RandomHypeSquadChanger() error {
 	site := "https://discord.com/api/v9/hypesquad/online"
+	req, err := http.NewRequest(http.MethodPost, site, strings.NewReader(fmt.Sprintf(`{"house_id": %v}`, rand.Intn(3)+1)))
+	if err != nil {
+		return fmt.Errorf("error while making request: %v", err)
+	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
 		return fmt.Errorf("error while getting cookie: %v", err)
 	}
-	resp, err := in.Client.Do(site, in.CycleOptions(fmt.Sprintf(`{"house_id": %v}`, rand.Intn(3)+1), in.AtMeHeaders(cookie)), "POST")
+	req = in.AtMeHeaders(req, cookie)
+	resp, err := in.Client.Do(req)
 	if err != nil {
 		return fmt.Errorf("error while sending request: %v", err)
 	}
-	if resp.Status != 204 {
-		return fmt.Errorf("error while changing hype squad %v %v", resp.Status, resp.Body)
+	if resp.StatusCode != 204 {
+		defer resp.Body.Close()
+		body, err := utilities.ReadBody(*resp)
+		if err != nil {
+			return fmt.Errorf("error while reading body: %v", err)
+		}
+		return fmt.Errorf("error while changing hype squad %v %v", resp.StatusCode, string(body))
 	}
 	return nil
 }
@@ -195,25 +249,35 @@ func (in *Instance) ChangeToken(newPassword string) (string, error) {
 		"new_password": "%v"
 	}
 	`, in.Password, newPassword)
+	req, err := http.NewRequest(http.MethodPatch, site, strings.NewReader(payload))
+	if err != nil {
+		return "", fmt.Errorf("error while making request: %v", err)
+	}
 	cookie, err := in.GetCookieString()
 	if err != nil {
 		return "", fmt.Errorf("error while getting cookie: %v", err)
 	}
-	resp, err := in.Client.Do(site, in.CycleOptions(payload, in.AtMeHeaders(cookie)), "PATCH")
+	req = in.AtMeHeaders(req, cookie)
+	resp, err := in.Client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("error while sending request: %v", err)
 	}
-	if resp.Status != 200 {
-		return "", fmt.Errorf("invalid status code %v while changing token %v", resp.Status, resp.Body)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error while reading body: %v", err)
 	}
-	if strings.Contains(resp.Body, "token") {
+	if resp.StatusCode != 200 {
+		return "", fmt.Errorf("invalid status code %v while changing token %v", resp.StatusCode, string(body))
+	}
+	if strings.Contains(string(body), "token") {
 		var response map[string]interface{}
-		err := json.Unmarshal([]byte(resp.Body), &response)
+		err := json.Unmarshal(body, &response)
 		if err != nil {
 			return "", fmt.Errorf("error while unmarshalling response: %v", err)
 		}
 		return response["token"].(string), nil
 	} else {
-		return "", fmt.Errorf("error while changing token %v body does not contain token", resp.Body)
+		return "", fmt.Errorf("error while changing token %v body does not contain token", string(body))
 	}
 }

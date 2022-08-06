@@ -315,7 +315,7 @@ DMDGO has not been a One man show! I would like to thank everyone for their cont
 - Arandomnewaccount and [Dolfies](https://github.com/dolfies) Contributors on Python Libraries for Discord Selfbots like [Discum](https://github.com/Merubokkusu/Discord-S.C.U.M) and [Discord.py-Self](https://github.com/dolfies/discord.py-self) for helping with the op8 and op14 scrapers and their amazing [docs](https://arandomnewaccount.gitlab.io/discord-unofficial-docs/lazy_guilds.html)
 - Woen for providing the configuration for the initial HTTP client which did not really solve the problem but gave me the right direction!
 - [Bytixo](https://github.com/bytixo) for providing the code used for obtaining the current stable build number
-- My friend [Siegfried](https://github.com/dasbard) for helping out with the community servers and many functions of DMDGO since even before it existed.
+- My friend [Siegfried](https://github.com/siegfriedjohnsons) for helping out with the community servers and many functions of DMDGO since even before it existed.
 
 
 ## FAQs

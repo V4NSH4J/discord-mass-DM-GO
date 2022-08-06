@@ -12,13 +12,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
-	"net/http"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/Danny-Dasilva/CycleTLS/cycletls"
+	http "github.com/Danny-Dasilva/fhttp"
+	"github.com/V4NSH4J/discord-mass-dm-GO/client"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"github.com/gorilla/websocket"
 )
@@ -27,7 +27,7 @@ type Instance struct {
 	Token           string
 	Proxy           string
 	Cookie          string
-	Client          cycletls.CycleTLS
+	Client          *http.Client
 	UserAgent       string
 	XSuper          string
 	JA3             string
@@ -117,7 +117,7 @@ func GetEverything() (Config, []Instance, error) {
 		xsuper, ua, v, err = DolfiesXsuper()
 		if err != nil {
 			utilities.LogErr(" Failed to get useragent and xsuper %s Turn off Dolfies mode or try again, otherwise program will be continued with hardcoded chrome emulation", err)
-			xsuper, ua = "eyJvcyI6IldpbmRvd3MiLCJicm93c2VyIjoiQ2hyb21lIiwiZGV2aWNlIjoiIiwic3lzdGVtX2xvY2FsZSI6ImVuLVVTIiwiYnJvd3Nlcl91c2VyX2FnZW50IjoiTW96aWxsYS81LjAgKFdpbmRvd3MgTlQgMTAuMDsgV2luNjQ7IHg2NCkgQXBwbGVXZWJLaXQvNTM3LjM2IChLSFRNTCwgbGlrZSBHZWNrbykgQ2hyb21lLzEwMy4wLjAuMCBTYWZhcmkvNTM3LjM2IiwiYnJvd3Nlcl92ZXJzaW9uIjoiMTAzLjAuMC4wIiwib3NfdmVyc2lvbiI6IjEwIiwicmVmZXJyZXIiOiIiLCJyZWZlcnJpbmdfZG9tYWluIjoiIiwicmVmZXJyZXJfY3VycmVudCI6Imh0dHBzOi8vZGlzY29yZC5jb20vIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiZGlzY29yZC5jb20iLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoxMzY5MjEsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/103.0.0.0 Safari/537.36"
+			xsuper, ua = "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkZpcmVmb3giLCJkZXZpY2UiOiIiLCJzeXN0ZW1fbG9jYWxlIjoiZW4tVVMiLCJicm93c2VyX3VzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMC4xNTsgcnY6MTAzLjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTAzLjAiLCJicm93c2VyX3ZlcnNpb24iOiIxMDMuMCIsIm9zX3ZlcnNpb24iOiIxMC4xNSIsInJlZmVycmVyIjoiIiwicmVmZXJyaW5nX2RvbWFpbiI6IiIsInJlZmVycmVyX2N1cnJlbnQiOiIiLCJyZWZlcnJpbmdfZG9tYWluX2N1cnJlbnQiOiIiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoxNDAwOTEsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0"
 			v = "103"
 		} else {
 			utilities.LogSuccess("Successfully obtained build number, useragent and latest chrome version")
@@ -126,7 +126,7 @@ func GetEverything() (Config, []Instance, error) {
 		xsuper, ua = cfg.OtherSettings.XSuperProperties, cfg.OtherSettings.Useragent
 	}
 	if cfg.OtherSettings.JA3 == "" {
-		ja3 = "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-21,29-23-24,0"
+		ja3 = "771,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-16-5-51-43-13-28-21,29-23-24-25-256-257,0"
 	} else {
 		ja3 = cfg.OtherSettings.JA3
 	}
@@ -174,12 +174,15 @@ func GetEverything() (Config, []Instance, error) {
 			proxy = ""
 			proxyProt = ""
 		}
-		client := cycletls.Init()
+		httpclient, err := client.NewClient(client.Browser{JA3: ja3, UserAgent: ua, Cookies: nil}, cfg.ProxySettings.Timeout, false, ua, proxyProt)
+		if err != nil {
+			return cfg, instances, err
+		}
 		// proxy is put in struct only to be used by gateway. If proxy for gateway is disabled, it will be empty
 		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
-		instances = append(instances, Instance{Client: client, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v, JA3: ja3, ProxyProt: proxyProt})
+		instances = append(instances, Instance{Client: httpclient, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v, JA3: ja3, ProxyProt: proxyProt})
 	}
 	if len(instances) == 0 {
 		utilities.LogErr(" You may be using 0 tokens")

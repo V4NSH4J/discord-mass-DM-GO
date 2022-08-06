@@ -10,7 +10,8 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"net/http"
+
+	http "github.com/Danny-Dasilva/fhttp"
 
 	"compress/zlib"
 

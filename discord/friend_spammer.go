@@ -71,12 +71,13 @@ func LaunchFriendSpammer() {
 						time.Sleep(time.Duration(delay) * time.Second)
 						continue
 					}
-					if resp.Status == 200 || resp.Status == 204 {
+					if resp.StatusCode == 200 || resp.StatusCode == 204 {
 						utilities.LogInfo("Token %s Successfully friended %s#%s", instances[i].CensorToken(), friend.Username, friend.Discrim)
 						success++
 					} else {
 						utilities.LogFailed("Token %s Invalid Status Code %s while friending %s#%s", instances[i].CensorToken(), resp.Status, friend.Username, friend.Discrim)
 					}
+					resp.Body.Close()
 					time.Sleep(time.Duration(delay) * time.Second)
 				}
 
