@@ -114,7 +114,7 @@ func (in *Instance) AvatarChanger(avatar string) (http.Response, error) {
 		return http.Response{}, fmt.Errorf("error while getting cookie %v", err)
 	}
 
-	resp, err := http.DefaultClient.Do(in.AtMeHeaders(req, cookie))
+	resp, err := in.Client.Do(in.AtMeHeaders(req, cookie))
 	if err != nil {
 		return http.Response{}, err
 	}

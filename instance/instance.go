@@ -17,6 +17,7 @@ import (
 	"sync"
 	"time"
 
+	gohttp "net/http"
 	http "github.com/Danny-Dasilva/fhttp"
 	"github.com/V4NSH4J/discord-mass-dm-GO/client"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
@@ -126,7 +127,7 @@ func GetEverything() (Config, []Instance, error) {
 		xsuper, ua = cfg.OtherSettings.XSuperProperties, cfg.OtherSettings.Useragent
 	}
 	if cfg.OtherSettings.JA3 == "" {
-		ja3 = "771,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-16-5-51-43-13-28-21,29-23-24-25-256-257,0"
+		ja3 = "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-21,29-23-24,0"
 	} else {
 		ja3 = cfg.OtherSettings.JA3
 	}
@@ -248,11 +249,11 @@ func (in *Instance) WriteInstanceToFile(path string) {
 
 func DolfiesXsuper() (string, string, string, error) {
 	apiLink := "https://discord-user-api.cf/api/v1/properties/web"
-	req, err := http.NewRequest("GET", apiLink, nil)
+	req, err := gohttp.NewRequest("GET", apiLink, nil)
 	if err != nil {
 		return "", "", "", err
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := gohttp.DefaultClient.Do(req)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -261,6 +262,7 @@ func DolfiesXsuper() (string, string, string, error) {
 	if err != nil {
 		return "", "", "", err
 	}
+	fmt.Println(string(body))
 	var Info DolfiesResponse
 	err = json.Unmarshal(body, &Info)
 	if err != nil {

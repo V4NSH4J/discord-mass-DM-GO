@@ -17,6 +17,7 @@ import (
 
 	"net/url"
 
+	gohttp "net/http"
 	http "github.com/Danny-Dasilva/fhttp"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
@@ -29,17 +30,17 @@ func GetReactions(channel string, message string, token string, emoji string, af
 		site += "&after=" + after
 	}
 
-	req, err := http.NewRequest("GET", site, nil)
+	req, err := gohttp.NewRequest("GET", site, nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Add("Authorization", token)
 
-	resp, err := http.DefaultClient.Do(CommonHeaders(req))
+	resp, err := gohttp.DefaultClient.Do(CommonHeaders(req))
 	if err != nil {
 		return nil, err
 	}
-	body, err := utilities.ReadBody(*resp)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -366,14 +367,14 @@ func (in *Instance) Friend(Username string, Discrim int) (*http.Response, error)
 
 func FindMessage(channel string, messageid string, token string) (string, error) {
 	url := "https://discord.com/api/v9/channels/" + channel + "/messages?limit=1&around=" + messageid
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := gohttp.NewRequest("GET", url, nil)
 	if err != nil {
 		return "", err
 	}
 
 	req.Header.Set("Authorization", token)
 
-	client := http.DefaultClient
+	client := gohttp.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
 		return "", err
@@ -400,14 +401,14 @@ func FindMessage(channel string, messageid string, token string) (string, error)
 
 func GetRxn(channel string, messageid string, token string) (Message, error) {
 	url := "https://discord.com/api/v9/channels/" + channel + "/messages?limit=1&around=" + messageid
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := gohttp.NewRequest("GET", url, nil)
 	if err != nil {
 		return Message{}, err
 	}
 
 	req.Header.Set("Authorization", token)
 
-	client := http.DefaultClient
+	client := gohttp.DefaultClient
 	resp, err := client.Do(req)
 	if err != nil {
 		return Message{}, err
