@@ -36,7 +36,7 @@ func GetReactions(channel string, message string, token string, emoji string, af
 	}
 	req.Header.Add("Authorization", token)
 
-	resp, err := gohttp.DefaultClient.Do(CommonHeaders(req))
+	resp, err := gohttp.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
