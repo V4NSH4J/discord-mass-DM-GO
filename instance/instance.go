@@ -12,12 +12,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math/rand"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
 	"time"
 
 	gohttp "net/http"
+
 	http "github.com/Danny-Dasilva/fhttp"
 	"github.com/V4NSH4J/discord-mass-dm-GO/client"
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
@@ -62,6 +64,7 @@ type Instance struct {
 	ReactChannel    chan (ReactInfo)
 	MessageNumber   int
 	Version         string
+	Quarantined     bool
 }
 
 func (in *Instance) StartWS() error {
@@ -93,6 +96,147 @@ func (in *Instance) wsFatalHandler(err error) {
 }
 
 func GetEverything() (Config, []Instance, error) {
+	var cfg Config
+	var Instances []Instance
+	var err error
+	var proxies []string
+	var tokens []string
+	var fingerprints []Fingerprints
+
+	// Getting the config
+	cfg, err = GetConfig()
+	if err != nil {
+		return cfg, Instances, fmt.Errorf(`error while getting config %s`, err)
+	}
+	if cfg.CaptchaSettings.CaptchaAPI == "invisifox.com" {
+		utilities.LogWarn("You're using invisifox's downloadable solver. Make sure you're using port 8888 (default) and that you're running the application. Otherwise this wouldn't work.")
+	}
+	// Getting proxies & removing empty lines
+	if cfg.ProxySettings.ProxyFromFile {
+		proxies, err = utilities.ReadLines("proxies.txt")
+		if err != nil {
+			return cfg, Instances, fmt.Errorf(`error while getting proxies %s`, err)
+		}
+		var p []string
+		for j := 0; j < len(proxies); j++ {
+			if proxies[j] != "" {
+				p = append(p, proxies[j])
+			}
+		}
+		proxies = p
+		if len(proxies) == 0 {
+			cfg.ProxySettings.ProxyFromFile = false
+			utilities.LogWarn("No proxies found in proxies.txt, disabling proxy from file")
+		}
+	}
+	// Getting the tokens
+	tokens, err = utilities.ReadLines("tokens.txt")
+	if err != nil {
+		return cfg, Instances, err
+	}
+	var v []string
+	for j := 0; j < len(tokens); j++ {
+		if tokens[j] != "" {
+			v = append(v, tokens[j])
+		}
+	}
+	tokens = v
+	if len(tokens) == 0 {
+		return cfg, Instances, fmt.Errorf("no tokens found in tokens.txt")
+	}
+	// Getting fingerprints - Prioritizing from file so multiple can be loaded.
+	fingerprints, err = GetFingerprints()
+	if err != nil {
+		utilities.LogWarn("Error while getting fingerprints %s", err)
+	}
+	if len(fingerprints) == 0 {
+		// Getting fingerprint from config if none are found in file
+		if cfg.OtherSettings.JA3 != "" && cfg.OtherSettings.XSuperProperties != "" && cfg.OtherSettings.Useragent != "" {
+			fingerprints = append(fingerprints, Fingerprints{
+				JA3:              cfg.OtherSettings.JA3,
+				XSuperProperties: cfg.OtherSettings.XSuperProperties,
+				Useragent:        cfg.OtherSettings.Useragent,
+			})
+			// Getting fingerprint from Dolfies' API if none are set in config
+		} else {
+			xsuper, ua, _, err := DolfiesXsuper()
+			if err != nil {
+				// Hardcoding a fingerprint if Dolfies' API is down
+				xsuper, ua = "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkZpcmVmb3giLCJkZXZpY2UiOiIiLCJzeXN0ZW1fbG9jYWxlIjoiZW4tVVMiLCJicm93c2VyX3VzZXJfYWdlbnQiOiJNb3ppbGxhLzUuMCAoTWFjaW50b3NoOyBJbnRlbCBNYWMgT1MgWCAxMC4xNTsgcnY6MTAzLjApIEdlY2tvLzIwMTAwMTAxIEZpcmVmb3gvMTAzLjAiLCJicm93c2VyX3ZlcnNpb24iOiIxMDMuMCIsIm9zX3ZlcnNpb24iOiIxMC4xNSIsInJlZmVycmVyIjoiIiwicmVmZXJyaW5nX2RvbWFpbiI6IiIsInJlZmVycmVyX2N1cnJlbnQiOiIiLCJyZWZlcnJpbmdfZG9tYWluX2N1cnJlbnQiOiIiLCJyZWxlYXNlX2NoYW5uZWwiOiJzdGFibGUiLCJjbGllbnRfYnVpbGRfbnVtYmVyIjoxNDAwOTEsImNsaWVudF9ldmVudF9zb3VyY2UiOm51bGx9", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:103.0) Gecko/20100101 Firefox/103.0"
+			}
+			fingerprints = append(fingerprints, Fingerprints{
+				JA3:              "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-21,29-23-24,0",
+				XSuperProperties: xsuper,
+				Useragent:        ua,
+			})
+		}
+	}
+
+	// Checking empty JA3s & setting according to same priority order as fingerprints as having a JA3 is important
+	var ja3s []string
+	for i := 0; i < len(fingerprints); i++ {
+		if fingerprints[i].JA3 != "" {
+			ja3s = append(ja3s, fingerprints[i].JA3)
+		}
+	}
+	var j []string
+	for i := 0; i < len(ja3s); i++ {
+		if ja3s[i] != "" {
+			j = append(j, ja3s[i])
+		}
+	}
+	ja3s = j
+	for i := 0; i < len(fingerprints); i++ {
+		if fingerprints[i].JA3 == "" {
+			if cfg.OtherSettings.JA3 != "" {
+				fingerprints[i].JA3 = cfg.OtherSettings.JA3
+			} else if len(ja3s) != 0 {
+				fingerprints[i].JA3 = ja3s[rand.Intn(len(ja3s))]
+			} else {
+				fingerprints[i].JA3 = "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-21,29-23-24,0"
+			}
+		}
+	}
+	r := regexp.MustCompile(`(.+):(.+):(.+)`)
+	for i := 0; i < len(tokens); i++ {
+		var email, password, token string
+		if r.MatchString(tokens[i]) {
+			p := strings.Split(tokens[i], ":")
+			email = p[0]
+			password = p[1]
+			token = p[2]
+		} else {
+			token = tokens[i]
+		}
+		var proxy, Gproxy, proxyProt string
+		if cfg.ProxySettings.ProxyFromFile {
+			proxy = proxies[rand.Intn(len(proxies))]
+			Gproxy = proxy
+			proxyProt = "http://" + proxy
+		} else {
+			proxy = ""
+			proxyProt = ""
+		}
+		index := rand.Intn(len(fingerprints))
+		httpclient, err := client.NewClient(client.Browser{JA3: fingerprints[index].JA3, UserAgent: fingerprints[index].Useragent, Cookies: nil}, cfg.ProxySettings.Timeout, false, fingerprints[index].Useragent, proxyProt)
+		if err != nil {
+			return cfg, Instances, err
+		}
+		// proxy is put in struct only to be used by gateway. If proxy for gateway is disabled, it will be empty
+		if !cfg.ProxySettings.GatewayProxy {
+			Gproxy = ""
+		}
+		Instances = append(Instances, Instance{Client: httpclient, Token: token, Proxy: proxyProt, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: fingerprints[index].Useragent, XSuper: fingerprints[index].XSuperProperties, JA3: fingerprints[index].JA3, ProxyProt: proxyProt})
+	}
+	if len(Instances) == 0 {
+		utilities.LogErr(" You may be using 0 tokens")
+	}
+
+	return cfg, Instances, nil
+
+}
+
+func OldGetEverything() (Config, []Instance, error) {
 	var cfg Config
 	var instances []Instance
 	var err error
@@ -131,7 +275,8 @@ func GetEverything() (Config, []Instance, error) {
 	} else {
 		ja3 = cfg.OtherSettings.JA3
 	}
-
+	ja32 := "771,4865-4867-4866-49195-49199-52393-52392-49196-49200-49162-49161-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-51-43-13-45-28-21,29-23-24-25-256-257,0"
+	ja3s := []string{ja32, ja3}
 	// Load instances
 	tokens, err = utilities.ReadLines("tokens.txt")
 	if err != nil {
@@ -183,7 +328,7 @@ func GetEverything() (Config, []Instance, error) {
 		if !cfg.ProxySettings.GatewayProxy {
 			Gproxy = ""
 		}
-		instances = append(instances, Instance{Client: httpclient, Token: instanceToken, Proxy: proxy, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v, JA3: ja3, ProxyProt: proxyProt})
+		instances = append(instances, Instance{Client: httpclient, Token: instanceToken, Proxy: proxyProt, Config: cfg, GatewayProxy: Gproxy, Email: email, Password: password, UserAgent: ua, XSuper: xsuper, Version: v, JA3: ja3s[rand.Intn(len(ja3s))], ProxyProt: proxyProt})
 	}
 	if len(instances) == 0 {
 		utilities.LogErr(" You may be using 0 tokens")
@@ -307,4 +452,22 @@ type DolfiesResponse struct {
 	ChromeUserAgent   string `json:"chrome_user_agent,omitempty"`
 	ChromeVersion     string `json:"chrome_version,omitempty"`
 	ClientBuildNumber int    `json:"client_build_number,omitempty"`
+}
+
+func GetFingerprints() ([]Fingerprints, error) {
+	file, err := os.Open("fingerprints.json")
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	var fingerprints []Fingerprints
+	bytes, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(bytes, &fingerprints)
+	if err != nil {
+		return nil, err
+	}
+	return fingerprints, nil
 }

@@ -145,6 +145,11 @@ func (in *Instance) OpenChannel(recepientUID string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error while reading body from open channel request %v", err)
 	}
+	if strings.Contains(string(body), "Your bot has been flagged") {
+		utilities.LogErr("[%v] Token %v has been quarantined", time.Now().Format("15:04:05"), in.CensorToken())
+		in.Quarantined = true 
+		return "", fmt.Errorf("token has been quarantined")
+	}
 	if resp.StatusCode == 401 || resp.StatusCode == 403 {
 		utilities.LogErr("[%v] Token %v has been locked or disabled", time.Now().Format("15:04:05"), in.CensorToken())
 		return "", fmt.Errorf("token has been locked or disabled")
@@ -255,11 +260,11 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 			}()
 		}
 	}
-	if res.StatusCode == 400 {
+	if res.StatusCode == 400 || res.StatusCode == 403 {
 		if !strings.Contains(string(body), "captcha") {
 			return res.StatusCode, body, nil
 		}
-		if in.Config.CaptchaSettings.ClientKey == "" {
+		if in.Config.CaptchaSettings.ClientKey == "" && in.Config.CaptchaSettings.CaptchaAPI != "invisifox.com" {
 			return res.StatusCode, body, fmt.Errorf("captcha detected but no client key set")
 		}
 		var captchaDetect captchaDetected
@@ -267,7 +272,7 @@ func (in *Instance) SendMessage(channelSnowflake string, memberid string) (int, 
 		if err != nil {
 			return res.StatusCode, body, fmt.Errorf("error while unmarshalling captcha %v", err)
 		}
-		utilities.LogWarn("Captcha detected %v [%v]", in.CensorToken(), captchaDetect.Sitekey)
+		utilities.CaptchaDetected(in.CensorToken(), captchaDetect.Sitekey)
 		solved, err := in.SolveCaptcha(captchaDetect.Sitekey, cookie, captchaDetect.RqData, captchaDetect.RqToken, fmt.Sprintf("https://discord.com/channels/@me/%s", channelSnowflake))
 		if err != nil {
 			return res.StatusCode, body, fmt.Errorf("error while solving captcha %v", err)

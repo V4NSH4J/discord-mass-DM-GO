@@ -306,3 +306,9 @@ type CfBm struct {
 		} `json:"e"`
 	} `json:"fp"`
 }
+
+type Fingerprints struct {
+	JA3              string `json:"ja3"`
+	XSuperProperties string `json:"x-super-properties"`
+	Useragent        string `json:"useragent"`
+}

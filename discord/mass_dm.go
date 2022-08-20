@@ -397,6 +397,9 @@ func LaunchMassDM() {
 						utilities.LogErr("Error while writing to failed.txt %s", err)
 					}
 					failed = append(failed, member)
+					if instances[i].Quarantined {
+						break
+					}
 					continue
 				}
 				if cfg.SuspicionAvoidance.RandomDelayOpenChannel != 0 {

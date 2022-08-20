@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	version := "1.11.1"
+	version := "1.11.2"
 	rand.Seed(time.Now().UTC().UnixNano())
 	color.Blue.Printf(logo + " v" + version + "\n")
 	color.Green.Printf("Made by https://github.com/V4NSH4J\nStar repository on github for updates!\n")
@@ -27,7 +27,7 @@ func main() {
 
 // Options menu
 func Options() {
-	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Friends Mass DM [BETA]", "Credits & Help", "Exit"})
+	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Friends Mass DM", "New Mass DM [ALPHA]","Credits & Help", "Exit"})
 	choice := utilities.UserInputInteger("Enter your choice!")
 	switch choice {
 	default:
@@ -103,8 +103,11 @@ func Options() {
 		color.Cyan.Printf("Friends Mass DM\n")
 		discord.LaunchFriendSpammer()
 	case 24:
-		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
+		color.Cyan.Printf("New Mass DM\n")
+		discord.LaunchAntiAntiRaidMode()
 	case 25:
+		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
+	case 26:
 		os.Exit(0)
 	}
 	time.Sleep(1 * time.Second)

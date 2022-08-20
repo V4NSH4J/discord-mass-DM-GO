@@ -250,11 +250,11 @@ func (in *Instance) Invite(Code string) error {
 			if strings.Contains(string(body), "captcha_rqtoken") {
 				rqToken = resp["captcha_rqtoken"].(string)
 			}
-			if in.Config.CaptchaSettings.CaptchaAPI == "" {
+			if in.Config.CaptchaSettings.CaptchaAPI == "" && in.Config.CaptchaSettings.CaptchaAPI != "invisifox.com"{
 				utilities.LogErr("Captcha detected but no API key provided %v", in.CensorToken())
 				break
 			} else {
-				utilities.LogWarn("Captcha detected %v [%v] [%v]", in.CensorToken(), cap, i)
+				utilities.CaptchaDetected(in.CensorToken(), cap)
 			}
 			solvedKey, err = in.SolveCaptcha(cap, cookie, rqData, rqToken, "https://discord.com/channels/@me")
 			if err != nil {

@@ -1,7 +1,7 @@
 
 direct_message_settings:
-  individual_delay: 120
-  rate_limit_delay: 300
+  individual_delay: 60
+  rate_limit_delay: 650
   offset: 100
   max_dms_per_token: 0
   skip_completed: true
@@ -33,24 +33,26 @@ scraper_settings:
 
 captcha_settings:
   captcha_api_key: ""
-  captcha_api: ""
-  max_captcha_wait: 120
+  captcha_api: "invisifox.com"
+  max_captcha_wait: 60
   max_captcha_retry_dm: 0
   max_captcha_retry_invite: 3
 
 other_settings: 
   disable_keep_alives: false
-  constant_cookies: false
+  constant_cookies: true
   censor_token: false
   logs: false
   gateway_status: 4
-  x_super_properties: ""
-  useragent: ""
+  ja3: "771,4865-4866-4867-49195-49199-49196-49200-52393-52392-49171-49172-156-157-47-53,0-23-65281-10-11-35-16-5-13-18-51-45-43-27-17513,29-23-24,0"
+  useragent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36"
+  x_super_properties: "eyJvcyI6Ik1hYyBPUyBYIiwiYnJvd3NlciI6IkNocm9tZSIsImRldmljZSI6IiIsInN5c3RlbV9sb2NhbGUiOiJlbi1HQiIsImJyb3dzZXJfdXNlcl9hZ2VudCI6Ik1vemlsbGEvNS4wIChNYWNpbnRvc2g7IEludGVsIE1hYyBPUyBYIDEwXzE1XzcpIEFwcGxlV2ViS2l0LzUzNy4zNiAoS0hUTUwsIGxpa2UgR2Vja28pIENocm9tZS8xMDQuMC4wLjAgU2FmYXJpLzUzNy4zNiIsImJyb3dzZXJfdmVyc2lvbiI6IjEwNC4wLjAuMCIsIm9zX3ZlcnNpb24iOiIxMC4xNS43IiwicmVmZXJyZXIiOiJodHRwczovL3d3dy5nb29nbGUuY29tLyIsInJlZmVycmluZ19kb21haW4iOiJ3d3cuZ29vZ2xlLmNvbSIsInNlYXJjaF9lbmdpbmUiOiJnb29nbGUiLCJyZWZlcnJlcl9jdXJyZW50IjoiIiwicmVmZXJyaW5nX2RvbWFpbl9jdXJyZW50IjoiIiwicmVsZWFzZV9jaGFubmVsIjoic3RhYmxlIiwiY2xpZW50X2J1aWxkX251bWJlciI6MTQwNTc1LCJjbGllbnRfZXZlbnRfc291cmNlIjpudWxsfQ=="
+
 
 suspicion_avoidance:
-  random_individual_delay: 60
-  random_rate_limit_delay: 0
-  random_delay_before_dm: 10
+  random_individual_delay: 1
+  random_rate_limit_delay: 1
+  random_delay_before_dm: 1
   typing: false
   typing_variation: 250
   typing_speed: 450

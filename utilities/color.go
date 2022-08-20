@@ -18,11 +18,11 @@ import (
 )
 
 func LogInfo(format string, a ...any) {
-	color.Printf("<fg=white>[</><fg=cyan;op=bold>INFO</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=cyan;op=bold>INFO   </><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
 }
 
 func LogErr(format string, a ...any) {
-	color.Printf("<fg=white>[</><fg=red;op=bold>ERROR</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=red;op=bold>ERROR  </><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
 }
 
 func LogSuccess(format string, a ...any) {
@@ -30,24 +30,39 @@ func LogSuccess(format string, a ...any) {
 }
 
 func LogFailed(format string, a ...any) {
-	color.Printf("<fg=white>[</><fg=red;op=bold>FAILED</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=red;op=bold>FAILED </><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
 }
 
 func LogWarn(format string, a ...any) {
-	color.Printf("<fg=white>[</><fg=red;op=bold>WARN</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=red;op=bold>WARNING</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
 }
 
 func LogLocked(format string, a ...any) {
-	color.Printf("<fg=white>[</><fg=red;op=bold>LOCKED</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=red;op=bold>LOCKED </><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » %s\n", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+}
+
+func CaptchaDetected(token string, key string) {
+	color.Printf("<fg=white>[</><fg=red;op=bold>CAPTCHA</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » Token %s Captcha Detected [%s]\n", time.Now().Format("15:04:05"), token, key)
+}
+
+func CaptchaSolved(token string, key string) {
+	var k string
+	if len(key) < 25 {
+		k = key
+	} else {
+		k = key[:25]
+		k += "..."
+	}
+	color.Printf("<fg=white>[</><fg=green;op=bold>CAPTCHA</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> » Token %s Captcha Solved [%s]\n", time.Now().Format("15:04:05"), token, k)
 }
 
 func UserInput(format string, a ...any) string {
 	reader := bufio.NewReader(os.Stdin)
 	var out string
-	color.Printf("<fg=white>[</><fg=cyan;op=bold>INPUT</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> %s » ", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=cyan;op=bold>INPUT  </><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> %s » ", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
 	out, err := reader.ReadString('\n')
 	if err != nil {
-		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL</><fg=white>]</> » Error %s\n", err)
+		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL  </><fg=white>]</> » Error %s\n", err)
 		ExitSafely()
 	}
 	out = strings.TrimSuffix(out, "\r\n")
@@ -58,10 +73,10 @@ func UserInput(format string, a ...any) string {
 func UserInputInteger(format string, a ...any) int {
 	reader := bufio.NewReader(os.Stdin)
 	var out string
-	color.Printf("<fg=white>[</><fg=cyan;op=bold>INPUT</><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> %s » ", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
+	color.Printf("<fg=white>[</><fg=cyan;op=bold>INPUT  </><fg=white>]</><fg=white>[</><fg=white;op=bold>%s</><fg=white>]</> %s » ", time.Now().Format("15:04:05"), fmt.Sprintf(format, a...))
 	out, err := reader.ReadString('\n')
 	if err != nil {
-		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL</><fg=white>]</> » Error %s\n", err)
+		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL  </><fg=white>]</> » Error %s\n", err)
 		ExitSafely()
 	}
 	if out == "" || out == "\n" {
@@ -71,14 +86,14 @@ func UserInputInteger(format string, a ...any) int {
 	out = strings.TrimSuffix(out, "\n")
 	i, err := strconv.Atoi(out)
 	if err != nil {
-		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL</><fg=white>]</> » Error %s\n", err)
+		color.Printf("<fg=white>[</><fg=red;op=bold>FATAL  </><fg=white>]</> » Error %s\n", err)
 		ExitSafely()
 	}
 	return i
 }
 
 func ExitSafely() {
-	color.Printf("<fg=white>[</><fg=red;op=bold>FATAL</><fg=white>]</> » Press ENTER to exit\n")
+	color.Printf("<fg=white>[</><fg=red;op=bold>FATAL  </><fg=white>]</> » Press ENTER to exit\n")
 	bufio.NewReader(os.Stdin).ReadBytes('\n')
 	os.Exit(0)
 }

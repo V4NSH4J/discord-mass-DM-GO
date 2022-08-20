@@ -162,10 +162,6 @@ func LaunchScraperMenu() {
 				}
 			}
 			utilities.LogSuccess("Wrote %v members to memberids.txt", len(clean))
-			err := utilities.WriteFile("scraped/"+serverid+".txt", clean)
-			if err != nil {
-				utilities.LogErr("Error while writing to file: %v", err)
-			}
 		}
 
 	}
