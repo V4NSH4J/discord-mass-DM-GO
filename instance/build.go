@@ -38,6 +38,9 @@ func UpdateDiscordBuildInfo() error {
 
 	r := jsFileRegex.FindAllString(string(body), -1)
 	asset := r[len(r)-1]
+	if strings.Contains(asset, "invisible") {
+		asset = r[len(r)-2]
+	}
 
 	resp, err := client.Get("https://discord.com/assets/" + asset)
 	if err != nil {
@@ -54,10 +57,8 @@ func UpdateDiscordBuildInfo() error {
 	e := strings.ReplaceAll(z[0], " ", "")
 	buildInfos := strings.Split(e, ",")
 
-	buildNum := strings.Split(buildInfos[0], ":")
-	buildNumber["stable"] = buildNum[len(buildNum)-1]
-
-	utilities.LogInfo("Fetched Latest Build Info")
+	buildNum := strings.Split(buildInfos[0], `("`)
+	buildNumber["stable"] = strings.ReplaceAll(buildNum[len(buildNum)-1],`"`, ``)
 
 	return nil
 }
