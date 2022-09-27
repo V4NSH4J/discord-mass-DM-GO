@@ -21,7 +21,7 @@ var (
 // such as PTB, Canary and Stable. see https://github.com/KiyonoKara/Discord-Build-Info-PY/blob/main/discord_build_info_py/clientInfo.py
 func UpdateDiscordBuildInfo() error {
 	jsFileRegex := regexp.MustCompile(`([a-zA-z0-9]+)\.js`)
-	buildInfoRegex := regexp.MustCompile(`Build Number: [0-9]+, Version Hash: [A-Za-z0-9]+`)
+	buildInfoRegex := regexp.MustCompile(`Build Number: "\)\.concat\("([0-9]{4,8})"`)
 
 	client := &http.Client{Timeout: 10 * time.Second}
 
