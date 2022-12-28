@@ -135,7 +135,13 @@ type Identify struct {
 	Presence     Presence   `json:"presence,omitempty"`
 }
 
+type Game struct {
+	Name string `json:"name"`
+	Type int    `json:"type"`
+}
+
 type Presence struct {
+	Game       Game     `json:"game,omitempty"`
 	Status     string   `json:"status,omitempty"`
 	Since      int      `json:"since,omitempty"`
 	Activities []string `json:"activities,omitempty"`

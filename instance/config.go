@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
 	"gopkg.in/yaml.v3"
@@ -26,6 +27,7 @@ type Config struct {
 	OtherSettings      OtherSettings      `yaml:"other_settings"`
 	SuspicionAvoidance SuspicionAvoidance `yaml:"suspicion_avoidance"`
 	DMonReact          DMonReact          `yaml:"dm_on_react"`
+	Games              []Game
 }
 
 type DirectMessage struct {
@@ -129,6 +131,28 @@ type AutoReact struct {
 	IndividualDelay int      `yaml:"individual_delay"`
 }
 
+func GetActivities() ([]Game, error) {
+	activites, err := utilities.ReadLines("activites.txt")
+	if err != nil {
+		return []Game{}, err
+	}
+
+	var games []Game
+	for _, activity := range activites {
+		type_int, err := strconv.Atoi(activity[:1])
+		if err != nil {
+			utilities.LogErr("invalid activity %s format", activity)
+			return []Game{}, err
+		}
+		games = append(games, Game{
+			Name: activity[2:],
+			Type: type_int,
+		})
+	}
+
+	return games, nil
+}
+
 func GetConfig() (Config, error) {
 	ex, err := os.Executable()
 	if err != nil {
@@ -150,6 +174,12 @@ func GetConfig() (Config, error) {
 			fmt.Println(err)
 			return Config{}, err
 		}
+		games, err := GetActivities()
+		if err != nil {
+			utilities.LogErr("Error while reading activities file %v", err)
+			return Config{}, err
+		}
+		config.Games = games
 		return config, nil
 	}
 }
