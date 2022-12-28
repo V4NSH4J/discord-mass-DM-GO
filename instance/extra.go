@@ -18,6 +18,7 @@ import (
 	"net/url"
 
 	gohttp "net/http"
+
 	http "github.com/Danny-Dasilva/fhttp"
 
 	"github.com/V4NSH4J/discord-mass-dm-GO/utilities"
@@ -250,7 +251,7 @@ func (in *Instance) Invite(Code string) error {
 			if strings.Contains(string(body), "captcha_rqtoken") {
 				rqToken = resp["captcha_rqtoken"].(string)
 			}
-			if in.Config.CaptchaSettings.CaptchaAPI == "" && in.Config.CaptchaSettings.CaptchaAPI != "invisifox.com"{
+			if in.Config.CaptchaSettings.CaptchaAPI == "" && in.Config.CaptchaSettings.CaptchaAPI != "invisifox.com" {
 				utilities.LogErr("Captcha detected but no API key provided %v", in.CensorToken())
 				break
 			} else {
@@ -291,6 +292,62 @@ func (in *Instance) Invite(Code string) error {
 	}
 	return fmt.Errorf("max retries exceeded")
 
+}
+
+func (in *Instance) BoostServer(server_id string, boost_id string) bool {
+	req, err := http.NewRequest(http.MethodPut, "https://discord.com/api/v9/guilds/"+server_id+"/premium/subscriptions", strings.NewReader("{\"user_premium_guild_subscription_slot_ids\":[\""+boost_id+"\"]}"))
+	if err != nil {
+		utilities.LogErr("Error: %s", err)
+		return false
+	}
+	req.Header.Set("authorization", in.Token)
+	req.Header.Set("content-type", "application/json")
+	resp, err := in.Client.Do(CommonHeaders(req))
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+
+	if resp.StatusCode != 201 {
+		body, err := utilities.ReadBody(*resp)
+		if err != nil {
+			utilities.LogErr("Error while reading body %v \n", err)
+			return false
+		}
+
+		fmt.Println(string(body))
+		return false
+	}
+	return true
+}
+
+func (in *Instance) GetBoostSlots() []boost {
+	req, err := http.NewRequest(http.MethodGet, "https://discord.com/api/v9/users/@me/guilds/premium/subscription-slots", nil)
+	if err != nil {
+		utilities.LogErr("Error: %s", err)
+		return []boost{}
+	}
+	req.Header.Set("authorization", in.Token)
+	resp, err := in.Client.Do(CommonHeaders(req))
+	if err != nil {
+		fmt.Println(err)
+		return []boost{}
+	}
+
+	body, err := utilities.ReadBody(*resp)
+	if err != nil {
+		utilities.LogErr("Error while reading body %v \n", err)
+		return []boost{}
+	}
+
+	var Boosts []boost
+	err = json.Unmarshal(body, &Boosts)
+	if err != nil {
+		fmt.Println(err)
+		return []boost{}
+	}
+
+	return Boosts
 }
 
 func (in *Instance) Leave(serverid string) int {

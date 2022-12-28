@@ -92,6 +92,12 @@ type joinresponse struct {
 	GuildObj         guild `json:"guild"`
 }
 
+type boost struct {
+	ID             string `json:"id"`
+	SubscriptionID string `json:"subscription_id"`
+	Cooldown       string `json:"cooldown_ends_at"`
+}
+
 type bypassInformation struct {
 	Version    string      `json:"version"`
 	FormFields []FormField `json:"form_fields"`

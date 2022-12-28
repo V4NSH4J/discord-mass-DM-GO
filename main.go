@@ -27,7 +27,7 @@ func main() {
 
 // Options menu
 func Options() {
-	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Friends Mass DM", "New Mass DM [ALPHA]","Credits & Help", "Exit"})
+	utilities.PrintMenu([]string{"Invite Joiner", "Mass DM", "Single DM", "Reaction Adder", "Email:Password:Token to Token", "Token Checker", "Guild Leaver", "Token Onliner", "Scraping Menu", "Name Changer", "Avatar Changer", "Token Server Checker", "Bio Changer", "DM on Reaction", "Hypesquad Changer", "Token Password Changer", "Embed Maker", "Login into Token", "Token Nuker", "Button Presser", "Server Nickname Changer", "Friend Request Spammer", "Friends Mass DM", "New Mass DM [ALPHA]", "Show boost info", "Server booster", "Credits & Help", "Exit"})
 	choice := utilities.UserInputInteger("Enter your choice!")
 	switch choice {
 	default:
@@ -106,8 +106,14 @@ func Options() {
 		color.Cyan.Printf("New Mass DM\n")
 		discord.LaunchAntiAntiRaidMode()
 	case 25:
-		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
+		color.Cyan.Printf("Show boost info\n")
+		discord.LaunchBoosterInfo()
 	case 26:
+		color.Cyan.Printf("Server booster\n")
+		discord.LaunchBooster()
+	case 27:
+		color.Blue.Printf("Made with <3 by github.com/V4NSH4J - Check out the github page for detailed documentation\n")
+	case 28:
 		os.Exit(0)
 	}
 	time.Sleep(1 * time.Second)

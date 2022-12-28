@@ -88,6 +88,12 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 	} else {
 		presence = presences[in.Config.OtherSettings.GatewayStatus]
 	}
+
+	var game Game
+	if len(in.Config.Games) > 0 {
+		game = in.Config.Games[rand.Intn(len(in.Config.Games))]
+	}
+
 	// Authenticate with Discord
 	err = c.Conn.WriteJSON(&Event{
 		Op: OpcodeIdentify,
@@ -114,6 +120,7 @@ func (in *Instance) NewConnection(fatalHandler func(err error)) (*Connection, er
 					Status: presence,
 					Since:  0,
 					AFK:    false,
+					Game:   game,
 				},
 				Compress: false,
 			},
