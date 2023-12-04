@@ -14,7 +14,8 @@
 
 [Telegram Server for Support](https://t.me/tosviolators)
 
-[Discord Community Server](https://discord.gg/T9FBNBQb4d)
+Old Discord Server link removed as it was terminated. Someone claimed the vanity to promote a Scam on DMDGO's name. DMDGO does not have any Paid products and does not offer any subscriptions. Anyone using DMDGO name or V4NSH4J's name to promote anything is a scam. I do not have an official Discord anymore, my only telegram is @campingarunner and my email is v4nsh4j@proton.me 
+Please always make sure you are not dealing with an imposter, value your time and money. 
 
 
 ## **Features** :
