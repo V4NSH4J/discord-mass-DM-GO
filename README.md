@@ -107,7 +107,7 @@ Read this documentation, try using `Ctrl + F` to find what you're looking for. W
 | -----|------|-------------------|-------------|
 |`individual_delay` |int |90 | Duration in seconds between 2 consecutive Direct messages by one instance.
 |`rate_limit_delay` |int |60 | Duration in seconds instance sleeps for when Discord says "You're opening new direct messages too fast"
-|`offset` |int |1000 | uration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value.
+|`offset` |int |1000 | duration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value.
 |`skip_completed` |bool |true | Skip members who have already been DM'd from the input/completed.txt file 
 |`call` |bool |false | Call users after DM (Token needs to be friended to Ring)
 |`remove_dead_tokens` |bool |true | Remove tokens which have died from input/tokens.txt once DMs are completed.
@@ -144,7 +144,7 @@ Name | Type | Recommended Value | Description |
 | -----|------|-------------------|-------------|
 |`captcha_api_key`| string | "your_captcha_key" | Your authentication key for the captcha solving service you set. if user authenticated then enter username and password in format user:pass or just put the key. |
 |`captcha_api`| string | "anti-captcha.com" | The captcha service you're using. Always check which ones are compatible before using one! Might need to use a different captcha provider if you're getting flagged or invalid solutions | 
-|`mac_captcha_wait`| int | 120 | Maximum time to wait for the solution after submitting the captcha before cancelling the action and moving forward|
+|`max_captcha_wait`| int | 120 | Maximum time to wait for the solution after submitting the captcha before cancelling the action and moving forward|
 |`max_captcha_retry_dm`| int | 0 | Maximum times to retry solving captcha if an unacceptable solution is returned (Implemented so people don't wipe out their balances) Keep 0 for unlimited|
 |`max_captcha_retry_invite`| int | 3 | Maximum times to retry joining server if met with captcha |
 
@@ -175,7 +175,7 @@ Name | Type | Recommended Value | Description |
 |`channel_id`| string | "your_channelId" | Channel ID where you want to send messages to reactions. If left blank, bot will send DMs to reacts in all channels in the server. |
 |`message_id`| string | "your_messageId" | Message ID of the message on which you want to send people DMs who react. If left blank, would send DMs to all messages in the channel. |
 |`emoji`| string | "emojiname:id" | The emoji when reacted with the message will be sent. Unicode emojis have to be entered just as the emoji. Example: "🚀" (Don't worry if it appears as boxes on your machine) And for custom/nitro emojis you have to put emoji_name:emoji_id which you can get from the emoji's URL. If left blank, messages will be sent to every reaction on the message. |
-|`rotate_tokens`| bool | true | Re-uses tokens from a pool. Suppose if token was rate limited, it would be switched but later be returned to to be reused. |
+|`rotate_tokens`| bool | true | Re-uses tokens from a pool. Suppose if token was rate limited, it would be switched but later be returned to be reused. |
 |`max_anti_raid_queue`| int | 20 |To ensure someone does not spam reactions to jam your bot and lock your instances, you can set the maximum queue size. Any reactions above this would be discarded. This will easily help bypass mass emoji reacts breaking the bot. |
 |`max_dms_per_token`| int | 0 | Maximum DMs you want your tokens to send. Set to 0 for unlimited.
 
@@ -190,7 +190,7 @@ Name | Type | Recommended Value | Description |
 
 ### Offset 
 Offset is a duration in milliseconds. As the name suggests this offsets or displaces the goroutines (threads) by a short period of time to ensure that all accounts don't start at the exact same second. What is the recommended offset? If you have less than 100 tokens or are using short individual delays, it does not matter. You can put any offset like 50-300. But if you are running a large number of tokens, you should set your individual and rate limit delays to 60 each or higher. Your offset will come with this formula - (individual delay/number of tokens) * 1000 This ensures your tokens start evenly spread out throughout the individual delay period. 
-You can do more interesting things with offset. Normally to bypass Anti-Raid bots like Beemo or Wick, you'd have to join your tokens with high delays then wait for all of them to join to start DMing. Now with Offset you can make it so that one account joins and starts DMing, 30 seconds or any duration of your choice later the second account joins and start DMing so you save A LOT of time. How to do this? Set your offset to the duration you want your accounts to join in, like 30,000 - 60,000 (Remember offset is in milliseconds) and don't join your accounts to the server. Before Mass DMing, you'd get an option for advanced settings. Enter the server invite and serverid there. Use multiple proxies/ rotating proxies to prevent Discord server IP bans by the Anti-Raid bots. This won't work while Proxyless. 
+You can do more interesting things with offset. Normally to bypass Anti-Raid bots like Beemo or Wick, you'd have to join your tokens with high delays then wait for all of them to join to start DMing. Now with Offset you can make it so that one account joins and starts DMing, 30 seconds or any duration of your choice later the second account joins and start DMing so you save A LOT of time. How to do this? Set your offset to the duration you want your accounts to join in, like 30,000 - 60,000 (Remember offset is in milliseconds) and don't join your accounts to the server. Before Mass DMing, you'd get an option for advanced settings. Enter the server invite and serverid there. Use multiple proxies/rotating proxies to prevent Discord server IP bans by the Anti-Raid bots. This won't work while Proxyless. 
 
 ## Using Captcha APIs
 Captcha Solving APIs were introduced to DMDGO on 8th February 2022 when Discord mandated Captchas for joining servers on some tokens they deemed untrustworthy. The supported Captcha APIs right now are capmonster.cloud and anti-captcha.com 
@@ -226,7 +226,7 @@ You can register an account there, load some balance and copy your Captcha API K
 This is the config I'd use, with ofcourse the offset calculated accordingly. 
 
 ## Message in file
-The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. Message.json is an array of messages. Find the examples below to add multiple messages. You can use the "get message" option to get messages from discord as well. Be sure to have the [] around the whole message. The only way to change lines is adding `\n`. After discord update on 22nd January 2022; Embed support was removed from DMDGO V1.7.5 and higher as discord removed the capibility to send embeds completely from userbots
+The `input/message.json` is an array of messages from which one is chosen at random to be sent before each DM. Message.json is an array of messages. Find the examples below to add multiple messages. You can use the "get message" option to get messages from discord as well. Be sure to have the [] around the whole message. The only way to change lines is adding `\n`. After discord update on 22nd January 2022; Embed support was removed from DMDGO V1.7.5 and higher as discord removed the capability to send embeds completely from userbots
 
 ### Example message 1 : Single Message, No Embed
 ```json
@@ -285,9 +285,9 @@ If you get the error "Channel verification too high", this could be because you'
 Sometimes, servers have anti-raid bots which detect suspicious patterns in joining like a lot of accounts with similar recent dates of registeration, no profile picture and random names joining within a certain time period. They may kick/ban the accounts, in such an event, you will not be able to send messages. Check out the method described [here]() or use high delays while joining such servers
 
 ## Proxies, Tokens and the Discord Self-Bot market in general
-DMDGO was tested using Proxiware's Static Proxies and Iproyal's Rotating proxies. It may or may not work properly with free proxies from proxiscrape. Those are the worst proxies you can find on the internet. Using a proxies with gateway functions is not recommended.
+DMDGO was tested using Proxiware's Static Proxies and Iproyal's Rotating proxies. It may or may not work properly with free proxies from proxyscrape. Those are the worst proxies you can find on the internet. Using a proxies with gateway functions is not recommended.
 Tokens are Discord accounts, they will be sending DMs for you. There are few ways to get them, the simplest being to buy them. Whenever you buy tokens, please check the quality and only buy more if they're good. Or you can buy/make/find a token generator. 
-The Discord-Self bot market is very risky. A word of advice, don't purchase from unreputed people and use middlemen on reputed forums for large transactions. You will get scammed most of the times otherwise. The market is full of highly elaborate scammers like [Exordium](https://www.youtube.com/watch?v=uw7wjBxNK-4&ab_channel=Exordium) targetting people with his purchased channel and botted impressions. He will take your money and block you. And the owners of Anonix who will hapilly sell you open source code. 
+The Discord Self-Bot market is very risky. A word of advice, don't purchase from unreputed people and use middlemen on reputed forums for large transactions. You will get scammed most of the times otherwise. The market is full of highly elaborate scammers like [Exordium](https://www.youtube.com/watch?v=uw7wjBxNK-4&ab_channel=Exordium) targetting people with his purchased channel and botted impressions. He will take your money and block you. And the owners of Anonix who will hapilly sell you open source code. 
 Exit scams happen here all the time. Take recent incident of one of the MassDN partners Certex who exit scammed $60,000+ by ratting their customers. This is not to scare you to make purchases, this is just to warn you that you are likely to get scammed especially as a newcomer so stay vigilant. I decided to include this in the readme because everyday I see several people getting scammed.
 
 ## Support my Journey!
@@ -354,7 +354,7 @@ A: Error 400 is a malformed request and is a fault at your end. Either the chann
 A: Error 403 stands for "Forbidden" and Error 405 stands for "Method not allowed", 403 arrises due to several reasons - You're blocked by the Receiver, you don't share a mutual server with them, you're phone locked, you're email locked, You haven't completed member screening, Receiver's DMs are closed, etc. Meanwhile Error 405 usually happens when you try to do something that can't be done normally on discord, based on how the program works, this might arise if your tokens get locked/ disabled. Error 401 stands for "Unauthorized" and may mean that your token is invalid/locked. You may also get Error 403 if you try to DM users in a phone verification required server with email verified tokens.
 
 #### Q: What is rate limit delay? 
-A: Discord limits the speed with which you can send New DMs. As of November 2021, this limit is 10 new DMs every 10 minutes. Once the token gets rate limited, it will wait out the duration mentioned in config in front of rate limit delay. This is not bypassable, if anyone/ any other program claims it can bypass it, it's a lie. 
+A: Discord limits the speed with which you can send New DMs. As of November 2021, this limit is 10 new DMs every 10 minutes. Once the token gets rate limited, it will wait out the duration mentioned in config in front of rate limit delay. This is not bypassable, if anyone/any other program claims it can bypass it, it's a lie. 
 
 #### Q: What kind of tokens are recommended? 
 A: Fully verified tokens with a valid email and phone number
@@ -374,10 +374,10 @@ A: It is totally upto you, I personally don't see the need for proxies yet using
 #### Q: What is the proxy format? 
 A: The proxy format is username:password@hostname:port
 
-#### Q: Error 429/ I can't join servers?
+#### Q: Error 429 / I can't join servers?
 A: Your IP is softbanned / you are rate limited, use a VPN. It will be fixed.
 
-#### Q: What is membership screening/ minimum security of servers preventing me from DMing? 
+#### Q: What is membership screening / minimum security of servers preventing me from DMing? 
 A: It looks something like this: 
  
  
@@ -398,6 +398,6 @@ A: I will not, this program is just a Proof of Concept. Using it to actually lau
 A: This happens in a few scenerios. You're trying to use unverified tokens to DM in a server which needs Phone/Email verification OR you're trying to use email verified tokens in a server which requires phone verification. This may also happen if the server has a 10 minute wait time before you can interact in it, to verify, login into a token and see. It may also happen if for some reason, DMDGO failed to bypass the token which it does automatically.
 
 #### Q: Invalid character `e` looking for beginning of value error code: 1015 
-A: Cloudflare Error 1015 is an IP Based Rate limit. You have to use proxies/ VPN to get around it
+A: Cloudflare Error 1015 is an IP Based Rate limit. You have to use proxies/VPN to get around it
 
 

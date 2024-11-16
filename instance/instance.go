@@ -255,7 +255,7 @@ func OldGetEverything() (Config, []Instance, error) {
 		return cfg, instances, err
 	}
 	if !cfg.ProxySettings.ProxyFromFile && cfg.ProxySettings.ProxyForCaptcha {
-		utilities.LogErr(" You must enabe proxy_from_file to use proxy_for_captcha")
+		utilities.LogErr(" You must enable proxy_from_file to use proxy_for_captcha")
 		cfg.ProxySettings.ProxyForCaptcha = false
 	}
 	if cfg.OtherSettings.XSuperProperties == "" && cfg.OtherSettings.Useragent == "" {
