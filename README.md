@@ -107,7 +107,7 @@ Read this documentation, try using `Ctrl + F` to find what you're looking for. W
 | -----|------|-------------------|-------------|
 |`individual_delay` |int |90 | Duration in seconds between 2 consecutive Direct messages by one instance.
 |`rate_limit_delay` |int |60 | Duration in seconds instance sleeps for when Discord says "You're opening new direct messages too fast"
-|`offset` |int |1000 | uration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value.
+|`offset` |int |1000 | Duration in Milliseconds (1/1000th of a second) that the program waits in between of starting 2 instances. Perhaps one of the most important settings which is why it has it's [own section](). Recommended offset is (60/number of tokens) * 1000 but it does not matter with a few tokens and can be set to any small value.
 |`skip_completed` |bool |true | Skip members who have already been DM'd from the input/completed.txt file 
 |`call` |bool |false | Call users after DM (Token needs to be friended to Ring)
 |`remove_dead_tokens` |bool |true | Remove tokens which have died from input/tokens.txt once DMs are completed.
